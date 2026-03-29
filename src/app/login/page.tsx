@@ -30,9 +30,9 @@ export default function LoginPage() {
     <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         <div className="bg-white rounded-xl shadow-lg overflow-hidden">
-          <div className="bg-gradient-to-r from-[#4a1d6e] to-[#9b51e0] p-8 text-center">
-            <h1 className="text-2xl font-bold text-white">Kiros Early Education</h1>
-            <p className="text-white/80 text-sm mt-1">Quality Uplift Portal</p>
+          <div className="bg-gradient-to-r from-[#350A7E] to-[#6B3FCE] p-8 text-center">
+            <img src="/logo.jpg" alt="Kiro's Early Education Centre" className="h-12 mx-auto brightness-0 invert mb-2" />
+            <p className="text-white/80 text-sm">Quality Uplift Portal</p>
           </div>
           <form onSubmit={handleLogin} className="p-8 space-y-4">
             {error && (
@@ -46,7 +46,7 @@ export default function LoginPage() {
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#6b2fa0] focus:border-transparent outline-none"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#470DA8] focus:border-transparent outline-none"
                 placeholder="you@kiros.com.au"
                 required
               />
@@ -57,14 +57,14 @@ export default function LoginPage() {
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#6b2fa0] focus:border-transparent outline-none"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#470DA8] focus:border-transparent outline-none"
                 required
               />
             </div>
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-gradient-to-r from-[#4a1d6e] to-[#9b51e0] text-white py-2 px-4 rounded-lg font-medium hover:opacity-90 transition disabled:opacity-50"
+              className="w-full bg-gradient-to-r from-[#350A7E] to-[#6B3FCE] text-white py-2 px-4 rounded-lg font-medium hover:opacity-90 transition disabled:opacity-50"
             >
               {loading ? 'Signing in...' : 'Sign In'}
             </button>

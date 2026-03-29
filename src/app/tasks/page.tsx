@@ -95,7 +95,7 @@ export default function TaskBoardPage() {
           <h1 className="text-2xl font-bold">Task Board</h1>
           <p className="text-gray-500 text-sm mt-1">Drag tasks between columns to update status</p>
         </div>
-        <button onClick={() => setShowAdd(!showAdd)} className="px-4 py-2 bg-[#6b2fa0] text-white rounded-lg text-sm font-medium hover:opacity-90 transition">
+        <button onClick={() => setShowAdd(!showAdd)} className="px-4 py-2 bg-[#470DA8] text-white rounded-lg text-sm font-medium hover:opacity-90 transition">
           + Add Task
         </button>
       </div>
@@ -105,26 +105,26 @@ export default function TaskBoardPage() {
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <input type="text" placeholder="Task title" value={newTask.title} onChange={e => setNewTask({...newTask, title: e.target.value})}
-              className="px-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#6b2fa0] outline-none" />
+              className="px-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#470DA8] outline-none" />
             <select value={newTask.priority} onChange={e => setNewTask({...newTask, priority: e.target.value})}
-              className="px-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#6b2fa0] outline-none">
+              className="px-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#470DA8] outline-none">
               <option value="low">Low Priority</option>
               <option value="medium">Medium Priority</option>
               <option value="high">High Priority</option>
               <option value="urgent">Urgent</option>
             </select>
             <select value={newTask.assigned_to} onChange={e => setNewTask({...newTask, assigned_to: e.target.value})}
-              className="px-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#6b2fa0] outline-none">
+              className="px-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#470DA8] outline-none">
               <option value="">Unassigned</option>
               {profiles.map(p => <option key={p.id} value={p.id}>{p.full_name}</option>)}
             </select>
             <input type="date" value={newTask.due_date} onChange={e => setNewTask({...newTask, due_date: e.target.value})}
-              className="px-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#6b2fa0] outline-none" />
+              className="px-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#470DA8] outline-none" />
             <textarea placeholder="Description (optional)" value={newTask.description} onChange={e => setNewTask({...newTask, description: e.target.value})}
-              className="px-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#6b2fa0] outline-none md:col-span-2" rows={2} />
+              className="px-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#470DA8] outline-none md:col-span-2" rows={2} />
           </div>
           <div className="flex gap-2 mt-4">
-            <button onClick={createTask} className="px-4 py-2 bg-[#6b2fa0] text-white rounded-lg text-sm font-medium hover:opacity-90">Create Task</button>
+            <button onClick={createTask} className="px-4 py-2 bg-[#470DA8] text-white rounded-lg text-sm font-medium hover:opacity-90">Create Task</button>
             <button onClick={() => setShowAdd(false)} className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-200">Cancel</button>
           </div>
         </div>
@@ -150,7 +150,7 @@ export default function TaskBoardPage() {
                         <Draggable key={task.id} draggableId={task.id} index={index}>
                           {(provided, snapshot) => (
                             <div ref={provided.innerRef} {...provided.draggableProps} {...provided.dragHandleProps}
-                              className={`bg-white rounded-lg p-3 shadow-sm border border-gray-200 cursor-grab ${snapshot.isDragging ? 'shadow-lg ring-2 ring-[#6b2fa0]' : ''}`}>
+                              className={`bg-white rounded-lg p-3 shadow-sm border border-gray-200 cursor-grab ${snapshot.isDragging ? 'shadow-lg ring-2 ring-[#470DA8]' : ''}`}>
                               <div className="flex items-start gap-2">
                                 <span>{PRIORITIES[task.priority as keyof typeof PRIORITIES]}</span>
                                 <div className="flex-1 min-w-0">

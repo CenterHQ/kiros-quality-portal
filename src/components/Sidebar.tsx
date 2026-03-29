@@ -15,11 +15,14 @@ const navItems = [
   { href: '/forms', label: 'Forms', icon: '📝' },
   { href: '/resources', label: 'Resources', icon: '🔗' },
   { href: '/activity', label: 'Activity', icon: '📰' },
+  { href: '/reports', label: 'Reports', icon: '📈' },
+  { href: '/guide', label: 'User Guide', icon: '❓' },
 ]
 
 const adminItems = [
   { href: '/admin/users', label: 'User Management', icon: '👥' },
   { href: '/admin/notifications', label: 'Notifications', icon: '🔔' },
+  { href: '/admin/tags', label: 'Tags', icon: '🏷️' },
 ]
 
 export default function Sidebar({ profile }: { profile: Profile }) {
@@ -36,8 +39,8 @@ export default function Sidebar({ profile }: { profile: Profile }) {
   return (
     <aside className="w-64 bg-white border-r border-gray-200 min-h-screen flex flex-col">
       {/* Logo */}
-      <div className="p-4 bg-gradient-to-r from-[#4a1d6e] to-[#9b51e0]">
-        <h1 className="text-white font-bold text-lg">Kiros Early Education</h1>
+      <div className="p-4 bg-gradient-to-r from-[#350A7E] to-[#6B3FCE]">
+        <img src="/logo.jpg" alt="Kiros Early Education" className="h-8 brightness-0 invert mb-1" />
         <p className="text-white/70 text-xs">Quality Uplift Portal</p>
       </div>
 
@@ -57,7 +60,7 @@ export default function Sidebar({ profile }: { profile: Profile }) {
               href={item.href}
               className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition ${
                 isActive
-                  ? 'bg-[#6b2fa0] text-white'
+                  ? 'bg-[#470DA8] text-white'
                   : 'text-gray-700 hover:bg-gray-100'
               }`}
             >
@@ -80,7 +83,7 @@ export default function Sidebar({ profile }: { profile: Profile }) {
                   href={item.href}
                   className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition ${
                     isActive
-                      ? 'bg-[#6b2fa0] text-white'
+                      ? 'bg-[#470DA8] text-white'
                       : 'text-gray-700 hover:bg-gray-100'
                   }`}
                 >

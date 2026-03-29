@@ -5,6 +5,35 @@ import { useParams, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { QA_COLORS, STATUS_COLORS, type QAElement, type Comment, type Profile } from '@/lib/types'
 
+interface ElementAction {
+  id: string
+  element_id: number
+  title: string
+  description?: string
+  steps?: string[]
+  prerequisites?: string
+  evidence_required?: string
+  evidence_files?: string[]
+  status: 'not_started' | 'in_progress' | 'blocked' | 'completed'
+  assigned_to?: string | null
+  due_date?: string | null
+  created_at: string
+  updated_at: string
+}
+
+interface Tag {
+  id: string
+  name: string
+  color?: string
+}
+
+interface EntityTag {
+  id: string
+  tag_id: string
+  entity_type: string
+  entity_id: string
+}
+
 export default function ElementDetailPage() {
   const params = useParams()
   const router = useRouter()
@@ -13,6 +42,23 @@ export default function ElementDetailPage() {
   const [newComment, setNewComment] = useState('')
   const [user, setUser] = useState<Profile | null>(null)
   const supabase = createClient()
+
+  // Element Actions state
+  const [elementActions, setElementActions] = useState<ElementAction[]>([])
+  const [expandedActions, setExpandedActions] = useState<string[]>([])
+  const [allProfiles, setAllProfiles] = useState<Profile[]>([])
+  const [allTags, setAllTags] = useState<Tag[]>([])
+  const [actionTags, setActionTags] = useState<Record<string, Tag[]>>({})
+  const [showNewActionForm, setShowNewActionForm] = useState(false)
+  const [newAction, setNewAction] = useState({
+    title: '',
+    description: '',
+    steps: '',
+    prerequisites: '',
+    evidence_required: '',
+    assigned_to: '',
+    due_date: '',
+  })
 
   useEffect(() => {
     const load = async () => {
@@ -27,6 +73,40 @@ export default function ElementDetailPage() {
 
       const { data: c } = await supabase.from('comments').select('*, profiles(*)').eq('entity_type', 'element').eq('entity_id', String(params.id)).order('created_at', { ascending: true })
       if (c) setComments(c as any)
+
+      // Fetch element actions
+      const { data: actions } = await supabase
+        .from('element_actions')
+        .select('*')
+        .eq('element_id', Number(params.id))
+        .order('created_at', { ascending: true })
+      if (actions) setElementActions(actions as ElementAction[])
+
+      // Fetch all profiles for assignment dropdown
+      const { data: profiles } = await supabase.from('profiles').select('*').order('full_name')
+      if (profiles) setAllProfiles(profiles)
+
+      // Fetch tags
+      const { data: tags } = await supabase.from('tags').select('*').order('name')
+      if (tags) setAllTags(tags)
+
+      // Fetch entity_tags for actions
+      if (actions && actions.length > 0) {
+        const actionIds = actions.map((a: any) => a.id)
+        const { data: eTags } = await supabase
+          .from('entity_tags')
+          .select('*, tags(*)')
+          .eq('entity_type', 'element_action')
+          .in('entity_id', actionIds)
+        if (eTags) {
+          const tagMap: Record<string, Tag[]> = {}
+          eTags.forEach((et: any) => {
+            if (!tagMap[et.entity_id]) tagMap[et.entity_id] = []
+            if (et.tags) tagMap[et.entity_id].push(et.tags)
+          })
+          setActionTags(tagMap)
+        }
+      }
     }
     load()
 
@@ -38,7 +118,23 @@ export default function ElementDetailPage() {
       })
       .subscribe()
 
-    return () => { supabase.removeChannel(channel) }
+    // Realtime element_actions
+    const actionsChannel = supabase.channel('element-actions')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'element_actions', filter: `element_id=eq.${params.id}` }, async (payload) => {
+        if (payload.eventType === 'INSERT') {
+          setElementActions(prev => [...prev, payload.new as ElementAction])
+        } else if (payload.eventType === 'UPDATE') {
+          setElementActions(prev => prev.map(a => a.id === payload.new.id ? { ...a, ...payload.new } as ElementAction : a))
+        } else if (payload.eventType === 'DELETE') {
+          setElementActions(prev => prev.filter(a => a.id !== payload.old.id))
+        }
+      })
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(channel)
+      supabase.removeChannel(actionsChannel)
+    }
   }, [params.id])
 
   const updateField = useCallback(async (field: string, value: string) => {
@@ -76,6 +172,69 @@ export default function ElementDetailPage() {
     })
   }
 
+  // Element Action helpers
+  const toggleActionStatus = async (action: ElementAction) => {
+    const newStatus = action.status === 'completed' ? 'not_started' : 'completed'
+    await supabase.from('element_actions').update({ status: newStatus }).eq('id', action.id)
+    setElementActions(prev => prev.map(a => a.id === action.id ? { ...a, status: newStatus } : a))
+    if (user && element) {
+      await supabase.from('activity_log').insert({
+        user_id: user.id,
+        action: newStatus === 'completed' ? 'Completed action' : 'Reopened action',
+        entity_type: 'element_action',
+        entity_id: action.id,
+        details: `${element.element_code}: "${action.title}" marked ${newStatus}`
+      })
+    }
+  }
+
+  const updateAction = async (actionId: string, field: string, value: string | null) => {
+    await supabase.from('element_actions').update({ [field]: value }).eq('id', actionId)
+    setElementActions(prev => prev.map(a => a.id === actionId ? { ...a, [field]: value } : a))
+  }
+
+  const toggleExpand = (actionId: string) => {
+    setExpandedActions(prev =>
+      prev.includes(actionId) ? prev.filter(id => id !== actionId) : [...prev, actionId]
+    )
+  }
+
+  const addAction = async () => {
+    if (!newAction.title.trim() || !element) return
+    const steps = newAction.steps.trim()
+      ? newAction.steps.split('\n').map(s => s.trim()).filter(Boolean)
+      : []
+    const { data, error } = await supabase.from('element_actions').insert({
+      element_id: element.id,
+      title: newAction.title.trim(),
+      description: newAction.description.trim() || null,
+      steps: steps.length > 0 ? steps : null,
+      prerequisites: newAction.prerequisites.trim() || null,
+      evidence_required: newAction.evidence_required.trim() || null,
+      assigned_to: newAction.assigned_to || null,
+      due_date: newAction.due_date || null,
+      status: 'not_started',
+    }).select().single()
+    if (data) {
+      setElementActions(prev => [...prev, data as ElementAction])
+      setNewAction({ title: '', description: '', steps: '', prerequisites: '', evidence_required: '', assigned_to: '', due_date: '' })
+      setShowNewActionForm(false)
+    }
+    if (user) {
+      await supabase.from('activity_log').insert({
+        user_id: user.id,
+        action: 'Created action',
+        entity_type: 'element_action',
+        entity_id: data?.id || '',
+        details: `${element.element_code}: "${newAction.title}"`
+      })
+    }
+  }
+
+  const completedActionCount = elementActions.filter(a => a.status === 'completed').length
+  const totalActionCount = elementActions.length
+  const actionProgress = totalActionCount > 0 ? Math.round((completedActionCount / totalActionCount) * 100) : 0
+
   if (!element) return <div className="flex items-center justify-center h-64"><p className="text-gray-500">Loading...</p></div>
 
   const qaColor = QA_COLORS[element.qa_number] || '#666'
@@ -101,7 +260,7 @@ export default function ElementDetailPage() {
           <div>
             <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">Current Rating</label>
             <select value={element.current_rating} onChange={(e) => updateField('current_rating', e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#6b2fa0] outline-none">
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#470DA8] outline-none">
               <option value="not_met">Not Met</option>
               <option value="met">Met</option>
               <option value="working_towards">Working Towards</option>
@@ -112,7 +271,7 @@ export default function ElementDetailPage() {
           <div>
             <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">Uplift Status</label>
             <select value={element.status} onChange={(e) => updateField('status', e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#6b2fa0] outline-none">
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#470DA8] outline-none">
               <option value="not_started">Not Started</option>
               <option value="in_progress">In Progress</option>
               <option value="action_taken">Action Taken</option>
@@ -123,7 +282,7 @@ export default function ElementDetailPage() {
           <div>
             <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">Due Date</label>
             <input type="date" value={element.due_date || ''} onChange={(e) => updateField('due_date', e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#6b2fa0] outline-none" />
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#470DA8] outline-none" />
           </div>
         </div>
 
@@ -182,7 +341,7 @@ export default function ElementDetailPage() {
               value={element.actions_taken || ''}
               onChange={(e) => setElement(prev => prev ? { ...prev, actions_taken: e.target.value } : null)}
               onBlur={(e) => updateField('actions_taken', e.target.value)}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#6b2fa0] outline-none resize-y min-h-[100px]"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#470DA8] outline-none resize-y min-h-[100px]"
               placeholder="Document actions taken to address this element..."
             />
           </div>
@@ -192,10 +351,207 @@ export default function ElementDetailPage() {
               value={element.notes || ''}
               onChange={(e) => setElement(prev => prev ? { ...prev, notes: e.target.value } : null)}
               onBlur={(e) => updateField('notes', e.target.value)}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#6b2fa0] outline-none resize-y min-h-[100px]"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#470DA8] outline-none resize-y min-h-[100px]"
               placeholder="Additional notes..."
             />
           </div>
+        </div>
+      </div>
+
+      {/* Element Actions Checklist */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden mb-6">
+        <div className="px-6 py-4 border-b border-gray-200">
+          <div className="flex items-center justify-between">
+            <h2 className="font-semibold text-gray-900">Actions Checklist</h2>
+            <span className="text-sm text-gray-500">{completedActionCount}/{totalActionCount} complete</span>
+          </div>
+          {/* Progress bar */}
+          <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
+            <div className="h-2 rounded-full bg-[#470DA8] transition-all" style={{ width: `${actionProgress}%` }} />
+          </div>
+        </div>
+        <div className="divide-y divide-gray-100">
+          {elementActions.map(action => (
+            <div key={action.id} className="p-4">
+              <div className="flex items-start gap-3">
+                {/* Checkbox */}
+                <button onClick={() => toggleActionStatus(action)}
+                  className={`w-5 h-5 rounded border-2 flex items-center justify-center flex-shrink-0 mt-0.5 transition ${
+                    action.status === 'completed' ? 'bg-green-500 border-green-500 text-white' : 'border-gray-300 hover:border-[#470DA8]'
+                  }`}>
+                  {action.status === 'completed' && <span className="text-xs">&#10003;</span>}
+                </button>
+                <div className="flex-1 min-w-0">
+                  {/* Title and toggle */}
+                  <button onClick={() => toggleExpand(action.id)} className="text-left w-full">
+                    <p className={`text-sm font-medium ${action.status === 'completed' ? 'text-gray-400 line-through' : 'text-gray-900'}`}>
+                      {action.title}
+                    </p>
+                    {action.description && !expandedActions.includes(action.id) && (
+                      <p className="text-xs text-gray-400 mt-0.5 truncate">{action.description}</p>
+                    )}
+                  </button>
+                  {/* Tags */}
+                  {actionTags[action.id] && actionTags[action.id].length > 0 && (
+                    <div className="flex gap-1 mt-1 flex-wrap">
+                      {actionTags[action.id].map(tag => (
+                        <span key={tag.id} className="text-xs px-2 py-0.5 rounded-full bg-purple-100 text-purple-700">
+                          {tag.name}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                  {/* Expanded content */}
+                  {expandedActions.includes(action.id) && (
+                    <div className="mt-3 space-y-3">
+                      {action.description && <p className="text-sm text-gray-600">{action.description}</p>}
+                      {/* Steps */}
+                      {action.steps && action.steps.length > 0 && (
+                        <div>
+                          <p className="text-xs font-semibold text-gray-500 uppercase mb-1">Steps</p>
+                          <ol className="list-decimal list-inside space-y-1">
+                            {action.steps.map((step: string, i: number) => (
+                              <li key={i} className="text-sm text-gray-600">{step}</li>
+                            ))}
+                          </ol>
+                        </div>
+                      )}
+                      {/* Prerequisites */}
+                      {action.prerequisites && (
+                        <div>
+                          <p className="text-xs font-semibold text-gray-500 uppercase mb-1">Prerequisites</p>
+                          <p className="text-sm text-gray-600">{action.prerequisites}</p>
+                        </div>
+                      )}
+                      {/* Evidence Required */}
+                      {action.evidence_required && (
+                        <div>
+                          <p className="text-xs font-semibold text-gray-500 uppercase mb-1">Evidence Required</p>
+                          <p className="text-sm text-gray-600">{action.evidence_required}</p>
+                        </div>
+                      )}
+                      {/* Evidence Files */}
+                      {action.evidence_files && action.evidence_files.length > 0 && (
+                        <div>
+                          <p className="text-xs font-semibold text-gray-500 uppercase mb-1">Evidence Files</p>
+                          <ul className="space-y-1">
+                            {action.evidence_files.map((file: string, i: number) => (
+                              <li key={i} className="text-sm text-blue-600 underline">{file}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                      {/* Status, Assigned, Due Date */}
+                      <div className="flex gap-3 flex-wrap">
+                        <div>
+                          <label className="block text-xs text-gray-500 mb-0.5">Status</label>
+                          <select value={action.status} onChange={e => updateAction(action.id, 'status', e.target.value)}
+                            className="px-2 py-1 border border-gray-300 rounded text-xs focus:ring-2 focus:ring-[#470DA8] outline-none">
+                            <option value="not_started">Not Started</option>
+                            <option value="in_progress">In Progress</option>
+                            <option value="blocked">Blocked</option>
+                            <option value="completed">Completed</option>
+                          </select>
+                        </div>
+                        <div>
+                          <label className="block text-xs text-gray-500 mb-0.5">Assigned To</label>
+                          <select value={action.assigned_to || ''} onChange={e => updateAction(action.id, 'assigned_to', e.target.value || null)}
+                            className="px-2 py-1 border border-gray-300 rounded text-xs focus:ring-2 focus:ring-[#470DA8] outline-none">
+                            <option value="">Unassigned</option>
+                            {allProfiles.map(p => <option key={p.id} value={p.id}>{p.full_name}</option>)}
+                          </select>
+                        </div>
+                        <div>
+                          <label className="block text-xs text-gray-500 mb-0.5">Due Date</label>
+                          <input type="date" value={action.due_date || ''} onChange={e => updateAction(action.id, 'due_date', e.target.value || null)}
+                            className="px-2 py-1 border border-gray-300 rounded text-xs focus:ring-2 focus:ring-[#470DA8] outline-none" />
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+                {/* Due date badge */}
+                {action.due_date && (
+                  <span className={`text-xs px-2 py-0.5 rounded-full flex-shrink-0 ${
+                    action.due_date < new Date().toISOString().split('T')[0] && action.status !== 'completed'
+                      ? 'bg-red-100 text-red-600' : 'bg-gray-100 text-gray-500'
+                  }`}>{action.due_date}</span>
+                )}
+              </div>
+            </div>
+          ))}
+          {elementActions.length === 0 && (
+            <div className="p-6 text-center text-sm text-gray-400">No actions yet. Add one below.</div>
+          )}
+        </div>
+        {/* Add new action */}
+        <div className="px-6 py-4 border-t border-gray-200 bg-gray-50">
+          {!showNewActionForm ? (
+            <button onClick={() => setShowNewActionForm(true)}
+              className="text-sm text-[#470DA8] font-medium hover:underline">
+              + Add Action
+            </button>
+          ) : (
+            <div className="space-y-3">
+              <div>
+                <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">Title *</label>
+                <input type="text" value={newAction.title} onChange={e => setNewAction(prev => ({ ...prev, title: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#470DA8] outline-none"
+                  placeholder="Action title..." />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">Description</label>
+                <textarea value={newAction.description} onChange={e => setNewAction(prev => ({ ...prev, description: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#470DA8] outline-none resize-y min-h-[60px]"
+                  placeholder="Describe this action..." />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">Steps (one per line)</label>
+                <textarea value={newAction.steps} onChange={e => setNewAction(prev => ({ ...prev, steps: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#470DA8] outline-none resize-y min-h-[60px]"
+                  placeholder="Step 1&#10;Step 2&#10;Step 3" />
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">Prerequisites</label>
+                  <input type="text" value={newAction.prerequisites} onChange={e => setNewAction(prev => ({ ...prev, prerequisites: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#470DA8] outline-none"
+                    placeholder="What needs to happen first..." />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">Evidence Required</label>
+                  <input type="text" value={newAction.evidence_required} onChange={e => setNewAction(prev => ({ ...prev, evidence_required: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#470DA8] outline-none"
+                    placeholder="What evidence is needed..." />
+                </div>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">Assigned To</label>
+                  <select value={newAction.assigned_to} onChange={e => setNewAction(prev => ({ ...prev, assigned_to: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#470DA8] outline-none">
+                    <option value="">Unassigned</option>
+                    {allProfiles.map(p => <option key={p.id} value={p.id}>{p.full_name}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">Due Date</label>
+                  <input type="date" value={newAction.due_date} onChange={e => setNewAction(prev => ({ ...prev, due_date: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#470DA8] outline-none" />
+                </div>
+              </div>
+              <div className="flex gap-2">
+                <button onClick={addAction} disabled={!newAction.title.trim()}
+                  className="px-4 py-2 bg-[#470DA8] text-white rounded-lg text-sm font-medium hover:opacity-90 transition disabled:opacity-50">
+                  Add Action
+                </button>
+                <button onClick={() => { setShowNewActionForm(false); setNewAction({ title: '', description: '', steps: '', prerequisites: '', evidence_required: '', assigned_to: '', due_date: '' }) }}
+                  className="px-4 py-2 border border-gray-300 rounded-lg text-sm text-gray-600 hover:bg-gray-50 transition">
+                  Cancel
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
@@ -209,7 +565,7 @@ export default function ElementDetailPage() {
             <div className="space-y-4 mb-6">
               {comments.map(c => (
                 <div key={c.id} className="flex gap-3">
-                  <div className="w-8 h-8 rounded-full bg-[#6b2fa0] text-white flex items-center justify-center text-xs font-bold flex-shrink-0">
+                  <div className="w-8 h-8 rounded-full bg-[#470DA8] text-white flex items-center justify-center text-xs font-bold flex-shrink-0">
                     {c.profiles?.full_name?.charAt(0) || '?'}
                   </div>
                   <div className="flex-1">
@@ -229,14 +585,14 @@ export default function ElementDetailPage() {
             <textarea
               value={newComment}
               onChange={(e) => setNewComment(e.target.value)}
-              className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#6b2fa0] outline-none resize-none"
+              className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#470DA8] outline-none resize-none"
               placeholder="Add a comment..."
               rows={2}
             />
             <button
               onClick={addComment}
               disabled={!newComment.trim()}
-              className="px-4 py-2 bg-[#6b2fa0] text-white rounded-lg text-sm font-medium hover:opacity-90 transition disabled:opacity-50 self-end"
+              className="px-4 py-2 bg-[#470DA8] text-white rounded-lg text-sm font-medium hover:opacity-90 transition disabled:opacity-50 self-end"
             >Send</button>
           </div>
         </div>

@@ -50,12 +50,12 @@ export default function ElementsPage() {
           placeholder="Search elements..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="px-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#6b2fa0] focus:border-transparent outline-none"
+          className="px-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#470DA8] focus:border-transparent outline-none"
         />
         <div className="flex gap-1">
           <button
             onClick={() => setFilterQA(null)}
-            className={`px-3 py-1 rounded-full text-xs font-medium transition ${!filterQA ? 'bg-[#6b2fa0] text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
+            className={`px-3 py-1 rounded-full text-xs font-medium transition ${!filterQA ? 'bg-[#470DA8] text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
           >All</button>
           {[1,2,3,4,5,6,7].map(n => (
             <button

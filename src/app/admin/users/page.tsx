@@ -59,7 +59,7 @@ export default function UsersPage() {
           <h1 className="text-2xl font-bold">User Management</h1>
           <p className="text-gray-500 text-sm mt-1">Manage team access and roles</p>
         </div>
-        <button onClick={() => setShowAdd(!showAdd)} className="px-4 py-2 bg-[#6b2fa0] text-white rounded-lg text-sm font-medium hover:opacity-90 transition">
+        <button onClick={() => setShowAdd(!showAdd)} className="px-4 py-2 bg-[#470DA8] text-white rounded-lg text-sm font-medium hover:opacity-90 transition">
           + Add User
         </button>
       </div>
@@ -77,22 +77,22 @@ export default function UsersPage() {
             <div>
               <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">Full Name</label>
               <input type="text" value={newUser.full_name} onChange={e => setNewUser({...newUser, full_name: e.target.value})}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#6b2fa0] outline-none" placeholder="e.g. Annette Ballard" />
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#470DA8] outline-none" placeholder="e.g. Annette Ballard" />
             </div>
             <div>
               <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">Email</label>
               <input type="email" value={newUser.email} onChange={e => setNewUser({...newUser, email: e.target.value})}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#6b2fa0] outline-none" placeholder="e.g. annette@kiros.com.au" />
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#470DA8] outline-none" placeholder="e.g. annette@kiros.com.au" />
             </div>
             <div>
               <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">Temporary Password</label>
               <input type="text" value={newUser.password} onChange={e => setNewUser({...newUser, password: e.target.value})}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#6b2fa0] outline-none" placeholder="Temporary password" />
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#470DA8] outline-none" placeholder="Temporary password" />
             </div>
             <div>
               <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">Role</label>
               <select value={newUser.role} onChange={e => setNewUser({...newUser, role: e.target.value})}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#6b2fa0] outline-none">
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#470DA8] outline-none">
                 {Object.entries(ROLE_LABELS).map(([key, label]) => (
                   <option key={key} value={key}>{label}</option>
                 ))}
@@ -100,7 +100,7 @@ export default function UsersPage() {
             </div>
           </div>
           <div className="flex gap-2 mt-4">
-            <button onClick={addUser} disabled={loading} className="px-4 py-2 bg-[#6b2fa0] text-white rounded-lg text-sm font-medium hover:opacity-90 disabled:opacity-50">
+            <button onClick={addUser} disabled={loading} className="px-4 py-2 bg-[#470DA8] text-white rounded-lg text-sm font-medium hover:opacity-90 disabled:opacity-50">
               {loading ? 'Creating...' : 'Create User'}
             </button>
             <button onClick={() => setShowAdd(false)} className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm hover:bg-gray-200">Cancel</button>
@@ -124,7 +124,7 @@ export default function UsersPage() {
               <tr key={p.id} className="hover:bg-gray-50">
                 <td className="px-6 py-3">
                   <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-[#6b2fa0] text-white flex items-center justify-center text-xs font-bold">
+                    <div className="w-8 h-8 rounded-full bg-[#470DA8] text-white flex items-center justify-center text-xs font-bold">
                       {p.full_name?.charAt(0) || '?'}
                     </div>
                     <span className="text-sm font-medium text-gray-900">{p.full_name}</span>
@@ -133,7 +133,7 @@ export default function UsersPage() {
                 <td className="px-6 py-3 text-sm text-gray-600">{p.email}</td>
                 <td className="px-6 py-3">
                   <select value={p.role} onChange={(e) => updateRole(p.id, e.target.value)}
-                    className="px-2 py-1 border border-gray-300 rounded text-xs focus:ring-2 focus:ring-[#6b2fa0] outline-none">
+                    className="px-2 py-1 border border-gray-300 rounded text-xs focus:ring-2 focus:ring-[#470DA8] outline-none">
                     {Object.entries(ROLE_LABELS).map(([key, label]) => (
                       <option key={key} value={key}>{label}</option>
                     ))}

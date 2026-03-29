@@ -82,7 +82,7 @@ export default function CompliancePage() {
     return (
       <div className="max-w-7xl mx-auto">
         <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#6b2fa0]" />
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#470DA8]" />
         </div>
       </div>
     )
@@ -138,7 +138,7 @@ export default function CompliancePage() {
                     <select
                       value={item.status}
                       onChange={(e) => updateField(item.id, 'status', e.target.value)}
-                      className="px-2 py-1 rounded-lg text-xs font-medium border-0 cursor-pointer focus:ring-2 focus:ring-[#6b2fa0] outline-none"
+                      className="px-2 py-1 rounded-lg text-xs font-medium border-0 cursor-pointer focus:ring-2 focus:ring-[#470DA8] outline-none"
                       style={{
                         backgroundColor: STATUS_COLORS[item.status]?.bg,
                         color: STATUS_COLORS[item.status]?.text,
@@ -153,7 +153,7 @@ export default function CompliancePage() {
                     <select
                       value={item.assigned_to || ''}
                       onChange={(e) => updateField(item.id, 'assigned_to', e.target.value || null)}
-                      className="px-2 py-1 rounded-lg text-xs border border-gray-200 cursor-pointer focus:ring-2 focus:ring-[#6b2fa0] outline-none bg-white text-gray-700 w-full"
+                      className="px-2 py-1 rounded-lg text-xs border border-gray-200 cursor-pointer focus:ring-2 focus:ring-[#470DA8] outline-none bg-white text-gray-700 w-full"
                     >
                       <option value="">Unassigned</option>
                       {profiles.map(p => (
@@ -167,7 +167,7 @@ export default function CompliancePage() {
                         <textarea
                           value={notesValue}
                           onChange={(e) => setNotesValue(e.target.value)}
-                          className="flex-1 px-2 py-1 border border-gray-300 rounded-lg text-xs focus:ring-2 focus:ring-[#6b2fa0] focus:border-transparent outline-none resize-none"
+                          className="flex-1 px-2 py-1 border border-gray-300 rounded-lg text-xs focus:ring-2 focus:ring-[#470DA8] focus:border-transparent outline-none resize-none"
                           rows={2}
                           autoFocus
                           onKeyDown={(e) => {
@@ -180,7 +180,7 @@ export default function CompliancePage() {
                         />
                         <button
                           onClick={() => handleNotesSave(item.id)}
-                          className="px-2 py-1 bg-[#6b2fa0] text-white text-xs rounded-lg hover:bg-[#5a2788] transition self-start"
+                          className="px-2 py-1 bg-[#470DA8] text-white text-xs rounded-lg hover:bg-[#350A7E] transition self-start"
                         >
                           Save
                         </button>

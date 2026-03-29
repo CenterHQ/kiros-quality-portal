@@ -190,23 +190,23 @@ export default function NewFormPage() {
             <label className="block text-sm font-medium text-gray-700 mb-1">{field.label}</label>
             {field.type === 'textarea' ? (
               <textarea value={formData[field.name] || ''} onChange={e => updateField(field.name, e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#6b2fa0] outline-none resize-y min-h-[80px]" />
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#470DA8] outline-none resize-y min-h-[80px]" />
             ) : field.type === 'select' ? (
               <select value={formData[field.name] || ''} onChange={e => updateField(field.name, e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#6b2fa0] outline-none">
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#470DA8] outline-none">
                 <option value="">Select...</option>
                 {field.options?.map(o => <option key={o} value={o}>{o}</option>)}
               </select>
             ) : (
               <input type={field.type} value={formData[field.name] || ''} onChange={e => updateField(field.name, e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#6b2fa0] outline-none" />
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#470DA8] outline-none" />
             )}
           </div>
         ))}
 
         <div className="flex gap-3 pt-4 border-t border-gray-200">
           <button onClick={() => saveForm('submitted')} disabled={saving}
-            className="px-6 py-2 bg-[#6b2fa0] text-white rounded-lg text-sm font-medium hover:opacity-90 disabled:opacity-50">
+            className="px-6 py-2 bg-[#470DA8] text-white rounded-lg text-sm font-medium hover:opacity-90 disabled:opacity-50">
             {saving ? 'Saving...' : 'Submit'}
           </button>
           <button onClick={() => saveForm('draft')} disabled={saving}

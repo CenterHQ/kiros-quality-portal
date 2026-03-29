@@ -147,7 +147,7 @@ export default function DocumentsPage() {
     return (
       <div className="max-w-7xl mx-auto">
         <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#6b2fa0]" />
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#470DA8]" />
         </div>
       </div>
     )
@@ -163,7 +163,7 @@ export default function DocumentsPage() {
         <button
           onClick={() => fileInputRef.current?.click()}
           disabled={uploading}
-          className="px-4 py-2 bg-[#6b2fa0] text-white text-sm rounded-lg hover:bg-[#5a2788] transition font-medium disabled:opacity-50"
+          className="px-4 py-2 bg-[#470DA8] text-white text-sm rounded-lg hover:bg-[#350A7E] transition font-medium disabled:opacity-50"
         >
           {uploading ? 'Uploading...' : 'Upload File'}
         </button>
@@ -185,7 +185,7 @@ export default function DocumentsPage() {
         onClick={() => fileInputRef.current?.click()}
         className={`mb-6 border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition ${
           dragActive
-            ? 'border-[#6b2fa0] bg-purple-50'
+            ? 'border-[#470DA8] bg-purple-50'
             : 'border-gray-300 hover:border-gray-400 bg-gray-50'
         }`}
       >
@@ -205,7 +205,7 @@ export default function DocumentsPage() {
         <button
           onClick={() => setFilterQA(null)}
           className={`px-3 py-1 rounded-full text-xs font-medium transition ${
-            filterQA === null ? 'bg-[#6b2fa0] text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+            filterQA === null ? 'bg-[#470DA8] text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
           }`}
         >
           All

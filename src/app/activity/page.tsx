@@ -89,7 +89,7 @@ export default function ActivityPage() {
     return (
       <div className="max-w-7xl mx-auto">
         <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#6b2fa0]" />
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#470DA8]" />
         </div>
       </div>
     )
@@ -109,7 +109,7 @@ export default function ActivityPage() {
         <button
           onClick={() => setFilter(null)}
           className={`px-3 py-1 rounded-full text-xs font-medium transition ${
-            !filter ? 'bg-[#6b2fa0] text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+            !filter ? 'bg-[#470DA8] text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
           }`}
         >
           All

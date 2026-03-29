@@ -1,18 +1,22 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Karla } from "next/font/google";
 import "./globals.css";
 
-const inter = Inter({ subsets: ["latin"] });
+const karla = Karla({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Kiros Early Education — Quality Uplift Portal",
+  title: "Kiro's Early Education Centre — Quality Uplift Portal",
   description: "Collaborative platform for quality uplift following Assessment & Rating",
+  icons: {
+    icon: '/favicon.ico',
+    apple: '/apple-icon.png',
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body className={`${inter.className} bg-gray-50 text-gray-900`}>
+      <body className={`${karla.className} bg-gray-50 text-gray-900`}>
         {children}
       </body>
     </html>

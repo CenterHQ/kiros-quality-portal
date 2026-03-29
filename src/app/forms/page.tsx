@@ -41,7 +41,7 @@ export default function FormsPage() {
                     <h3 className="font-semibold text-gray-900">{ft.name}</h3>
                     <p className="text-xs text-gray-500 mt-1">{ft.description}</p>
                   </div>
-                  <a href={`/forms/new?type=${ft.id}`} className="px-3 py-1 bg-[#6b2fa0] text-white rounded-lg text-xs font-medium hover:opacity-90 transition whitespace-nowrap">
+                  <a href={`/forms/new?type=${ft.id}`} className="px-3 py-1 bg-[#470DA8] text-white rounded-lg text-xs font-medium hover:opacity-90 transition whitespace-nowrap">
                     + New
                   </a>
                 </div>
