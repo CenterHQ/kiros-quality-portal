@@ -29,7 +29,8 @@ export default function TaskBoardPage() {
         const { data: p } = await supabase.from('profiles').select('*').eq('id', au.id).single()
         if (p) setUser(p)
       }
-      const { data: t } = await supabase.from('tasks').select('*, profiles(full_name)').order('sort_order')
+      const { data: t, error: tErr } = await supabase.from('tasks').select('*').order('sort_order')
+      console.log('Tasks loaded:', t?.length, 'Error:', tErr)
       if (t) setTasks(t as any)
       const { data: pr } = await supabase.from('profiles').select('*')
       if (pr) setProfiles(pr)
@@ -39,7 +40,7 @@ export default function TaskBoardPage() {
     // Realtime
     const channel = supabase.channel('tasks-realtime')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'tasks' }, async () => {
-        const { data } = await supabase.from('tasks').select('*, profiles(full_name)').order('sort_order')
+        const { data } = await supabase.from('tasks').select('*').order('sort_order')
         if (data) setTasks(data as any)
       })
       .subscribe()
