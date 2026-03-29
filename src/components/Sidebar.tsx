@@ -6,7 +6,7 @@ import type { Profile } from '@/lib/types'
 import { ROLE_LABELS } from '@/lib/types'
 
 const navItems = [
-  { href: '/', label: 'Dashboard', icon: '📊' },
+  { href: '/dashboard', label: 'Dashboard', icon: '📊' },
   { href: '/elements', label: 'QA Elements', icon: '📋' },
   { href: '/tasks', label: 'Task Board', icon: '✅' },
   { href: '/training', label: 'Training', icon: '📚' },
