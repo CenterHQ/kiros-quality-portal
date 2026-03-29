@@ -39,9 +39,11 @@ export default function Sidebar({ profile }: { profile: Profile }) {
   return (
     <aside className="w-64 bg-white border-r border-gray-200 min-h-screen flex flex-col">
       {/* Logo */}
-      <div className="p-4 bg-gradient-to-r from-[#350A7E] to-[#6B3FCE]">
-        <img src="/logo.jpg" alt="Kiros Early Education" className="h-8 brightness-0 invert mb-1" />
-        <p className="text-white/70 text-xs">Quality Uplift Portal</p>
+      <div className="p-4 border-b border-gray-200 bg-white">
+        <img src="/logo.jpg" alt="Kiro's Early Education Centre" className="h-10 w-auto" />
+        <div className="mt-1.5 bg-gradient-to-r from-[#470DA8] to-[#6B3FCE] text-white text-xs font-medium px-2 py-0.5 rounded inline-block">
+          Quality Uplift Portal
+        </div>
       </div>
 
       {/* User info */}

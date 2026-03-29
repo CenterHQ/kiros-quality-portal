@@ -30,9 +30,11 @@ export default function LoginPage() {
     <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         <div className="bg-white rounded-xl shadow-lg overflow-hidden">
-          <div className="bg-gradient-to-r from-[#350A7E] to-[#6B3FCE] p-8 text-center">
-            <img src="/logo.jpg" alt="Kiro's Early Education Centre" className="h-12 mx-auto brightness-0 invert mb-2" />
-            <p className="text-white/80 text-sm">Quality Uplift Portal</p>
+          <div className="bg-white p-8 text-center border-b border-gray-100">
+            <img src="/logo.jpg" alt="Kiro's Early Education Centre" className="h-14 mx-auto mb-3" />
+            <div className="inline-block bg-gradient-to-r from-[#470DA8] to-[#6B3FCE] text-white text-sm font-medium px-4 py-1 rounded-full">
+              Quality Uplift Portal
+            </div>
           </div>
           <form onSubmit={handleLogin} className="p-8 space-y-4">
             {error && (
