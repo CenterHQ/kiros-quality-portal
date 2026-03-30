@@ -206,7 +206,7 @@ export default function RosteringPage() {
   // Check for qualification coverage
   const getQualificationCoverage = (date: string) => {
     const dayShifts = shifts.filter(s => s.shift_date === date && s.status !== 'cancelled')
-    const staffIds = [...new Set(dayShifts.map(s => s.user_id).filter(Boolean))] as string[]
+    const staffIds = Array.from(new Set(dayShifts.map(s => s.user_id).filter(Boolean))) as string[]
     const hasFirstAid = staffIds.some(uid => qualifications.some(q => q.user_id === uid && q.qualification_type === 'first_aid' && q.status === 'current'))
     const hasDiploma = staffIds.filter(uid => qualifications.some(q => q.user_id === uid && (q.qualification_type === 'diploma' || q.qualification_type === 'ect_degree') && q.status === 'current'))
     const diplomaRatio = staffIds.length > 0 ? hasDiploma.length / staffIds.length : 0
