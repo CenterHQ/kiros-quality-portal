@@ -233,7 +233,7 @@ export default function ChecklistTemplatesPage() {
           {builderItems.length === 0 && (
             <div className="text-center py-12 text-gray-400">
               <p className="text-4xl mb-3">📋</p>
-              <p className="text-sm">No items yet. Click "+ Item" or "+ Section" to start building your checklist.</p>
+              <p className="text-sm">No items yet. Click &quot;+ Item&quot; or &quot;+ Section&quot; to start building your checklist.</p>
             </div>
           )}
 

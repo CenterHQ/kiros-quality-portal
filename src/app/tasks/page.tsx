@@ -3,12 +3,11 @@
 import { useEffect, useState } from 'react'
 import { DragDropContext, Droppable, Draggable, type DropResult } from '@hello-pangea/dnd'
 import { createClient } from '@/lib/supabase/client'
-import { type Task, type Profile } from '@/lib/types'
+import { type Task, type Profile, type Comment } from '@/lib/types'
 
 const COLUMNS = [
   { id: 'todo', label: 'To Do', color: '#999' },
   { id: 'in_progress', label: 'In Progress', color: '#5bc0de' },
-  { id: 'review', label: 'Review', color: '#f0ad4e' },
   { id: 'done', label: 'Done', color: '#5cb85c' },
 ]
 
@@ -23,11 +22,19 @@ export default function TaskBoardPage() {
   const [user, setUser] = useState<Profile | null>(null)
   const [view, setView] = useState<'board' | 'list'>('board')
   const [expandedTask, setExpandedTask] = useState<string | null>(null)
+  const [comments, setComments] = useState<Comment[]>([])
+  const [newComment, setNewComment] = useState('')
+  const [submittingComment, setSubmittingComment] = useState(false)
   const supabase = createClient()
 
   const loadTasks = async () => {
     const { data: t } = await supabase.from('tasks').select('*').order('sort_order')
     if (t) setTasks(t as any)
+  }
+
+  const loadComments = async () => {
+    const { data: c } = await supabase.from('comments').select('*, profiles(full_name, role)').eq('entity_type', 'task').order('created_at', { ascending: true })
+    if (c) setComments(c as any)
   }
 
   useEffect(() => {
@@ -38,6 +45,7 @@ export default function TaskBoardPage() {
         if (p) setUser(p)
       }
       await loadTasks()
+      await loadComments()
       const { data: pr } = await supabase.from('profiles').select('*')
       if (pr) setProfiles(pr)
     }
@@ -45,6 +53,7 @@ export default function TaskBoardPage() {
 
     const channel = supabase.channel('tasks-realtime')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'tasks' }, loadTasks)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'comments' }, loadComments)
       .subscribe()
 
     return () => { supabase.removeChannel(channel) }
@@ -98,6 +107,27 @@ export default function TaskBoardPage() {
     setShowAdd(false)
     await loadTasks()
   }
+
+  const addComment = async (taskId: string) => {
+    if (!newComment.trim() || !user) return
+    setSubmittingComment(true)
+    await supabase.from('comments').insert({
+      content: newComment.trim(),
+      user_id: user.id,
+      entity_type: 'task',
+      entity_id: taskId,
+    })
+    setNewComment('')
+    setSubmittingComment(false)
+    await loadComments()
+  }
+
+  const deleteComment = async (commentId: string) => {
+    await supabase.from('comments').delete().eq('id', commentId)
+    await loadComments()
+  }
+
+  const getTaskComments = (taskId: string) => comments.filter(c => c.entity_id === taskId)
 
   const getProfileName = (id: string | null | undefined) => {
     if (!id) return null
@@ -165,7 +195,7 @@ export default function TaskBoardPage() {
       {view === 'board' && (
         <DragDropContext onDragEnd={onDragEnd}>
           <div className="overflow-x-auto pb-4">
-            <div className="flex gap-4" style={{ minWidth: '1200px' }}>
+            <div className="flex gap-4" style={{ minWidth: '900px' }}>
               {COLUMNS.map(col => {
                 const colTasks = tasks.filter(t => t.status === col.id)
                 return (
@@ -179,7 +209,9 @@ export default function TaskBoardPage() {
                       {(provided, snapshot) => (
                         <div ref={provided.innerRef} {...provided.droppableProps}
                           className={`space-y-2 min-h-[200px] rounded-lg p-1 transition ${snapshot.isDraggingOver ? 'bg-purple-50' : ''}`}>
-                          {colTasks.map((task, index) => (
+                          {colTasks.map((task, index) => {
+                            const taskComments = getTaskComments(task.id)
+                            return (
                             <Draggable key={task.id} draggableId={task.id} index={index}>
                               {(provided, snapshot) => (
                                 <div ref={provided.innerRef} {...provided.draggableProps} {...provided.dragHandleProps}
@@ -202,6 +234,12 @@ export default function TaskBoardPage() {
                                           )}
                                           {getProfileName(task.assigned_to) && (
                                             <span className="text-xs text-gray-400">{getProfileName(task.assigned_to)}</span>
+                                          )}
+                                          {taskComments.length > 0 && (
+                                            <span className="text-xs text-gray-400 flex items-center gap-0.5">
+                                              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg>
+                                              {taskComments.length}
+                                            </span>
                                           )}
                                         </div>
                                       </div>
@@ -249,13 +287,62 @@ export default function TaskBoardPage() {
                                             className="w-full px-2 py-1 border border-gray-300 rounded text-xs focus:ring-2 focus:ring-[#470DA8] outline-none" />
                                         </div>
                                       </div>
+
+                                      {/* Comments / Brainstorming Section */}
+                                      <div className="pt-2 border-t border-gray-100">
+                                        <p className="text-xs font-semibold text-gray-500 uppercase mb-2">Comments &amp; Ideas</p>
+
+                                        {/* Existing comments */}
+                                        {taskComments.length > 0 && (
+                                          <div className="space-y-2 mb-3 max-h-48 overflow-y-auto">
+                                            {taskComments.map(c => (
+                                              <div key={c.id} className="bg-gray-50 rounded-lg p-2.5 group/comment">
+                                                <div className="flex items-start justify-between">
+                                                  <div className="flex-1 min-w-0">
+                                                    <div className="flex items-center gap-2 mb-1">
+                                                      <span className="text-xs font-medium text-gray-700">{(c.profiles as any)?.full_name || 'Unknown'}</span>
+                                                      <span className="text-[10px] text-gray-400">{new Date(c.created_at).toLocaleDateString()} {new Date(c.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                                                    </div>
+                                                    <p className="text-xs text-gray-600 whitespace-pre-line">{c.content}</p>
+                                                  </div>
+                                                  {user && c.user_id === user.id && (
+                                                    <button onClick={() => deleteComment(c.id)} className="opacity-0 group-hover/comment:opacity-100 text-gray-400 hover:text-red-500 transition text-[10px] ml-2 shrink-0">
+                                                      &#10005;
+                                                    </button>
+                                                  )}
+                                                </div>
+                                              </div>
+                                            ))}
+                                          </div>
+                                        )}
+
+                                        {/* Add comment */}
+                                        <div className="flex gap-2">
+                                          <input
+                                            type="text"
+                                            value={newComment}
+                                            onChange={e => setNewComment(e.target.value)}
+                                            onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); addComment(task.id) } }}
+                                            placeholder="Add a comment or idea..."
+                                            className="flex-1 px-2.5 py-1.5 border border-gray-300 rounded-lg text-xs focus:ring-2 focus:ring-[#470DA8] outline-none"
+                                          />
+                                          <button
+                                            onClick={() => addComment(task.id)}
+                                            disabled={!newComment.trim() || submittingComment}
+                                            className="px-3 py-1.5 bg-[#470DA8] text-white rounded-lg text-xs font-medium hover:opacity-90 disabled:opacity-50 shrink-0"
+                                          >
+                                            Post
+                                          </button>
+                                        </div>
+                                      </div>
+
                                       <button onClick={() => deleteTask(task.id)} className="text-xs text-red-500 hover:text-red-700">Delete task</button>
                                     </div>
                                   )}
                                 </div>
                               )}
                             </Draggable>
-                          ))}
+                          )})}
                           {provided.placeholder}
                         </div>
                       )}
@@ -280,59 +367,133 @@ export default function TaskBoardPage() {
                 <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase w-24">Priority</th>
                 <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase w-36">Assigned To</th>
                 <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase w-28">Due Date</th>
+                <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase w-16"></th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
-              {tasks.map(task => (
-                <tr key={task.id} className="hover:bg-gray-50 group">
-                  <td className="px-4 py-3">
-                    <span>{PRIORITIES[task.priority as keyof typeof PRIORITIES]}</span>
-                  </td>
-                  <td className="px-4 py-3">
-                    <button onClick={() => setExpandedTask(expandedTask === task.id ? null : task.id)} className="text-left w-full">
-                      <p className={`text-sm font-medium ${task.status === 'done' ? 'text-gray-400 line-through' : 'text-gray-900'}`}>{task.title}</p>
-                      {expandedTask === task.id && task.description ? (
-                        <p className="text-sm text-gray-600 mt-1 whitespace-pre-line">{task.description}</p>
-                      ) : task.description ? (
-                        <p className="text-xs text-gray-400 mt-0.5">{task.description.substring(0, 80)}{task.description.length > 80 ? '...' : ''}</p>
-                      ) : null}
-                    </button>
-                  </td>
-                  <td className="px-4 py-3">
-                    <select value={task.status} onChange={e => updateTask(task.id, 'status', e.target.value)}
-                      className="px-2 py-1 border border-gray-200 rounded text-xs focus:ring-2 focus:ring-[#470DA8] outline-none bg-white">
-                      {COLUMNS.map(c => <option key={c.id} value={c.id}>{c.label}</option>)}
-                    </select>
-                  </td>
-                  <td className="px-4 py-3">
-                    <select value={task.priority} onChange={e => updateTask(task.id, 'priority', e.target.value)}
-                      className="px-2 py-1 border border-gray-200 rounded text-xs focus:ring-2 focus:ring-[#470DA8] outline-none bg-white">
-                      <option value="low">Low</option>
-                      <option value="medium">Medium</option>
-                      <option value="high">High</option>
-                      <option value="urgent">Urgent</option>
-                    </select>
-                  </td>
-                  <td className="px-4 py-3">
-                    <select value={task.assigned_to || ''} onChange={e => updateTask(task.id, 'assigned_to', e.target.value || null)}
-                      className="px-2 py-1 border border-gray-200 rounded text-xs focus:ring-2 focus:ring-[#470DA8] outline-none bg-white w-full">
-                      <option value="">Unassigned</option>
-                      {profiles.map(p => <option key={p.id} value={p.id}>{p.full_name}</option>)}
-                    </select>
-                  </td>
-                  <td className="px-4 py-3">
-                    <div className="flex items-center gap-1">
-                      {task.due_date && task.due_date < today && task.status !== 'done' && (
-                        <span className="w-2 h-2 rounded-full bg-red-500 flex-shrink-0" title="Overdue" />
+              {tasks.map(task => {
+                const taskComments = getTaskComments(task.id)
+                const isExpanded = expandedTask === task.id
+                return (
+                  <tr key={task.id} className="group">
+                    <td className="px-4 py-3">
+                      <span>{PRIORITIES[task.priority as keyof typeof PRIORITIES]}</span>
+                    </td>
+                    <td className="px-4 py-3">
+                      <button onClick={() => setExpandedTask(isExpanded ? null : task.id)} className="text-left w-full">
+                        <p className={`text-sm font-medium ${task.status === 'done' ? 'text-gray-400 line-through' : 'text-gray-900'}`}>{task.title}</p>
+                        {!isExpanded && task.description && (
+                          <p className="text-xs text-gray-400 mt-0.5">{task.description.substring(0, 80)}{task.description.length > 80 ? '...' : ''}</p>
+                        )}
+                      </button>
+                    </td>
+                    <td className="px-4 py-3">
+                      <select value={task.status} onChange={e => updateTask(task.id, 'status', e.target.value)}
+                        className="px-2 py-1 border border-gray-200 rounded text-xs focus:ring-2 focus:ring-[#470DA8] outline-none bg-white">
+                        {COLUMNS.map(c => <option key={c.id} value={c.id}>{c.label}</option>)}
+                      </select>
+                    </td>
+                    <td className="px-4 py-3">
+                      <select value={task.priority} onChange={e => updateTask(task.id, 'priority', e.target.value)}
+                        className="px-2 py-1 border border-gray-200 rounded text-xs focus:ring-2 focus:ring-[#470DA8] outline-none bg-white">
+                        <option value="low">Low</option>
+                        <option value="medium">Medium</option>
+                        <option value="high">High</option>
+                        <option value="urgent">Urgent</option>
+                      </select>
+                    </td>
+                    <td className="px-4 py-3">
+                      <select value={task.assigned_to || ''} onChange={e => updateTask(task.id, 'assigned_to', e.target.value || null)}
+                        className="px-2 py-1 border border-gray-200 rounded text-xs focus:ring-2 focus:ring-[#470DA8] outline-none bg-white w-full">
+                        <option value="">Unassigned</option>
+                        {profiles.map(p => <option key={p.id} value={p.id}>{p.full_name}</option>)}
+                      </select>
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-1">
+                        {task.due_date && task.due_date < today && task.status !== 'done' && (
+                          <span className="w-2 h-2 rounded-full bg-red-500 flex-shrink-0" title="Overdue" />
+                        )}
+                        <input type="date" value={task.due_date || ''} onChange={e => updateTask(task.id, 'due_date', e.target.value || null)}
+                          className="px-1 py-1 border border-gray-200 rounded text-xs focus:ring-2 focus:ring-[#470DA8] outline-none bg-white w-full" />
+                      </div>
+                    </td>
+                    <td className="px-4 py-3">
+                      {taskComments.length > 0 && (
+                        <span className="text-xs text-gray-400 flex items-center gap-0.5">
+                          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg>
+                          {taskComments.length}
+                        </span>
                       )}
-                      <input type="date" value={task.due_date || ''} onChange={e => updateTask(task.id, 'due_date', e.target.value || null)}
-                        className="px-1 py-1 border border-gray-200 rounded text-xs focus:ring-2 focus:ring-[#470DA8] outline-none bg-white w-full" />
-                    </div>
-                  </td>
-                </tr>
-              ))}
+                    </td>
+                  </tr>
+                )
+              })}
             </tbody>
           </table>
+
+          {/* Expanded comment section for list view - shown below table */}
+          {expandedTask && (
+            <div className="border-t border-gray-200 p-4 bg-gray-50">
+              {(() => {
+                const task = tasks.find(t => t.id === expandedTask)
+                if (!task) return null
+                const taskComments = getTaskComments(task.id)
+                return (
+                  <div>
+                    <div className="flex items-center justify-between mb-3">
+                      <div>
+                        <h3 className="text-sm font-semibold text-gray-900">{task.title}</h3>
+                        {task.description && <p className="text-xs text-gray-500 mt-1 whitespace-pre-line">{task.description}</p>}
+                      </div>
+                      <button onClick={() => setExpandedTask(null)} className="text-gray-400 hover:text-gray-600 text-sm">&#10005;</button>
+                    </div>
+                    <p className="text-xs font-semibold text-gray-500 uppercase mb-2">Comments &amp; Ideas</p>
+                    {taskComments.length > 0 && (
+                      <div className="space-y-2 mb-3 max-h-48 overflow-y-auto">
+                        {taskComments.map(c => (
+                          <div key={c.id} className="bg-white rounded-lg p-2.5 border border-gray-200 group/comment">
+                            <div className="flex items-start justify-between">
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-2 mb-1">
+                                  <span className="text-xs font-medium text-gray-700">{(c.profiles as any)?.full_name || 'Unknown'}</span>
+                                  <span className="text-[10px] text-gray-400">{new Date(c.created_at).toLocaleDateString()} {new Date(c.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                                </div>
+                                <p className="text-xs text-gray-600 whitespace-pre-line">{c.content}</p>
+                              </div>
+                              {user && c.user_id === user.id && (
+                                <button onClick={() => deleteComment(c.id)} className="opacity-0 group-hover/comment:opacity-100 text-gray-400 hover:text-red-500 transition text-[10px] ml-2 shrink-0">
+                                  &#10005;
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={newComment}
+                        onChange={e => setNewComment(e.target.value)}
+                        onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); addComment(task.id) } }}
+                        placeholder="Add a comment or idea..."
+                        className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#470DA8] outline-none"
+                      />
+                      <button
+                        onClick={() => addComment(task.id)}
+                        disabled={!newComment.trim() || submittingComment}
+                        className="px-4 py-2 bg-[#470DA8] text-white rounded-lg text-sm font-medium hover:opacity-90 disabled:opacity-50 shrink-0"
+                      >
+                        Post
+                      </button>
+                    </div>
+                    <button onClick={() => deleteTask(task.id)} className="text-xs text-red-500 hover:text-red-700 mt-3">Delete task</button>
+                  </div>
+                )
+              })()}
+            </div>
+          )}
         </div>
       )}
     </div>
