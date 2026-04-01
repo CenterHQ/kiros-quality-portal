@@ -8,23 +8,42 @@ export default function OwnaAttendancePage() {
   const [loading, setLoading] = useState(true)
   const [selectedDate, setSelectedDate] = useState(todayStr())
   const [roomFilter, setRoomFilter] = useState('')
+  const [totalRecords, setTotalRecords] = useState(0)
+  const [noDataMessage, setNoDataMessage] = useState('')
 
   const loadAttendance = async (date: string) => {
     setLoading(true)
+    setNoDataMessage('')
     try {
-      // Use the centre list endpoint which returns today's attendance
       const res = await ownaFetch(`/api/attendance/${DEMO_CENTRE_ID}/${date}/${date}?take=1000`)
-      if (res?.data) setAttendance(res.data)
-      else setAttendance([])
+      if (res?.data && res.data.length > 0) {
+        setAttendance(res.data)
+        setTotalRecords(res.data.length)
+      } else {
+        setAttendance([])
+        setNoDataMessage(`No attendance records for ${new Date(date).toLocaleDateString()}. This is a demo centre — try a different date or click "Load Latest Data" to find records.`)
+      }
     } catch (err) {
       console.error('Failed to load attendance:', err)
-      // Fallback: try the /list endpoint for today
-      try {
-        const res2 = await ownaFetch(`/api/attendance/${DEMO_CENTRE_ID}/list?status=0&take=500`)
-        if (res2?.data) setAttendance(res2.data.filter((a: any) => a.attendanceDate === date))
-        else setAttendance([])
-      } catch { setAttendance([]) }
+      setAttendance([])
     }
+    setLoading(false)
+  }
+
+  const loadLatestData = async () => {
+    setLoading(true)
+    setNoDataMessage('')
+    try {
+      // Get most recent attendance records regardless of date
+      const res = await ownaFetch(`/api/attendance/${DEMO_CENTRE_ID}/list?status=0&take=200&sort=attendanceDate%20desc`)
+      if (res?.data && res.data.length > 0) {
+        setAttendance(res.data)
+        setTotalRecords(res.totalCount || res.data.length)
+        // Update selected date to match first record
+        const latestDate = res.data[0].attendanceDate
+        if (latestDate) setSelectedDate(latestDate)
+      }
+    } catch (err) { console.error(err) }
     setLoading(false)
   }
 
@@ -64,9 +83,10 @@ export default function OwnaAttendancePage() {
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold">Daily Attendance</h1>
-          <p className="text-gray-500 text-sm mt-1">Live sign-in/sign-out data from OWNA</p>
+          <p className="text-gray-500 text-sm mt-1">Live sign-in/sign-out data from OWNA{totalRecords > 0 ? ` (${totalRecords} records)` : ''}</p>
         </div>
         <div className="flex items-center gap-3">
+          <button onClick={loadLatestData} className="px-3 py-1.5 border border-blue-300 text-blue-600 rounded-lg text-xs hover:bg-blue-50">Load Latest Data</button>
           <button onClick={() => setSelectedDate(daysAgo(1))} className="px-3 py-1.5 border border-gray-300 rounded-lg text-xs hover:bg-gray-50">Yesterday</button>
           <input type="date" value={selectedDate} onChange={e => setSelectedDate(e.target.value)} className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#470DA8]" />
           <button onClick={() => setSelectedDate(todayStr())} className="px-3 py-1.5 bg-[#470DA8] text-white rounded-lg text-xs font-medium hover:opacity-90">Today</button>
@@ -126,7 +146,8 @@ export default function OwnaAttendancePage() {
         ) : filtered.length === 0 ? (
           <div className="py-12 text-center text-gray-400">
             <p className="text-4xl mb-3">📋</p>
-            <p className="text-sm">No attendance records for {new Date(selectedDate).toLocaleDateString()}</p>
+            <p className="text-sm mb-3">{noDataMessage || `No attendance records for ${new Date(selectedDate).toLocaleDateString()}`}</p>
+            <button onClick={loadLatestData} className="px-4 py-2 bg-[#470DA8] text-white rounded-lg text-sm font-medium hover:opacity-90">Load Latest Data</button>
           </div>
         ) : (
           <table className="w-full text-sm">
