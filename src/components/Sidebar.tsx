@@ -24,6 +24,7 @@ const navItems = [
 ]
 
 const adminItems = [
+  { href: '/admin/owna', label: 'OWNA API Testing', icon: '🔌' },
   { href: '/admin/users', label: 'User Management', icon: '👥' },
   { href: '/admin/notifications', label: 'Notifications', icon: '🔔' },
   { href: '/admin/tags', label: 'Tags', icon: '🏷️' },
