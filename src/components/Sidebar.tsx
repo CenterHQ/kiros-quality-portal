@@ -23,6 +23,15 @@ const navItems = [
   { href: '/guide', label: 'User Guide', icon: '❓' },
 ]
 
+const ownaItems = [
+  { href: '/owna/children', label: 'Children & Rooms', icon: '👶' },
+  { href: '/owna/attendance', label: 'Attendance', icon: '📋' },
+  { href: '/owna/staff', label: 'Staff', icon: '👩‍🏫' },
+  { href: '/owna/families', label: 'Families & Billing', icon: '👨‍👩‍👧' },
+  { href: '/owna/enrolments', label: 'Enrolment Pipeline', icon: '📝' },
+  { href: '/owna/health', label: 'Health & Safety', icon: '🩹' },
+]
+
 const adminItems = [
   { href: '/admin/owna', label: 'OWNA API Testing', icon: '🔌' },
   { href: '/admin/users', label: 'User Management', icon: '👥' },
@@ -61,6 +70,28 @@ export default function Sidebar({ profile }: { profile: Profile }) {
       <nav className="flex-1 p-2 space-y-1 overflow-y-auto">
         {navItems.map((item) => {
           const isActive = pathname === item.href || (item.href !== '/' && pathname.startsWith(item.href))
+          return (
+            <a
+              key={item.href}
+              href={item.href}
+              className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition ${
+                isActive
+                  ? 'bg-[#470DA8] text-white'
+                  : 'text-gray-700 hover:bg-gray-100'
+              }`}
+            >
+              <span>{item.icon}</span>
+              <span>{item.label}</span>
+            </a>
+          )
+        })}
+
+        {/* OWNA Integration */}
+        <div className="pt-4 pb-1 px-3">
+          <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">OWNA Integration</p>
+        </div>
+        {ownaItems.map((item) => {
+          const isActive = pathname === item.href || pathname.startsWith(item.href)
           return (
             <a
               key={item.href}
