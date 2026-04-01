@@ -3,25 +3,8 @@
 import { useEffect, useState } from 'react'
 import { ownaFetch, DEMO_CENTRE_ID, todayStr, daysAgo } from '@/lib/owna'
 
-interface AttendanceRecord {
-  childId: string
-  child: string
-  firstName: string
-  surname: string
-  roomName: string
-  roomId: string
-  attendanceDate: string
-  signInTime: string | null
-  signOutTime: string | null
-  signedInBy: string | null
-  signedOutBy: string | null
-  status: string
-  absent: boolean
-  absentReason: string | null
-}
-
 export default function OwnaAttendancePage() {
-  const [attendance, setAttendance] = useState<AttendanceRecord[]>([])
+  const [attendance, setAttendance] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [selectedDate, setSelectedDate] = useState(todayStr())
   const [roomFilter, setRoomFilter] = useState('')
@@ -29,43 +12,51 @@ export default function OwnaAttendancePage() {
   const loadAttendance = async (date: string) => {
     setLoading(true)
     try {
+      // Use the centre list endpoint which returns today's attendance
       const res = await ownaFetch(`/api/attendance/${DEMO_CENTRE_ID}/${date}/${date}?take=500`)
       if (res?.data) setAttendance(res.data)
       else setAttendance([])
     } catch (err) {
       console.error('Failed to load attendance:', err)
-      setAttendance([])
+      // Fallback: try the /list endpoint for today
+      try {
+        const res2 = await ownaFetch(`/api/attendance/${DEMO_CENTRE_ID}/list?status=0`)
+        if (res2?.data) setAttendance(res2.data.filter((a: any) => a.attendanceDate === date))
+        else setAttendance([])
+      } catch { setAttendance([]) }
     }
     setLoading(false)
   }
 
   useEffect(() => { loadAttendance(selectedDate) }, [selectedDate])
 
-  const rooms = Array.from(new Set(attendance.map(a => a.roomName).filter(Boolean))).sort()
-  const filtered = roomFilter ? attendance.filter(a => a.roomName === roomFilter) : attendance
+  // Fields from OWNA: room, roomId, child, childId, signIn, signOut, signInParent, signOutParent, attending, attendanceDate, fee
+  const rooms = Array.from(new Set(attendance.map((a: any) => a.room).filter(Boolean))).sort()
+  const filtered = roomFilter ? attendance.filter((a: any) => a.room === roomFilter) : attendance
 
-  const signedIn = filtered.filter(a => a.signInTime && !a.absent)
-  const signedOut = filtered.filter(a => a.signOutTime && !a.absent)
-  const absent = filtered.filter(a => a.absent)
-  const present = signedIn.filter(a => !a.signOutTime)
+  const isValidTime = (t: string | null) => t && !t.includes('2000-01-01') && !t.includes('0001-01-01')
+
+  const present = filtered.filter(a => isValidTime(a.signIn) && !isValidTime(a.signOut) && a.attending)
+  const signedIn = filtered.filter(a => isValidTime(a.signIn))
+  const signedOut = filtered.filter(a => isValidTime(a.signOut))
+  const absent = filtered.filter(a => !a.attending)
+  const expected = filtered.filter(a => a.attending && !isValidTime(a.signIn))
 
   const roomStats = rooms.map(room => {
-    const roomAtt = attendance.filter(a => a.roomName === room)
+    const ra = attendance.filter((a: any) => a.room === room)
     return {
       room,
-      total: roomAtt.length,
-      present: roomAtt.filter(a => a.signInTime && !a.signOutTime && !a.absent).length,
-      absent: roomAtt.filter(a => a.absent).length,
-      signedOut: roomAtt.filter(a => a.signOutTime).length,
+      total: ra.length,
+      present: ra.filter(a => isValidTime(a.signIn) && !isValidTime(a.signOut) && a.attending).length,
+      absent: ra.filter(a => !a.attending).length,
+      signedOut: ra.filter(a => isValidTime(a.signOut)).length,
     }
   })
 
   const formatTime = (t: string | null) => {
-    if (!t) return '-'
-    try {
-      const d = new Date(t)
-      return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-    } catch { return t }
+    if (!t || t.includes('2000-01-01') || t.includes('0001-01-01')) return '-'
+    try { return new Date(t).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }
+    catch { return '-' }
   }
 
   return (
@@ -93,7 +84,7 @@ export default function OwnaAttendancePage() {
           <p className="text-2xl font-bold text-green-600">{present.length}</p>
         </div>
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
-          <p className="text-xs text-gray-500 mb-1">Signed In Today</p>
+          <p className="text-xs text-gray-500 mb-1">Signed In</p>
           <p className="text-2xl font-bold text-blue-600">{signedIn.length}</p>
         </div>
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
@@ -101,8 +92,8 @@ export default function OwnaAttendancePage() {
           <p className="text-2xl font-bold text-gray-500">{signedOut.length}</p>
         </div>
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
-          <p className="text-xs text-gray-500 mb-1">Absent</p>
-          <p className={`text-2xl font-bold ${absent.length > 0 ? 'text-orange-500' : 'text-gray-400'}`}>{absent.length}</p>
+          <p className="text-xs text-gray-500 mb-1">Expected / Absent</p>
+          <p className="text-2xl font-bold text-orange-500">{expected.length} / {absent.length}</p>
         </div>
       </div>
 
@@ -110,10 +101,10 @@ export default function OwnaAttendancePage() {
       {roomStats.length > 0 && (
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5 mb-6">
           <h2 className="font-semibold text-gray-900 text-sm mb-3">Room Breakdown</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-3">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
             {roomStats.map(rs => (
               <div key={rs.room} onClick={() => setRoomFilter(roomFilter === rs.room ? '' : rs.room)} className={`p-3 rounded-lg border cursor-pointer transition ${roomFilter === rs.room ? 'border-[#470DA8] bg-purple-50' : 'border-gray-200 hover:bg-gray-50'}`}>
-                <p className="font-medium text-sm text-gray-900">{rs.room}</p>
+                <p className="font-medium text-sm text-gray-900 truncate">{rs.room}</p>
                 <div className="flex items-center gap-3 mt-1 text-xs">
                   <span className="text-green-600">{rs.present} present</span>
                   <span className="text-orange-500">{rs.absent} absent</span>
@@ -128,7 +119,7 @@ export default function OwnaAttendancePage() {
         </div>
       )}
 
-      {/* Attendance table */}
+      {/* Table */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
         {loading ? (
           <div className="py-12 text-center text-gray-400">Loading attendance...</div>
@@ -145,31 +136,33 @@ export default function OwnaAttendancePage() {
                 <th className="text-left py-3 px-2 font-medium text-gray-600">Room</th>
                 <th className="text-left py-3 px-2 font-medium text-gray-600">Status</th>
                 <th className="text-left py-3 px-2 font-medium text-gray-600">Sign In</th>
-                <th className="text-left py-3 px-2 font-medium text-gray-600">Signed In By</th>
+                <th className="text-left py-3 px-2 font-medium text-gray-600">By</th>
                 <th className="text-left py-3 px-2 font-medium text-gray-600">Sign Out</th>
-                <th className="text-left py-3 px-2 font-medium text-gray-600">Signed Out By</th>
+                <th className="text-left py-3 px-2 font-medium text-gray-600">By</th>
+                <th className="text-right py-3 px-4 font-medium text-gray-600">Fee</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
-              {filtered.map((a, i) => (
-                <tr key={`${a.childId}-${i}`} className="hover:bg-gray-50">
-                  <td className="py-2.5 px-4 font-medium text-gray-900">{a.child || `${a.firstName} ${a.surname}`}</td>
-                  <td className="py-2.5 px-2 text-gray-600">{a.roomName || '-'}</td>
+              {filtered.slice(0, 200).map((a: any, i: number) => (
+                <tr key={a.id || i} className="hover:bg-gray-50">
+                  <td className="py-2.5 px-4 font-medium text-gray-900">{a.child || '-'}</td>
+                  <td className="py-2.5 px-2 text-gray-600">{a.room || '-'}</td>
                   <td className="py-2.5 px-2">
-                    {a.absent ? (
-                      <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-orange-50 text-orange-600">Absent{a.absentReason ? ` — ${a.absentReason}` : ''}</span>
-                    ) : a.signOutTime ? (
+                    {!a.attending ? (
+                      <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-orange-50 text-orange-600">Absent</span>
+                    ) : isValidTime(a.signOut) ? (
                       <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-500">Signed Out</span>
-                    ) : a.signInTime ? (
+                    ) : isValidTime(a.signIn) ? (
                       <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-green-50 text-green-600">Present</span>
                     ) : (
                       <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-50 text-yellow-600">Expected</span>
                     )}
                   </td>
-                  <td className="py-2.5 px-2 text-gray-600">{formatTime(a.signInTime)}</td>
-                  <td className="py-2.5 px-2 text-gray-400 text-xs">{a.signedInBy || '-'}</td>
-                  <td className="py-2.5 px-2 text-gray-600">{formatTime(a.signOutTime)}</td>
-                  <td className="py-2.5 px-2 text-gray-400 text-xs">{a.signedOutBy || '-'}</td>
+                  <td className="py-2.5 px-2 text-gray-600">{formatTime(a.signIn)}</td>
+                  <td className="py-2.5 px-2 text-gray-400 text-xs">{a.signInParent || '-'}</td>
+                  <td className="py-2.5 px-2 text-gray-600">{formatTime(a.signOut)}</td>
+                  <td className="py-2.5 px-2 text-gray-400 text-xs">{a.signOutParent || '-'}</td>
+                  <td className="py-2.5 px-4 text-right text-gray-500">{a.fee ? `$${a.fee.toFixed(2)}` : '-'}</td>
                 </tr>
               ))}
             </tbody>
