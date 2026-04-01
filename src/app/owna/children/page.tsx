@@ -16,8 +16,8 @@ export default function OwnaChildrenPage() {
     const load = async () => {
       try {
         const [roomRes, childRes] = await Promise.all([
-          ownaFetch(`/api/room/${DEMO_CENTRE_ID}/list`),
-          ownaFetch(`/api/children/${DEMO_CENTRE_ID}/list?attending=true`),
+          ownaFetch(`/api/room/${DEMO_CENTRE_ID}/list?take=100`),
+          ownaFetch(`/api/children/${DEMO_CENTRE_ID}/list?attending=true&take=500`),
         ])
         if (roomRes?.data) setRooms(roomRes.data.filter((r: any) => !r.disabled))
         if (childRes?.data) setChildren(childRes.data)

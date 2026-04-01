@@ -15,10 +15,10 @@ export default function OwnaEnrolmentsPage() {
     const load = async () => {
       try {
         const [subRes, enqRes, wlRes, tourRes] = await Promise.all([
-          ownaFetch(`/api/enrolment/submissions/${DEMO_CENTRE_ID}/list`),
-          ownaFetch(`/api/enquiries/${DEMO_CENTRE_ID}/list?take=100`),
-          ownaFetch(`/api/waitlist/${DEMO_CENTRE_ID}/list?take=100`),
-          ownaFetch(`/api/waitlist/${DEMO_CENTRE_ID}/tourbooking/list`),
+          ownaFetch(`/api/enrolment/submissions/${DEMO_CENTRE_ID}/list?take=200`),
+          ownaFetch(`/api/enquiries/${DEMO_CENTRE_ID}/list?take=200`),
+          ownaFetch(`/api/waitlist/${DEMO_CENTRE_ID}/list?take=200`),
+          ownaFetch(`/api/waitlist/${DEMO_CENTRE_ID}/tourbooking/list?take=200`),
         ])
         if (subRes?.data) setSubmissions(subRes.data)
         if (enqRes?.data) setEnquiries(enqRes.data)

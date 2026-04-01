@@ -13,14 +13,14 @@ export default function OwnaAttendancePage() {
     setLoading(true)
     try {
       // Use the centre list endpoint which returns today's attendance
-      const res = await ownaFetch(`/api/attendance/${DEMO_CENTRE_ID}/${date}/${date}?take=500`)
+      const res = await ownaFetch(`/api/attendance/${DEMO_CENTRE_ID}/${date}/${date}?take=1000`)
       if (res?.data) setAttendance(res.data)
       else setAttendance([])
     } catch (err) {
       console.error('Failed to load attendance:', err)
       // Fallback: try the /list endpoint for today
       try {
-        const res2 = await ownaFetch(`/api/attendance/${DEMO_CENTRE_ID}/list?status=0`)
+        const res2 = await ownaFetch(`/api/attendance/${DEMO_CENTRE_ID}/list?status=0&take=500`)
         if (res2?.data) setAttendance(res2.data.filter((a: any) => a.attendanceDate === date))
         else setAttendance([])
       } catch { setAttendance([]) }

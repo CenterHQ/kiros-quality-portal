@@ -16,9 +16,9 @@ export default function OwnaStaffPage() {
     setLoading(true)
     try {
       const [staffRes, dutyRes, rpRes] = await Promise.all([
-        ownaFetch(`/api/staff/${DEMO_CENTRE_ID}/list?take=100`),
-        ownaFetch(`/api/staff/onduty/${DEMO_CENTRE_ID}/${selectedDate}`),
-        ownaFetch(`/api/staff/rp/${DEMO_CENTRE_ID}`),
+        ownaFetch(`/api/staff/${DEMO_CENTRE_ID}/list?take=500`),
+        ownaFetch(`/api/staff/onduty/${DEMO_CENTRE_ID}/${selectedDate}?take=100`),
+        ownaFetch(`/api/staff/rp/${DEMO_CENTRE_ID}?take=10`),
       ])
       if (staffRes?.data) setStaff(staffRes.data.filter((s: any) => !s.inactive))
       if (dutyRes?.data) setOnDuty(dutyRes.data)
