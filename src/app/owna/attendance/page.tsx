@@ -41,7 +41,7 @@ export default function OwnaAttendancePage() {
 
   useEffect(() => { loadAttendance(selectedDate) }, [selectedDate])
 
-  const rooms = [...new Set(attendance.map(a => a.roomName).filter(Boolean))].sort()
+  const rooms = Array.from(new Set(attendance.map(a => a.roomName).filter(Boolean))).sort()
   const filtered = roomFilter ? attendance.filter(a => a.roomName === roomFilter) : attendance
 
   const signedIn = filtered.filter(a => a.signInTime && !a.absent)
