@@ -86,7 +86,7 @@ export default function UsersPage() {
     await updatePagePermissions(userId, ['/dashboard'])
   }
 
-  const sections = ['Main', 'OWNA Integration', 'Admin']
+  const sections = ['Main', 'Learning', 'OWNA Integration', 'Admin']
 
   return (
     <div className="max-w-5xl mx-auto">
