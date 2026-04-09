@@ -252,7 +252,7 @@ ${doc.content.replace(/^# .+\n?/m, '').replace(/^## /gm, '<h2>').replace(/<h2>(.
   ]
 
   return (
-    <div className="flex h-[calc(100vh-theme(spacing.12))] -mx-6 -mb-6 -mt-6 overflow-hidden bg-gray-50">
+    <div className="flex h-full w-full overflow-hidden bg-gray-50">
       {/* Mobile sidebar backdrop */}
       {sidebarOpen && (
         <div

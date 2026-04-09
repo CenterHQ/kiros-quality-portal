@@ -52,6 +52,7 @@ const adminItems = [
   { href: '/admin/notifications', label: 'Notifications', icon: '🔔' },
   { href: '/admin/tags', label: 'Tags', icon: '🏷️' },
   { href: '/admin/sharepoint', label: 'SharePoint Integration', icon: '📂' },
+  { href: '/admin/context', label: 'AI Context Manager', icon: '🧠' },
 ]
 
 function canAccessPage(profile: Profile, href: string): boolean {

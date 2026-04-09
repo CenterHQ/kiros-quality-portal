@@ -1062,4 +1062,5 @@ export const ALL_APP_PAGES: { href: string; label: string; section: string }[] =
   { href: '/admin/notifications', label: 'Notifications', section: 'Admin' },
   { href: '/admin/tags', label: 'Tags', section: 'Admin' },
   { href: '/admin/sharepoint', label: 'SharePoint Integration', section: 'Admin' },
+  { href: '/admin/context', label: 'AI Context Manager', section: 'Admin' },
 ]

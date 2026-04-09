@@ -1,6 +1,6 @@
 export default function ChatLoading() {
   return (
-    <div className="flex h-[calc(100vh-24px)] -m-6 bg-gray-50 animate-pulse">
+    <div className="flex h-full w-full bg-gray-50 animate-pulse">
       <div className="w-72 bg-white border-r border-gray-200 p-3">
         <div className="h-10 bg-gray-200 rounded-lg mb-4" />
         <div className="space-y-2">
