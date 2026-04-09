@@ -156,6 +156,9 @@ export default function ModulePlayerPage() {
   // Action step state
   const [actionStep, setActionStep] = useState<ActionStepState>({ completed: false, notes: '' })
 
+  // Centre-specific content
+  const [centreContent, setCentreContent] = useState<any[]>([])
+
   // ============================================
   // DERIVED STATE
   // ============================================
@@ -263,7 +266,16 @@ export default function ModulePlayerPage() {
       setQuizResponses(quizRes.data || [])
       setReflections(reflRes.data || [])
 
-      // 5. Set current section to first incomplete
+      // 5. Fetch centre-specific content
+      const { data: centreData } = await supabase
+        .from('lms_module_centre_content')
+        .select('*')
+        .eq('module_id', moduleId)
+        .eq('is_active', true)
+        .order('sort_order')
+      if (centreData) setCentreContent(centreData)
+
+      // 6. Set current section to first incomplete
       const firstIncomplete = loadedSections.findIndex(
         (s) => !loadedProgress.some((sp) => sp.section_id === s.id && sp.completed)
       )
@@ -836,6 +848,31 @@ export default function ModulePlayerPage() {
                     </svg>
                   </button>
                 </div>
+
+                {/* Centre-Specific Content */}
+                {centreContent.length > 0 && (
+                  <div className="mt-8 border-t border-gray-200 pt-6">
+                    <div className="flex items-center gap-2 mb-4">
+                      <div className="w-8 h-8 rounded-lg bg-gradient-to-r from-[#470DA8] to-[#6B3FCE] flex items-center justify-center text-white text-sm">K</div>
+                      <h3 className="text-lg font-semibold text-gray-900">At Kiros Early Education</h3>
+                    </div>
+                    <div className="space-y-4">
+                      {centreContent.map((item: any) => (
+                        <div key={item.id} className="bg-purple-50 border border-purple-100 rounded-lg p-4">
+                          <div className="flex items-center gap-2 mb-2">
+                            <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-purple-100 text-purple-700">
+                              {item.content_type === 'application' ? 'How This Applies Here' :
+                               item.content_type === 'reflection_prompt' ? 'Kiros Reflection' :
+                               item.content_type === 'case_study' ? 'Our Practice' : 'Your Action Step'}
+                            </span>
+                          </div>
+                          <h4 className="font-medium text-gray-900 mb-1">{item.title}</h4>
+                          <p className="text-sm text-gray-700 leading-relaxed">{item.content}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </>
             ) : (
               <div className="text-center py-16 text-gray-500">

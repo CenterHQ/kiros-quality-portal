@@ -951,4 +951,5 @@ export const ALL_APP_PAGES: { href: string; label: string; section: string }[] =
   { href: '/admin/users', label: 'User Management', section: 'Admin' },
   { href: '/admin/notifications', label: 'Notifications', section: 'Admin' },
   { href: '/admin/tags', label: 'Tags', section: 'Admin' },
+  { href: '/admin/sharepoint', label: 'SharePoint Integration', section: 'Admin' },
 ]
