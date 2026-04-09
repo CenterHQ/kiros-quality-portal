@@ -44,10 +44,12 @@ RULES:
 - Always ground your answers in the centre's actual policies, philosophy, QIP goals, and documented practices
 - Reference specific NQS element codes (e.g., 1.1.1, 2.2.3) where relevant
 - Use Australian English spelling
+- Format responses using Markdown (headings, bold, lists, tables) for readability
 - When creating tasks or assigning training, confirm the details with the user
 - Only discuss early childhood education, centre operations, compliance, and related topics
 - Do not discuss topics outside of childcare, education, or centre management
 - Cite NSW regulations by number where relevant (e.g., Regulation 77, Regulation 155)
+- When the user asks you to create, draft, or generate a document (report, letter, policy, plan, communication, agenda, guide, checklist, etc.), use the generate_document tool to produce it. Format the content in rich Markdown with headings, tables, and lists as appropriate. Include the centre name, date, and relevant details.
 - Today's date is ${new Date().toISOString().split('T')[0]}`
 }
 
@@ -154,6 +156,21 @@ const ALL_TOOLS: (Anthropic.Tool & { allowedRoles: string[] })[] = [
       required: ['title', 'content'],
     },
     allowedRoles: ['manager', 'el', 'educator'],
+  },
+  {
+    name: 'generate_document',
+    description: 'Generate a formatted document that the user can view and download. Use this for reports, letters, policies, plans, checklists, meeting agendas, parent communications, board reports, or any other document the user requests. Format the content in Markdown.',
+    input_schema: {
+      type: 'object' as const,
+      properties: {
+        title: { type: 'string', description: 'Document title' },
+        document_type: { type: 'string', enum: ['report', 'letter', 'policy', 'plan', 'checklist', 'agenda', 'communication', 'guide', 'summary', 'other'], description: 'Type of document' },
+        content: { type: 'string', description: 'Full document content in Markdown format. Include headings, lists, tables, and formatting as appropriate.' },
+        recipient: { type: 'string', description: 'Who this document is for (if applicable)' },
+      },
+      required: ['title', 'document_type', 'content'],
+    },
+    allowedRoles: ['admin', 'manager', 'ns', 'el', 'educator'],
   },
 ]
 
@@ -355,6 +372,19 @@ async function executeTool(
       return JSON.stringify({ success: true, suggestion_id: data.id, message: 'Suggestion submitted for NS/AP review.' })
     }
 
+    case 'generate_document': {
+      // Return the document content as a structured object
+      // The frontend will render it with download capability
+      return JSON.stringify({
+        type: 'document',
+        title: toolInput.title,
+        document_type: toolInput.document_type,
+        content: toolInput.content,
+        recipient: toolInput.recipient || null,
+        generated_at: new Date().toISOString(),
+      })
+    }
+
     default:
       return JSON.stringify({ error: `Unknown tool: ${toolName}` })
   }
@@ -421,6 +451,9 @@ export async function POST(request: NextRequest) {
 
     const systemPrompt = buildSystemPrompt(profile.role, centreContext, staffList)
 
+    // Track generated documents across tool-use iterations
+    const generatedDocuments: Array<{ type: string; title: string; document_type: string; content: string; recipient?: string; generated_at: string }> = []
+
     // Call Claude with tool-use loop
     let response = await anthropic.messages.create({
       model: 'claude-sonnet-4-20250514',
@@ -437,6 +470,16 @@ export async function POST(request: NextRequest) {
 
       for (const block of toolUseBlocks) {
         const result = await executeTool(block.name, block.input as Record<string, unknown>, supabase, user.id)
+
+        // Capture generated documents
+        if (block.name === 'generate_document') {
+          try {
+            const docData = JSON.parse(result)
+            if (docData.type === 'document') {
+              generatedDocuments.push(docData)
+            }
+          } catch { /* not a document */ }
+        }
 
         // Persist tool interactions
         await supabase.from('chat_messages').insert([
@@ -480,6 +523,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       conversationId: convId,
       message: textContent,
+      documents: generatedDocuments.length > 0 ? generatedDocuments : undefined,
     })
 
   } catch (error: unknown) {

@@ -3,18 +3,35 @@ import { createServerSupabaseClient } from '@/lib/supabase/server'
 
 export const dynamic = 'force-dynamic'
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   const supabase = await createServerSupabaseClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
+  const { searchParams } = new URL(request.url)
+  const conversationId = searchParams.get('id')
+
+  // If specific conversation requested, return its messages
+  if (conversationId) {
+    const { data: messages } = await supabase
+      .from('chat_messages')
+      .select('id, role, content, metadata, created_at')
+      .eq('conversation_id', conversationId)
+      .in('role', ['user', 'assistant'])
+      .order('created_at', { ascending: true })
+      .limit(100)
+
+    return NextResponse.json({ messages: messages || [] })
+  }
+
+  // Otherwise return conversation list
   const { data } = await supabase
     .from('chat_conversations')
     .select('id, title, is_active, created_at, updated_at')
     .eq('user_id', user.id)
     .eq('is_active', true)
     .order('updated_at', { ascending: false })
-    .limit(20)
+    .limit(50)
 
   return NextResponse.json({ conversations: data || [] })
 }

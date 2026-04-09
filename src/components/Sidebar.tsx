@@ -8,6 +8,7 @@ import { ROLE_LABELS } from '@/lib/types'
 const apItems = [
   { href: '/ap-dashboard', label: 'AP Dashboard', icon: '🏢' },
   { href: '/hub', label: 'Centre Hub', icon: '🏠' },
+  { href: '/chat', label: 'Kiros AI Chat', icon: '💬' },
 ]
 
 const navItems = [
@@ -116,7 +117,7 @@ export default function Sidebar({ profile }: { profile: Profile }) {
 
       {/* Navigation */}
       <nav className="flex-1 p-2 space-y-1 overflow-y-auto">
-        {/* AP & Hub — visible to admin, Hub to all */}
+        {/* AP Dashboard (admin only), Hub & Chat (all roles) */}
         {apItems.filter(item => {
           if (item.href === '/ap-dashboard') return profile.role === 'admin'
           return canAccessPage(profile, item.href)

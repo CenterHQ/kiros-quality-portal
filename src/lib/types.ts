@@ -1026,6 +1026,7 @@ export const ALL_APP_PAGES: { href: string; label: string; section: string }[] =
   // Main
   { href: '/ap-dashboard', label: 'AP Dashboard', section: 'Main' },
   { href: '/hub', label: 'Centre Hub', section: 'Main' },
+  { href: '/chat', label: 'Kiros AI Chat', section: 'Main' },
   { href: '/dashboard', label: 'Dashboard', section: 'Main' },
   { href: '/elements', label: 'QA Elements', section: 'Main' },
   { href: '/tasks', label: 'Task Board', section: 'Main' },
