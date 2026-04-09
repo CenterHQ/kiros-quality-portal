@@ -3,6 +3,7 @@ import { createServerSupabaseClient } from '@/lib/supabase/server'
 import { fetchServiceOverview, fetchQipGoalProgress, fetchStaffCompliance, fetchOperationalHealth, fetchPendingSuggestions } from '@/lib/ap-dashboard-data'
 import { QA_COLORS, ROLE_LABELS } from '@/lib/types'
 import SuggestionReview from './SuggestionReview'
+import PrintButton from './PrintButton'
 
 export default async function APDashboardPage() {
   const supabase = await createServerSupabaseClient()
@@ -41,16 +42,19 @@ export default async function APDashboardPage() {
   return (
     <div className="max-w-7xl mx-auto space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Approved Provider Dashboard</h1>
           <p className="text-sm text-gray-500">Kiros Early Education — Executive Overview</p>
         </div>
-        <div className="text-xs text-gray-400">{new Date().toLocaleDateString('en-AU', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</div>
+        <div className="flex items-center gap-3">
+          <div className="text-xs text-gray-400">{new Date().toLocaleDateString('en-AU', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</div>
+          <PrintButton />
+        </div>
       </div>
 
       {/* Service Overview Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="bg-white rounded-xl shadow-sm p-5 border border-gray-200">
           <div className="text-xs text-gray-500 mb-1">NQS Rating Status</div>
           <div className="text-lg font-bold text-amber-600">Working Towards</div>
@@ -92,7 +96,7 @@ export default async function APDashboardPage() {
           {qipGoals.map((goal) => (
             <div key={goal.id} className="flex items-center gap-4 py-2 border-b border-gray-50 last:border-0">
               <div className="flex-1 min-w-0">
-                <div className="text-sm font-medium text-gray-700">{goal.title}</div>
+                <div className="text-sm font-medium text-gray-700 truncate">{goal.title}</div>
                 <div className="flex items-center gap-3 mt-1">
                   <div className="flex gap-1">
                     {goal.related_qa?.map((qa: number) => (
@@ -140,7 +144,7 @@ export default async function APDashboardPage() {
               <div className="text-xl font-bold text-blue-600">{staffCompliance.total}</div>
             </div>
           </div>
-          <div className="space-y-2 max-h-48 overflow-y-auto">
+          <div className="space-y-2 max-h-48 sm:max-h-64 overflow-y-auto">
             {staffCompliance.staff.map(s => (
               <div key={s.id} className="flex items-center justify-between text-sm py-1 border-b border-gray-50">
                 <div>
@@ -199,9 +203,9 @@ export default async function APDashboardPage() {
       {/* Quality Area Grid */}
       <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
         <h2 className="text-lg font-semibold text-gray-800 mb-4">Quality Area Breakdown</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
           {qaBreakdown.map(qa => (
-            <a key={qa.qa} href={`/elements?qa=${qa.qa}`} className="block rounded-lg border border-gray-100 p-4 hover:shadow-md transition-shadow">
+            <a key={qa.qa} href={`/elements?qa=${qa.qa}`} className="block rounded-lg border border-gray-100 p-4 hover:shadow-md transition-shadow focus:ring-2 focus:ring-purple-300 focus:outline-none">
               <div className="flex items-center gap-2 mb-2">
                 <span className="text-xs px-2 py-0.5 rounded text-white font-medium" style={{ backgroundColor: QA_COLORS[qa.qa] || '#999' }}>
                   QA{qa.qa}

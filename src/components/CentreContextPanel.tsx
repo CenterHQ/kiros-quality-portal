@@ -44,7 +44,7 @@ export default function CentreContextPanel({
           <span className="text-xs text-gray-400">({items.length})</span>
         </div>
         <svg
-          className={`w-4 h-4 text-gray-400 transition-transform ${collapsed ? '' : 'rotate-180'}`}
+          className={`w-4 h-4 text-gray-400 transition-transform duration-300 ${collapsed ? '-rotate-90' : ''}`}
           fill="none" viewBox="0 0 24 24" stroke="currentColor"
         >
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
@@ -52,12 +52,12 @@ export default function CentreContextPanel({
       </button>
 
       {/* Content */}
-      {!collapsed && (
+      <div className={`overflow-hidden transition-all duration-300 ease-in-out ${collapsed ? 'max-h-0' : 'max-h-[500px]'}`}>
         <div className="px-4 pb-3 space-y-2">
           {loading ? (
-            <div className="flex items-center gap-2 py-2">
-              <div className="w-3 h-3 rounded-full animate-pulse" style={{ backgroundColor: '#470DA8' }} />
-              <span className="text-xs text-gray-400">Loading context...</span>
+            <div className="space-y-2 py-2">
+              <div className="h-3 w-3/4 bg-gray-200 rounded animate-pulse" />
+              <div className="h-3 w-1/2 bg-gray-200 rounded animate-pulse" />
             </div>
           ) : (
             items.map((item) => {
@@ -74,9 +74,9 @@ export default function CentreContextPanel({
                     onClick={() => setExpandedId(isExpanded ? null : item.id)}
                     className="w-full text-left px-3 py-2"
                   >
-                    <div className="flex items-start gap-2">
+                    <div className="flex items-start gap-2 min-w-0">
                       <span
-                        className="inline-block px-1.5 py-0.5 rounded text-[10px] font-medium whitespace-nowrap mt-0.5"
+                        className="inline-block px-1.5 py-0.5 rounded text-xs font-medium whitespace-nowrap mt-0.5"
                         style={{ backgroundColor: colors.bg, color: colors.text }}
                       >
                         {label}
@@ -93,17 +93,22 @@ export default function CentreContextPanel({
                         {item.content}
                       </p>
                       {item.source_quote && (
-                        <blockquote className="text-[11px] text-gray-400 italic border-l-2 border-gray-200 pl-2">
+                        <blockquote className="text-xs text-gray-500 italic border-l-2 border-purple-300 pl-3 py-1 bg-purple-50/50 rounded-r">
                           &ldquo;{item.source_quote}&rdquo;
                         </blockquote>
                       )}
                       {item.related_element_codes?.length > 0 && (
                         <div className="flex flex-wrap gap-1">
-                          {item.related_element_codes.map((code) => (
-                            <span key={code} className="text-[10px] px-1.5 py-0.5 bg-gray-100 text-gray-500 rounded">
+                          {item.related_element_codes.slice(0, 4).map((code) => (
+                            <span key={code} className="text-xs px-2 py-0.5 bg-gray-100 text-gray-500 rounded">
                               {code}
                             </span>
                           ))}
+                          {item.related_element_codes.length > 4 && (
+                            <span className="text-xs px-2 py-0.5 bg-gray-100 text-gray-400 rounded">
+                              +{item.related_element_codes.length - 4} more
+                            </span>
+                          )}
                         </div>
                       )}
                     </div>
@@ -113,7 +118,7 @@ export default function CentreContextPanel({
             })
           )}
         </div>
-      )}
+      </div>
     </div>
   )
 }

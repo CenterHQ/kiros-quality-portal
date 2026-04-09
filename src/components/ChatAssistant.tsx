@@ -22,6 +22,7 @@ export default function ChatAssistant() {
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
   const [conversationId, setConversationId] = useState<string | null>(null)
+  const [hasNewMessage, setHasNewMessage] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
 
@@ -56,6 +57,7 @@ export default function ChatAssistant() {
       } else {
         if (!conversationId && data.conversationId) setConversationId(data.conversationId)
         setMessages(prev => [...prev, { id: `ai-${Date.now()}`, role: 'assistant', content: data.message, timestamp: new Date() }])
+        if (!isOpen) setHasNewMessage(true)
       }
     } catch {
       setMessages(prev => [...prev, { id: `err-${Date.now()}`, role: 'assistant', content: 'Connection error. Please try again.', timestamp: new Date() }])
@@ -73,9 +75,10 @@ export default function ChatAssistant() {
     <>
       {/* Floating button */}
       <button
-        onClick={() => setIsOpen(!isOpen)}
-        className="fixed bottom-6 right-6 w-14 h-14 rounded-full shadow-lg flex items-center justify-center text-white z-50 hover:scale-105 transition-transform"
+        onClick={() => { setIsOpen(!isOpen); if (!isOpen) setHasNewMessage(false) }}
+        className={`fixed bottom-6 right-6 w-14 h-14 rounded-full shadow-lg flex items-center justify-center text-white z-50 hover:scale-105 transition-transform ${hasNewMessage && !isOpen ? 'animate-pulse ring-4 ring-purple-300/50' : ''}`}
         style={{ backgroundColor: '#470DA8' }}
+        aria-label={isOpen ? 'Close chat assistant' : 'Open chat assistant'}
         title="Kiros AI Assistant"
       >
         {isOpen ? (
@@ -91,7 +94,7 @@ export default function ChatAssistant() {
 
       {/* Mini chat panel */}
       {isOpen && (
-        <div className="fixed bottom-24 right-6 w-[420px] h-[550px] bg-white rounded-2xl shadow-2xl border border-gray-200 flex flex-col z-50 overflow-hidden max-sm:w-[calc(100vw-24px)] max-sm:h-[calc(100vh-120px)] max-sm:right-3 max-sm:bottom-20">
+        <div className="fixed bottom-24 right-6 w-[420px] h-[550px] bg-white rounded-2xl shadow-2xl border border-gray-200 flex flex-col z-50 overflow-hidden max-sm:w-[calc(100vw-16px)] max-sm:h-[calc(100vh-100px)] max-sm:right-2 max-sm:bottom-[76px]">
           {/* Header */}
           <div className="px-4 py-2.5 border-b border-gray-100 flex items-center justify-between" style={{ backgroundColor: '#470DA8' }}>
             <div className="flex items-center gap-2">
@@ -105,6 +108,7 @@ export default function ChatAssistant() {
               <a
                 href="/chat"
                 className="p-1.5 rounded-lg hover:bg-white/20 text-white transition-colors"
+                aria-label="Expand to full chat page"
                 title="Open full chat"
               >
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -114,6 +118,7 @@ export default function ChatAssistant() {
               <button
                 onClick={() => { setMessages([]); setConversationId(null) }}
                 className="p-1.5 rounded-lg hover:bg-white/20 text-white transition-colors"
+                aria-label="Start new conversation"
                 title="New conversation"
               >
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -137,8 +142,8 @@ export default function ChatAssistant() {
                   <button onClick={() => setInput('What items are overdue?')} className="w-full text-left px-3 py-2 rounded-lg bg-gray-50 text-xs text-gray-600 hover:bg-gray-100 transition-colors">
                     What items are overdue?
                   </button>
-                  <a href="/chat" className="block text-center text-xs text-purple-600 hover:text-purple-800 font-medium mt-3">
-                    Open full chat for documents & history &rarr;
+                  <a href="/chat" className="block text-center text-xs font-semibold mt-3 px-3 py-2 rounded-lg bg-purple-50 text-purple-700 hover:bg-purple-100 transition-colors border border-purple-200">
+                    Open full chat for documents &amp; history &rarr;
                   </a>
                 </div>
               </div>
@@ -187,7 +192,7 @@ export default function ChatAssistant() {
                 onChange={e => setInput(e.target.value)}
                 onKeyDown={handleKeyDown}
                 placeholder="Ask anything..."
-                className="flex-1 resize-none rounded-xl border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-200 focus:border-transparent max-h-20 bg-gray-50"
+                className="flex-1 resize-none rounded-xl border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-300 focus:border-transparent max-h-20 bg-gray-50"
                 rows={1}
                 disabled={loading}
               />

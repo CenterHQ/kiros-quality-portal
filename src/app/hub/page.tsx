@@ -40,7 +40,7 @@ export default async function CentreHubPage() {
       {philosophy && philosophy.length > 0 && (
         <div className="rounded-2xl p-6 text-white" style={{ background: 'linear-gradient(135deg, #470DA8 0%, #6B3FCE 50%, #9B59B6 100%)' }}>
           <div className="text-xs uppercase tracking-wider opacity-80 mb-3">K.I.R.O.S Philosophy</div>
-          <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
             {philosophy.map((p, i) => (
               <div key={i} className="bg-white/15 rounded-xl p-3 backdrop-blur-sm">
                 <div className="text-sm font-bold mb-1">{p.title.split(' ')[0]}</div>
@@ -54,7 +54,7 @@ export default async function CentreHubPage() {
       {/* Welcome & Stats */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-bold text-gray-900">Welcome back, {profile?.full_name?.split(' ')[0] || 'there'}</h1>
+          <h1 className="text-2xl font-bold text-gray-900">Welcome back, {profile?.full_name?.split(' ')[0] || 'there'}</h1>
           <p className="text-sm text-gray-500">{roleLabel} — {new Date().toLocaleDateString('en-AU', { weekday: 'long', day: 'numeric', month: 'long' })}</p>
         </div>
       </div>
@@ -62,19 +62,19 @@ export default async function CentreHubPage() {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <div className="bg-white rounded-xl shadow-sm p-4 border border-gray-200">
           <div className="text-xs text-gray-500">Elements Met</div>
-          <div className="text-lg font-bold text-green-600">{metElements}/{totalElements}</div>
+          <div className="text-base sm:text-lg font-bold text-green-600">{metElements}/{totalElements}</div>
         </div>
         <div className="bg-white rounded-xl shadow-sm p-4 border border-gray-200">
           <div className="text-xs text-gray-500">Tasks Done</div>
-          <div className="text-lg font-bold" style={{ color: '#470DA8' }}>{doneTasks}/{totalTasks}</div>
+          <div className="text-base sm:text-lg font-bold" style={{ color: '#470DA8' }}>{doneTasks}/{totalTasks}</div>
         </div>
         <div className="bg-white rounded-xl shadow-sm p-4 border border-gray-200">
           <div className="text-xs text-gray-500">QIP Goals</div>
-          <div className="text-lg font-bold text-gray-800">{qipGoals?.length || 0}</div>
+          <div className="text-base sm:text-lg font-bold text-gray-800">{qipGoals?.length || 0}</div>
         </div>
         <div className="bg-white rounded-xl shadow-sm p-4 border border-gray-200">
           <div className="text-xs text-gray-500">Pending Ideas</div>
-          <div className="text-lg font-bold text-amber-600">{suggestions?.length || 0}</div>
+          <div className="text-base sm:text-lg font-bold text-amber-600">{suggestions?.length || 0}</div>
         </div>
       </div>
 
@@ -97,7 +97,7 @@ export default async function CentreHubPage() {
                     <span className="text-sm text-gray-700 font-medium">{goal.title}</span>
                     <div className="flex gap-1">
                       {goal.related_qa?.map((qa: number) => (
-                        <span key={qa} className="text-[9px] px-1 py-0.5 rounded text-white" style={{ backgroundColor: QA_COLORS[qa] }}>QA{qa}</span>
+                        <span key={qa} className="text-[9px] px-1 py-0.5 rounded text-white flex-shrink-0" style={{ backgroundColor: QA_COLORS[qa] }}>QA{qa}</span>
                       ))}
                     </div>
                   </div>
@@ -120,23 +120,23 @@ export default async function CentreHubPage() {
         <div className="bg-white rounded-xl shadow-sm p-5 border border-gray-200">
           <h2 className="text-base font-semibold text-gray-800 mb-4">Quick Actions</h2>
           <div className="space-y-2">
-            <a href="/tasks" className="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors text-sm text-gray-700">
+            <a href="/tasks" aria-label="Go to Task Board" className="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors text-sm text-gray-700 focus:ring-2 focus:ring-purple-300 focus:outline-none">
               <span>✅</span> <span>Task Board</span>
             </a>
-            <a href="/checklists" className="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors text-sm text-gray-700">
+            <a href="/checklists" aria-label="Go to Daily Checklists" className="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors text-sm text-gray-700 focus:ring-2 focus:ring-purple-300 focus:outline-none">
               <span>🛡️</span> <span>Daily Checklists</span>
             </a>
-            <a href="/learning" className="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors text-sm text-gray-700">
+            <a href="/learning" aria-label="Go to Learning Hub" className="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors text-sm text-gray-700 focus:ring-2 focus:ring-purple-300 focus:outline-none">
               <span>🎓</span> <span>Learning Hub</span>
             </a>
-            <a href="/compliance" className="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors text-sm text-gray-700">
+            <a href="/compliance" aria-label="Go to Compliance" className="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors text-sm text-gray-700 focus:ring-2 focus:ring-purple-300 focus:outline-none">
               <span>⚖️</span> <span>Compliance</span>
             </a>
-            <a href="/policies" className="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors text-sm text-gray-700">
+            <a href="/policies" aria-label="Go to Policies" className="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors text-sm text-gray-700 focus:ring-2 focus:ring-purple-300 focus:outline-none">
               <span>📄</span> <span>Policies</span>
             </a>
             {profile?.role === 'admin' && (
-              <a href="/ap-dashboard" className="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-purple-50 hover:bg-purple-100 transition-colors text-sm" style={{ color: '#470DA8' }}>
+              <a href="/ap-dashboard" aria-label="Go to AP Dashboard" className="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-purple-50 hover:bg-purple-100 transition-colors text-sm focus:ring-2 focus:ring-purple-300 focus:outline-none" style={{ color: '#470DA8' }}>
                 <span>🏢</span> <span>AP Dashboard</span>
               </a>
             )}
