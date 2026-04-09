@@ -3,6 +3,7 @@ import { headers } from 'next/headers'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
 import Sidebar from '@/components/Sidebar'
 import { ProfileProvider } from '@/lib/ProfileContext'
+import ChatAssistant from '@/components/ChatAssistant'
 
 function canAccessPath(profile: { role: string; allowed_pages?: string[] | null }, pathname: string): boolean {
   if (profile.role === 'admin') return true
@@ -39,6 +40,7 @@ export default async function ProtectedLayout({ children }: { children: React.Re
           {children}
         </main>
       </div>
+      <ChatAssistant />
     </ProfileProvider>
   )
 }

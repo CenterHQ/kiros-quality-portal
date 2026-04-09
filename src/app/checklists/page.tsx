@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase/client'
 import type { ChecklistTemplate, ChecklistInstance, ChecklistCategory, SmartTicket, Profile, ChecklistItemDefinition } from '@/lib/types'
 import { CHECKLIST_FREQUENCY_LABELS, QA_COLORS } from '@/lib/types'
 import { useProfile } from '@/lib/ProfileContext'
+import CentreContextPanel from '@/components/CentreContextPanel'
 
 type Tab = 'today' | 'upcoming' | 'history' | 'tickets'
 
@@ -162,6 +163,14 @@ export default function ChecklistsPage() {
           <p className="text-2xl font-bold text-gray-700">{templates.length}</p>
           <p className="text-xs text-gray-400 mt-1">active templates</p>
         </div>
+      </div>
+
+      <div className="mt-4 mb-4">
+        <CentreContextPanel
+          contextTypes={['safety_protocol', 'procedure_step']}
+          title="Safety & Procedures"
+          limit={2}
+        />
       </div>
 
       {/* Category filter */}

@@ -12,6 +12,7 @@ import type {
   LmsPathwayEnrollment,
   StaffQualification,
 } from '@/lib/types'
+import CentreContextPanel from '@/components/CentreContextPanel'
 import {
   QA_COLORS,
   LMS_TIER_LABELS,
@@ -295,6 +296,14 @@ export default function LearningHubPage() {
             })}
           </div>
         )}
+      </div>
+
+      <div className="mt-6">
+        <CentreContextPanel
+          contextTypes={['qip_goal', 'teaching_approach', 'leadership_goal']}
+          title="Learning Priorities from QIP"
+          limit={3}
+        />
       </div>
 
       {/* My Pathways */}

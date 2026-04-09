@@ -9,6 +9,7 @@ import {
   type ComplianceItem,
 } from '@/lib/types'
 import { useProfile } from '@/lib/ProfileContext'
+import CentreContextPanel from '@/components/CentreContextPanel'
 
 const COMPLIANCE_STATUSES: ComplianceItem['status'][] = [
   'action_required',
@@ -187,6 +188,13 @@ export default function CompliancePage() {
                         {item.notes || 'Click to add notes...'}
                       </span>
                     )}
+                    <div className="mt-2">
+                      <CentreContextPanel
+                        contextTypes={['policy_requirement', 'procedure_step', 'safety_protocol']}
+                        title="Procedure Guidance"
+                        limit={2}
+                      />
+                    </div>
                   </td>
                 </tr>
               ))}

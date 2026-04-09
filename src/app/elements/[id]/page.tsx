@@ -5,6 +5,7 @@ import { useParams, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { QA_COLORS, STATUS_COLORS, type QAElement, type Comment, type Profile } from '@/lib/types'
 import { useProfile } from '@/lib/ProfileContext'
+import CentreContextPanel from '@/components/CentreContextPanel'
 
 interface ElementAction {
   id: string
@@ -322,6 +323,17 @@ export default function ElementDetailPage() {
             <p className="text-sm text-amber-800 whitespace-pre-line">{element.training_points}</p>
           </div>
         )}
+      </div>
+
+      {/* Centre Context */}
+      <div className="mt-6">
+        <CentreContextPanel
+          elementCodes={[element.element_code]}
+          qaNumbers={[element.qa_number]}
+          contextTypes={['policy_requirement', 'procedure_step', 'teaching_approach', 'qip_goal', 'qip_strategy']}
+          title={`Kiros Context for ${element.element_code}`}
+          limit={4}
+        />
       </div>
 
       {/* Editable Notes */}

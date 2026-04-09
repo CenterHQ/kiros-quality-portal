@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { QA_COLORS } from '@/lib/types'
+import CentreContextPanel from '@/components/CentreContextPanel'
 
 export default function ReportsPage() {
   const [elements, setElements] = useState<any[]>([])
@@ -68,7 +69,7 @@ export default function ReportsPage() {
     setExportStatus(`Exported ${data.length} rows to ${a.download}`)
   }
 
-  const handleExport = () => {
+  const handleExport = async () => {
     const map: Record<string, { data: any[]; name: string }> = {
       elements: { data: elements, name: 'qa_elements' },
       actions: { data: actions, name: 'element_actions' },
@@ -77,6 +78,24 @@ export default function ReportsPage() {
       training: { data: training, name: 'training_assignments' },
       forms: { data: forms, name: 'form_submissions' },
       activity: { data: activity, name: 'activity_log' },
+    }
+    if (exportType === 'qip_goals' || exportType === 'centre_context') {
+      const contextType = exportType === 'qip_goals' ? 'qip_goal' : undefined
+      const { data: contextData } = await supabase
+        .from('centre_context')
+        .select('*')
+        .then(res => {
+          if (contextType && res.data) {
+            return { ...res, data: res.data.filter((r: any) => r.context_type === contextType) }
+          }
+          return res
+        })
+      if (contextData) {
+        downloadCSV(contextData, exportType)
+      } else {
+        setExportStatus('No data to export')
+      }
+      return
     }
     const sel = map[exportType]
     if (sel) downloadCSV(sel.data, sel.name)
@@ -263,6 +282,8 @@ export default function ReportsPage() {
                 <option value="training">Training Assignments ({training.length} rows)</option>
                 <option value="forms">Form Submissions ({forms.length} rows)</option>
                 <option value="activity">Activity Log ({activity.length} rows)</option>
+                <option value="qip_goals">QIP Goals Progress</option>
+                <option value="centre_context">Centre Context</option>
               </select>
             </div>
             <button onClick={handleExport}

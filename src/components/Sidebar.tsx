@@ -5,6 +5,11 @@ import { createClient } from '@/lib/supabase/client'
 import type { Profile } from '@/lib/types'
 import { ROLE_LABELS } from '@/lib/types'
 
+const apItems = [
+  { href: '/ap-dashboard', label: 'AP Dashboard', icon: '🏢' },
+  { href: '/hub', label: 'Centre Hub', icon: '🏠' },
+]
+
 const navItems = [
   { href: '/dashboard', label: 'Dashboard', icon: '📊' },
   { href: '/elements', label: 'QA Elements', icon: '📋' },
@@ -111,6 +116,12 @@ export default function Sidebar({ profile }: { profile: Profile }) {
 
       {/* Navigation */}
       <nav className="flex-1 p-2 space-y-1 overflow-y-auto">
+        {/* AP & Hub — visible to admin, Hub to all */}
+        {apItems.filter(item => {
+          if (item.href === '/ap-dashboard') return profile.role === 'admin'
+          return canAccessPage(profile, item.href)
+        }).map(renderLink)}
+
         {filteredNavItems.map(renderLink)}
 
         {/* Learning & Development */}

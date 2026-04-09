@@ -8,12 +8,26 @@ export default async function DashboardPage() {
     { data: elements },
     { data: tasks },
     { data: compliance },
-    { data: profile }
+    { data: profile },
+    { data: qipGoals },
+    { data: philosophyItems }
   ] = await Promise.all([
     supabase.from('qa_elements').select('*').order('qa_number').order('element_code'),
     supabase.from('tasks').select('*'),
     supabase.from('compliance_items').select('*'),
     supabase.from('profiles').select('*'),
+    supabase
+      .from('centre_context')
+      .select('id, title, content, related_qa, related_element_codes')
+      .eq('context_type', 'qip_goal')
+      .eq('is_active', true)
+      .order('title'),
+    supabase
+      .from('centre_context')
+      .select('title, content')
+      .eq('context_type', 'philosophy_principle')
+      .eq('is_active', true)
+      .limit(5),
   ])
 
   const notMetCount = elements?.filter(e => e.current_rating === 'not_met').length || 0
@@ -55,6 +69,56 @@ export default async function DashboardPage() {
           <p className="text-3xl font-bold text-red-500 mt-1">{complianceActions}</p>
         </div>
       </div>
+
+      {/* QIP Goals Progress */}
+      {qipGoals && qipGoals.length > 0 && (
+        <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200 mt-6">
+          <div className="flex items-center gap-2 mb-4">
+            <div className="w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-bold" style={{ backgroundColor: '#470DA8' }}>K</div>
+            <h2 className="text-lg font-semibold text-gray-800">QIP Goals Progress</h2>
+            <span className="text-xs text-gray-400">({qipGoals.length} goals)</span>
+          </div>
+          <div className="space-y-3">
+            {qipGoals.slice(0, 5).map((goal: any) => {
+              const relatedElements = (elements || []).filter((el: any) =>
+                goal.related_element_codes?.includes(el.element_code) || goal.related_qa?.includes(el.qa_number)
+              )
+              const completed = relatedElements.filter((el: any) =>
+                ['met', 'meeting', 'exceeding'].includes(el.current_rating) || el.status === 'completed'
+              ).length
+              const total = relatedElements.length || 1
+              const pct = Math.round((completed / total) * 100)
+              return (
+                <div key={goal.id} className="flex items-center gap-3">
+                  <div className="flex-1 min-w-0">
+                    <div className="text-sm font-medium text-gray-700 truncate">{goal.title}</div>
+                    <div className="flex items-center gap-2 mt-1">
+                      <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
+                        <div className="h-full rounded-full transition-all" style={{ width: `${pct}%`, backgroundColor: '#470DA8' }} />
+                      </div>
+                      <span className="text-xs text-gray-500 w-8 text-right">{pct}%</span>
+                    </div>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Centre Philosophy */}
+      {philosophyItems && philosophyItems.length > 0 && (
+        <div className="bg-gradient-to-r from-purple-50 to-white rounded-xl shadow-sm p-4 border border-purple-100 mt-4">
+          <div className="flex items-start gap-3">
+            <div className="text-2xl mt-0.5" style={{ color: '#470DA8' }}>&ldquo;</div>
+            <div>
+              <div className="text-sm font-medium" style={{ color: '#470DA8' }}>{philosophyItems[Math.floor(Math.random() * philosophyItems.length)]?.title}</div>
+              <div className="text-xs text-gray-500 mt-1">{philosophyItems[Math.floor(Math.random() * philosophyItems.length)]?.content?.substring(0, 150)}...</div>
+              <div className="text-[10px] text-gray-400 mt-2">K.I.R.O.S Philosophy</div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* QA Overview */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden mb-8">

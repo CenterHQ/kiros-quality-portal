@@ -5,6 +5,7 @@ import { DragDropContext, Droppable, Draggable, type DropResult } from '@hello-p
 import { createClient } from '@/lib/supabase/client'
 import { type Task, type Profile, type Comment } from '@/lib/types'
 import { useProfile } from '@/lib/ProfileContext'
+import CentreContextPanel from '@/components/CentreContextPanel'
 
 const COLUMNS = [
   { id: 'todo', label: 'To Do', color: '#999' },
@@ -284,6 +285,17 @@ export default function TaskBoardPage() {
                                         </div>
                                       </div>
 
+                                      {/* Centre Context */}
+                                      <div className="mt-3">
+                                        <CentreContextPanel
+                                          qaNumbers={task.qa_elements ? [task.qa_elements.qa_number] : undefined}
+                                          contextTypes={['qip_goal', 'qip_strategy', 'procedure_step']}
+                                          title="Related Context"
+                                          limit={2}
+                                          enabled={!!task.qa_element_id}
+                                        />
+                                      </div>
+
                                       {/* Comments / Brainstorming Section */}
                                       <div className="pt-2 border-t border-gray-100">
                                         <p className="text-xs font-semibold text-gray-500 uppercase mb-2">Comments &amp; Ideas</p>
@@ -443,6 +455,16 @@ export default function TaskBoardPage() {
                         {task.description && <p className="text-xs text-gray-500 mt-1 whitespace-pre-line">{task.description}</p>}
                       </div>
                       <button onClick={() => setExpandedTask(null)} className="text-gray-400 hover:text-gray-600 text-sm">&#10005;</button>
+                    </div>
+                    {/* Centre Context */}
+                    <div className="mt-3 mb-3">
+                      <CentreContextPanel
+                        qaNumbers={task.qa_elements ? [task.qa_elements.qa_number] : undefined}
+                        contextTypes={['qip_goal', 'qip_strategy', 'procedure_step']}
+                        title="Related Context"
+                        limit={2}
+                        enabled={!!task.qa_element_id}
+                      />
                     </div>
                     <p className="text-xs font-semibold text-gray-500 uppercase mb-2">Comments &amp; Ideas</p>
                     {taskComments.length > 0 && (

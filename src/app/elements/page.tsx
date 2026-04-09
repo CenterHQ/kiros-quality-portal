@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { QA_COLORS, STATUS_COLORS, type QAElement } from '@/lib/types'
+import CentreContextPanel from '@/components/CentreContextPanel'
 
 export default function ElementsPage() {
   const [elements, setElements] = useState<QAElement[]>([])
@@ -66,6 +67,16 @@ export default function ElementsPage() {
             >QA{n}</button>
           ))}
         </div>
+      </div>
+
+      <div className="mb-4">
+        <CentreContextPanel
+          contextTypes={['qip_goal']}
+          qaNumbers={filterQA ? [filterQA] : undefined}
+          title="Related QIP Goals"
+          limit={3}
+          enabled={!!filterQA}
+        />
       </div>
 
       {/* Elements grouped by QA */}

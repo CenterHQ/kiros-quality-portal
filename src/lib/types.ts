@@ -667,6 +667,113 @@ export const REGISTER_COLUMN_TYPE_LABELS: Record<RegisterColumnType, string> = {
 }
 
 // ============================================
+// CENTRE CONTEXT & AI TYPES
+// ============================================
+
+export type CentreContextType =
+  | 'qip_goal' | 'qip_strategy' | 'philosophy_principle'
+  | 'policy_requirement' | 'procedure_step' | 'service_value'
+  | 'teaching_approach' | 'family_engagement' | 'inclusion_practice'
+  | 'safety_protocol' | 'environment_feature' | 'leadership_goal'
+
+export interface CentreContext {
+  id: string
+  document_id?: string
+  context_type: CentreContextType
+  title: string
+  content: string
+  related_qa: number[]
+  related_element_codes: string[]
+  source_quote?: string
+  ai_generated: boolean
+  is_active: boolean
+  created_at: string
+  updated_at: string
+}
+
+export interface ChatConversation {
+  id: string
+  user_id: string
+  title?: string
+  is_active: boolean
+  created_at: string
+  updated_at: string
+}
+
+export type ChatMessageRole = 'user' | 'assistant' | 'system' | 'tool_call' | 'tool_result'
+
+export interface ChatMessage {
+  id: string
+  conversation_id: string
+  role: ChatMessageRole
+  content: string
+  metadata?: Record<string, unknown>
+  created_at: string
+}
+
+export type AiSuggestionStatus = 'pending' | 'approved' | 'rejected' | 'actioned' | 'dismissed'
+export type AiSuggestionType = 'daily_priority' | 'qip_improvement' | 'training_gap' | 'checklist_improvement' | 'compliance_reminder' | 'family_engagement'
+export type AiSuggestionActionType = 'create_task' | 'assign_training' | 'create_checklist' | 'update_element' | 'view_item'
+
+export interface AiSuggestion {
+  id: string
+  suggested_by?: string
+  target_role?: string
+  target_user_id?: string
+  suggestion_type: AiSuggestionType
+  title: string
+  content: string
+  action_type?: AiSuggestionActionType
+  action_payload?: Record<string, unknown>
+  related_qa?: number[]
+  status: AiSuggestionStatus
+  reviewed_by?: string
+  reviewed_at?: string
+  expires_at?: string
+  created_at: string
+  profiles?: Profile
+  reviewer_profiles?: Profile
+}
+
+export const CONTEXT_TYPE_LABELS: Record<CentreContextType, string> = {
+  qip_goal: 'QIP Goal',
+  qip_strategy: 'QIP Strategy',
+  philosophy_principle: 'Philosophy',
+  policy_requirement: 'Policy',
+  procedure_step: 'Procedure',
+  service_value: 'Service Value',
+  teaching_approach: 'Teaching Approach',
+  family_engagement: 'Family Engagement',
+  inclusion_practice: 'Inclusion',
+  safety_protocol: 'Safety Protocol',
+  environment_feature: 'Environment',
+  leadership_goal: 'Leadership',
+}
+
+export const CONTEXT_TYPE_COLORS: Record<CentreContextType, { bg: string; text: string }> = {
+  qip_goal: { bg: '#fdf0f0', text: '#d9534f' },
+  qip_strategy: { bg: '#fef8ec', text: '#f0ad4e' },
+  philosophy_principle: { bg: '#f3e8fa', text: '#7b2d8e' },
+  policy_requirement: { bg: '#edf8fc', text: '#5bc0de' },
+  procedure_step: { bg: '#edf7ed', text: '#5cb85c' },
+  service_value: { bg: '#f3e8fa', text: '#470DA8' },
+  teaching_approach: { bg: '#edf8fc', text: '#3498db' },
+  family_engagement: { bg: '#e8f5ee', text: '#1abc9c' },
+  inclusion_practice: { bg: '#fef8ec', text: '#e67e22' },
+  safety_protocol: { bg: '#fdf0f0', text: '#e74c3c' },
+  environment_feature: { bg: '#edf7ed', text: '#2ecc71' },
+  leadership_goal: { bg: '#edf8fc', text: '#34495e' },
+}
+
+export const SUGGESTION_STATUS_LABELS: Record<AiSuggestionStatus, string> = {
+  pending: 'Pending Review',
+  approved: 'Approved',
+  rejected: 'Rejected',
+  actioned: 'Actioned',
+  dismissed: 'Dismissed',
+}
+
+// ============================================
 // LMS (LEARNING MANAGEMENT SYSTEM) TYPES
 // ============================================
 
@@ -917,6 +1024,8 @@ export const ROLE_LABELS: Record<string, string> = {
 
 export const ALL_APP_PAGES: { href: string; label: string; section: string }[] = [
   // Main
+  { href: '/ap-dashboard', label: 'AP Dashboard', section: 'Main' },
+  { href: '/hub', label: 'Centre Hub', section: 'Main' },
   { href: '/dashboard', label: 'Dashboard', section: 'Main' },
   { href: '/elements', label: 'QA Elements', section: 'Main' },
   { href: '/tasks', label: 'Task Board', section: 'Main' },
