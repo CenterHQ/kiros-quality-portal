@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
-import { listFiles, getTokenFromRefresh } from '@/lib/microsoft-graph'
+import { listFiles, getAppToken } from '@/lib/microsoft-graph'
 
 export const dynamic = 'force-dynamic'
 
@@ -13,19 +13,16 @@ async function getValidToken(supabase: any) {
 
   if (!conn) throw new Error('SharePoint not connected')
 
-  // Check if token expired
-  if (conn.token_expires_at && new Date(conn.token_expires_at) < new Date()) {
-    if (!conn.refresh_token) throw new Error('No refresh token available')
-    const result = await getTokenFromRefresh(conn.refresh_token)
-    if (!result) throw new Error('Failed to refresh token')
-    await supabase.from('sharepoint_connection').update({
-      access_token: result.accessToken,
-      token_expires_at: result.expiresOn?.toISOString(),
-    }).eq('id', conn.id)
-    return { token: result.accessToken, driveId: conn.drive_id }
-  }
+  // Always use app token (client credentials) - no expiry issues
+  const token = await getAppToken()
 
-  return { token: conn.access_token, driveId: conn.drive_id }
+  // Update stored token
+  await supabase.from('sharepoint_connection').update({
+    access_token: token,
+    token_expires_at: new Date(Date.now() + 3600 * 1000).toISOString(),
+  }).eq('id', conn.id)
+
+  return { token, driveId: conn.drive_id }
 }
 
 export async function GET(request: NextRequest) {

@@ -1,6 +1,7 @@
 import { ConfidentialClientApplication } from '@azure/msal-node'
 
-const SCOPES = ['https://graph.microsoft.com/Sites.Read.All', 'https://graph.microsoft.com/Files.Read.All', 'offline_access']
+const DELEGATED_SCOPES = ['https://graph.microsoft.com/Sites.Read.All', 'https://graph.microsoft.com/Files.Read.All', 'offline_access']
+const APP_SCOPES = ['https://graph.microsoft.com/.default']
 
 export function getMsalClient() {
   return new ConfidentialClientApplication({
@@ -15,7 +16,7 @@ export function getMsalClient() {
 export function getAuthUrl(redirectUri: string) {
   const client = getMsalClient()
   return client.getAuthCodeUrl({
-    scopes: SCOPES,
+    scopes: DELEGATED_SCOPES,
     redirectUri,
   })
 }
@@ -24,7 +25,7 @@ export async function getTokenFromCode(code: string, redirectUri: string) {
   const client = getMsalClient()
   return client.acquireTokenByCode({
     code,
-    scopes: SCOPES,
+    scopes: DELEGATED_SCOPES,
     redirectUri,
   })
 }
@@ -33,8 +34,18 @@ export async function getTokenFromRefresh(refreshToken: string) {
   const client = getMsalClient()
   return client.acquireTokenByRefreshToken({
     refreshToken,
-    scopes: SCOPES,
+    scopes: DELEGATED_SCOPES,
   })
+}
+
+// Get app-only token using client credentials (uses Application permissions)
+export async function getAppToken() {
+  const client = getMsalClient()
+  const result = await client.acquireTokenByClientCredential({
+    scopes: APP_SCOPES,
+  })
+  if (!result) throw new Error('Failed to acquire app token')
+  return result.accessToken
 }
 
 export async function graphFetch(accessToken: string, endpoint: string) {

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getTokenFromCode, getSiteId, getDriveId } from '@/lib/microsoft-graph'
+import { getTokenFromCode, getAppToken, getSiteId, getDriveId } from '@/lib/microsoft-graph'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
 
 export const dynamic = 'force-dynamic'
@@ -12,36 +12,32 @@ export async function GET(request: NextRequest) {
 
   try {
     const redirectUri = `${process.env.NEXT_PUBLIC_SITE_URL || 'https://kiros-quality-portal.vercel.app'}/api/sharepoint/callback`
-    const result = await getTokenFromCode(code, redirectUri)
 
-    const accessToken = result.accessToken
-    // MSAL v2 doesn't expose refresh token directly in the response object
-    // We need to extract it from the token cache
-    const msalClient = (await import('@/lib/microsoft-graph')).getMsalClient()
-    const cache = msalClient.getTokenCache().serialize()
-    const cacheData = JSON.parse(cache)
-    const refreshTokens = cacheData.RefreshToken || {}
-    const refreshToken = Object.values(refreshTokens)[0] as any
-    const refreshTokenValue = refreshToken?.secret || ''
+    // Complete the user auth flow (validates the user is who they say they are)
+    await getTokenFromCode(code, redirectUri)
 
-    // Get SharePoint site and drive IDs
-    const siteId = await getSiteId(accessToken)
-    const driveId = await getDriveId(accessToken, siteId)
+    // Use app-only token for Graph API calls (uses Application permissions)
+    const appToken = await getAppToken()
+
+    // Get SharePoint site and drive IDs using app token
+    const siteId = await getSiteId(appToken)
+    const driveId = await getDriveId(appToken, siteId)
 
     // Store connection in database
     const supabase = await createServerSupabaseClient()
     const { data: { user } } = await supabase.auth.getUser()
 
     // Upsert connection (only one active connection)
+    // Store app token instead of user token - it's more reliable for background access
     const { error: dbError } = await supabase.from('sharepoint_connection').upsert({
       id: '00000000-0000-4000-8000-sharepoint01',
       tenant_id: process.env.MICROSOFT_TENANT_ID!,
       client_id: process.env.MICROSOFT_CLIENT_ID!,
       site_id: siteId,
       drive_id: driveId,
-      access_token: accessToken,
-      refresh_token: refreshTokenValue,
-      token_expires_at: result.expiresOn?.toISOString(),
+      access_token: appToken,
+      refresh_token: '__app_credentials__',
+      token_expires_at: new Date(Date.now() + 3600 * 1000).toISOString(),
       connected_by: user?.id,
       site_url: 'https://kirosgroup.sharepoint.com/sites/operations',
       status: 'connected',
