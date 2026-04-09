@@ -396,6 +396,16 @@ async function executeTool(
   }
 }
 
+// Helper: call Claude with streaming (required for Opus) and collect the full response
+async function callClaudeStreaming(
+  anthropicClient: Anthropic,
+  params: { model: string; max_tokens: number; system: string; tools: Anthropic.Tool[]; messages: Anthropic.MessageParam[] }
+): Promise<Anthropic.Message> {
+  const stream = anthropicClient.messages.stream(params)
+  const response = await stream.finalMessage()
+  return response
+}
+
 export async function POST(request: NextRequest) {
   try {
     const supabase = await createServerSupabaseClient()
@@ -424,31 +434,24 @@ export async function POST(request: NextRequest) {
       content: message,
     })
 
-    // Load full conversation history (last 50 messages including tool interactions)
+    // Load conversation history (last 40 user/assistant messages)
     const { data: history } = await supabase.from('chat_messages')
-      .select('role, content, metadata')
+      .select('role, content')
       .eq('conversation_id', convId)
+      .in('role', ['user', 'assistant'])
       .order('created_at', { ascending: true })
-      .limit(50)
+      .limit(40)
 
-    // Build messages for Claude with full context (user, assistant, and tool interactions)
-    const messages: Anthropic.MessageParam[] = []
-    for (const m of (history || [])) {
-      if (m.role === 'user') {
-        messages.push({ role: 'user', content: m.content })
-      } else if (m.role === 'assistant') {
-        messages.push({ role: 'assistant', content: m.content })
-      }
-      // Tool calls and results are part of the current turn's context
-      // They don't need to be replayed in history — Claude maintains coherence
-      // from the assistant messages that summarise what tools did
-    }
+    const messages: Anthropic.MessageParam[] = (history || []).map(m => ({
+      role: m.role as 'user' | 'assistant',
+      content: m.content,
+    }))
 
     // Load centre context for system prompt
     const { data: contextItems } = await supabase.from('centre_context')
       .select('context_type, title, content')
       .eq('is_active', true)
-      .limit(30)
+      .limit(40)
 
     const centreContext = (contextItems || [])
       .map(c => `[${c.context_type}] ${c.title}: ${c.content}`)
@@ -465,20 +468,23 @@ export async function POST(request: NextRequest) {
 
     const systemPrompt = buildSystemPrompt(profile.role, centreContext, staffList)
 
-    // Track generated documents across tool-use iterations
+    // Track generated documents
     const generatedDocuments: Array<{ type: string; title: string; document_type: string; content: string; recipient?: string; generated_at: string }> = []
 
     const anthropic = getAnthropicClient()
 
-    // Call Claude with tool-use loop
-    let response = await anthropic.messages.create({
+    const apiParams = {
       model: MODEL,
       max_tokens: 16384,
       system: systemPrompt,
       tools: allowedTools,
       messages,
-    })
+    }
 
+    // Call Claude with streaming (required for Opus)
+    let response = await callClaudeStreaming(anthropic, apiParams)
+
+    // Tool-use loop with streaming
     let iterations = 0
     while (response.stop_reason === 'tool_use' && iterations < 5) {
       const toolUseBlocks = response.content.filter((b): b is Anthropic.ContentBlock & { type: 'tool_use' } => b.type === 'tool_use')
@@ -491,9 +497,7 @@ export async function POST(request: NextRequest) {
         if (block.name === 'generate_document') {
           try {
             const docData = JSON.parse(result)
-            if (docData.type === 'document') {
-              generatedDocuments.push(docData)
-            }
+            if (docData.type === 'document') generatedDocuments.push(docData)
           } catch { /* not a document */ }
         }
 
@@ -503,27 +507,17 @@ export async function POST(request: NextRequest) {
           { conversation_id: convId, role: 'tool_result', content: result, metadata: { tool_use_id: block.id } },
         ])
 
-        toolResultContent.push({
-          type: 'tool_result',
-          tool_use_id: block.id,
-          content: result,
-        })
+        toolResultContent.push({ type: 'tool_result', tool_use_id: block.id, content: result })
       }
 
       messages.push({ role: 'assistant', content: response.content as Anthropic.ContentBlockParam[] })
       messages.push({ role: 'user', content: toolResultContent })
 
-      response = await anthropic.messages.create({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 4096,
-        system: systemPrompt,
-        tools: allowedTools,
-        messages,
-      })
+      response = await callClaudeStreaming(anthropic, { ...apiParams, messages })
       iterations++
     }
 
-    // Extract final text response
+    // Extract final text
     const textContent = response.content
       .filter((b): b is Anthropic.TextBlock => b.type === 'text')
       .map(b => b.text)
@@ -537,18 +531,13 @@ export async function POST(request: NextRequest) {
       metadata: generatedDocuments.length > 0 ? { documents: generatedDocuments } : {},
     })
 
-    // Update conversation title from first message if it's a new conversation
-    if (!conversationId) {
-      // Use the first ~80 chars of the user message as title
-      await supabase.from('chat_conversations')
-        .update({ title: message.substring(0, 80), updated_at: new Date().toISOString() })
-        .eq('id', convId)
-    } else {
-      // Touch updated_at to keep conversation order fresh
-      await supabase.from('chat_conversations')
-        .update({ updated_at: new Date().toISOString() })
-        .eq('id', convId)
-    }
+    // Update conversation
+    await supabase.from('chat_conversations')
+      .update({
+        title: !conversationId ? message.substring(0, 80) : undefined,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', convId)
 
     return NextResponse.json({
       conversationId: convId,
@@ -558,7 +547,7 @@ export async function POST(request: NextRequest) {
 
   } catch (error: unknown) {
     console.error('Chat error:', error)
-    const message = error instanceof Error ? error.message : 'Unknown error'
-    return NextResponse.json({ error: message }, { status: 500 })
+    const errMsg = error instanceof Error ? error.message : 'Unknown error'
+    return NextResponse.json({ error: errMsg }, { status: 500 })
   }
 }

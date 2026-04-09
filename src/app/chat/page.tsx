@@ -252,19 +252,29 @@ ${doc.content.replace(/^# .+\n?/m, '').replace(/^## /gm, '<h2>').replace(/<h2>(.
   ]
 
   return (
-    <div className="flex h-[calc(100vh-24px)] -m-6 bg-gray-50">
-      {/* Mobile sidebar overlay backdrop */}
+    <div className="flex h-[calc(100vh-theme(spacing.12))] -mx-6 -mb-6 -mt-6 overflow-hidden bg-gray-50">
+      {/* Mobile sidebar backdrop */}
       {sidebarOpen && (
         <div
-          className="fixed inset-0 z-20 bg-black/40 sm:hidden"
+          className="fixed inset-0 z-40 bg-black/40 sm:hidden"
           onClick={() => setSidebarOpen(false)}
           aria-hidden="true"
         />
       )}
 
-      {/* Sidebar */}
-      <div className={`${sidebarOpen ? 'w-72 max-sm:fixed max-sm:inset-0 max-sm:z-30 max-sm:w-full' : 'w-0'} bg-white border-r border-gray-200 flex flex-col transition-all duration-200 overflow-hidden flex-shrink-0`}>
-        <div className="p-3 border-b border-gray-100 flex items-center gap-2">
+      {/* Sidebar - fixed on mobile, relative on desktop */}
+      <div
+        className={`
+          flex-shrink-0 flex flex-col bg-white border-r border-gray-200 transition-all duration-200
+          ${sidebarOpen
+            ? 'w-70 max-sm:fixed max-sm:inset-y-0 max-sm:left-0 max-sm:z-50 max-sm:w-80 max-sm:shadow-xl'
+            : 'w-0'
+          }
+          overflow-hidden
+        `}
+      >
+        {/* Sidebar header */}
+        <div className="flex-shrink-0 p-3 border-b border-gray-100 flex items-center gap-2">
           <button
             onClick={startNewConversation}
             className="flex-1 flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm font-medium text-white transition-colors"
@@ -287,7 +297,8 @@ ${doc.content.replace(/^# .+\n?/m, '').replace(/^## /gm, '<h2>').replace(/<h2>(.
           </button>
         </div>
 
-        <div className="flex-1 overflow-y-auto p-2 space-y-0.5">
+        {/* Sidebar conversation list - scrollable */}
+        <div className="flex-1 min-h-0 overflow-y-auto p-2 space-y-0.5">
           {conversations.map(conv => (
             <div key={conv.id} className="group relative">
               <button
@@ -328,15 +339,16 @@ ${doc.content.replace(/^# .+\n?/m, '').replace(/^## /gm, '<h2>').replace(/<h2>(.
           )}
         </div>
 
-        <div className="p-3 border-t border-gray-100 text-[10px] text-gray-400 text-center">
+        {/* Sidebar footer */}
+        <div className="flex-shrink-0 p-3 border-t border-gray-100 text-[10px] text-gray-400 text-center">
           Powered by Anthropic Claude
         </div>
       </div>
 
       {/* Main chat area */}
-      <div className="flex-1 flex flex-col min-w-0">
-        {/* Chat header */}
-        <div className="px-4 py-2.5 border-b border-gray-200 bg-white flex items-center justify-between">
+      <div className="flex-1 flex flex-col min-w-0 min-h-0">
+        {/* Chat header - fixed height, never shrinks */}
+        <div className="flex-shrink-0 px-4 py-2.5 border-b border-gray-200 bg-white flex items-center justify-between">
           <div className="flex items-center gap-3">
             <button
               onClick={() => setSidebarOpen(!sidebarOpen)}
@@ -357,8 +369,8 @@ ${doc.content.replace(/^# .+\n?/m, '').replace(/^## /gm, '<h2>').replace(/<h2>(.
           </div>
         </div>
 
-        {/* Messages area */}
-        <div className="flex-1 overflow-y-auto">
+        {/* Messages area - flex-1 + min-h-0 is the key pattern for scrollable flex children */}
+        <div className="flex-1 min-h-0 overflow-y-auto">
           <div className="max-w-full sm:max-w-3xl mx-auto px-4 py-6 space-y-6">
             {/* Conversation loading skeleton */}
             {conversationLoading && messages.length === 0 && (
@@ -424,16 +436,16 @@ ${doc.content.replace(/^# .+\n?/m, '').replace(/^## /gm, '<h2>').replace(/<h2>(.
                       {msg.documents && msg.documents.length > 0 && msg.documents.map((doc, di) => (
                         <div key={di} className="border border-purple-200 rounded-xl overflow-hidden bg-white">
                           <div className="px-4 py-3 bg-purple-50 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                            <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-2 min-w-0">
                               <svg className="w-5 h-5 text-purple-600 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                               </svg>
-                              <div>
-                                <div className="text-sm font-medium text-purple-800">{doc.title}</div>
+                              <div className="min-w-0">
+                                <div className="text-sm font-medium text-purple-800 truncate">{doc.title}</div>
                                 <div className="text-[10px] text-purple-500">{doc.document_type} &middot; {new Date(doc.generated_at).toLocaleDateString('en-AU')}</div>
                               </div>
                             </div>
-                            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-1">
+                            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-1 flex-shrink-0">
                               <button
                                 onClick={() => setExpandedDoc(expandedDoc === `${msg.id}-${di}` ? null : `${msg.id}-${di}`)}
                                 className="px-2.5 py-1 text-xs font-medium text-purple-700 bg-white border border-purple-200 rounded-lg hover:bg-purple-100 transition-colors"
@@ -520,8 +532,8 @@ ${doc.content.replace(/^# .+\n?/m, '').replace(/^## /gm, '<h2>').replace(/<h2>(.
           </div>
         </div>
 
-        {/* Input area */}
-        <div className="border-t border-gray-200 bg-white px-4 py-3">
+        {/* Input area - never shrinks, always visible at bottom */}
+        <div className="flex-shrink-0 border-t border-gray-200 bg-white px-4 py-3">
           <div className="max-w-full sm:max-w-3xl mx-auto">
             <div className={`flex items-end gap-3 rounded-2xl border transition-all px-4 py-2 ${loading ? 'bg-gray-100 border-gray-200 opacity-60' : 'bg-gray-50 border-gray-200 focus-within:border-purple-400 focus-within:ring-2 focus-within:ring-purple-200'}`}>
               <textarea
