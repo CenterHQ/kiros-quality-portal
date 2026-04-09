@@ -30,7 +30,7 @@ export async function GET(request: NextRequest) {
     // Upsert connection (only one active connection)
     // Store app token instead of user token - it's more reliable for background access
     const { error: dbError } = await supabase.from('sharepoint_connection').upsert({
-      id: '00000000-0000-4000-8000-sharepoint01',
+      id: 'f0000000-0000-4000-8000-000000000001',
       tenant_id: process.env.MICROSOFT_TENANT_ID!,
       client_id: process.env.MICROSOFT_CLIENT_ID!,
       site_id: siteId,
