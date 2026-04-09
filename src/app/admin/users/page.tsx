@@ -26,12 +26,22 @@ export default function UsersPage() {
     setProfiles(prev => prev.map(p => p.id === userId ? { ...p, role: newRole as Profile['role'] } : p))
   }
 
+  const DEFAULT_NEW_USER_PAGES = [
+    '/dashboard',
+    '/learning',
+    '/learning/library',
+    '/learning/pathways',
+    '/learning/pdp',
+    '/learning/matrix',
+    '/learning/certificates',
+  ]
+
   const addUser = async () => {
     if (!newUser.email || !newUser.full_name || !newUser.password) return
     setLoading(true)
     setMessage('')
 
-    const { error } = await supabase.auth.signUp({
+    const { error, data: signUpData } = await supabase.auth.signUp({
       email: newUser.email,
       password: newUser.password,
       options: {
@@ -45,10 +55,26 @@ export default function UsersPage() {
     if (error) {
       setMessage(`Error: ${error.message}`)
     } else {
-      setMessage(`User ${newUser.email} created successfully. They can now log in.`)
+      // Wait for the profile trigger to create the profile, then set default page permissions
+      const userId = signUpData.user?.id
+      if (userId) {
+        // Retry until the profile exists (trigger may take a moment)
+        const setDefaults = async (retries = 5) => {
+          const { data: profile } = await supabase.from('profiles').select('id').eq('id', userId).single()
+          if (profile) {
+            await supabase.from('profiles').update({
+              allowed_pages: newUser.role === 'admin' ? null : DEFAULT_NEW_USER_PAGES
+            }).eq('id', userId)
+          } else if (retries > 0) {
+            setTimeout(() => setDefaults(retries - 1), 1000)
+          }
+        }
+        setTimeout(() => setDefaults(), 1500)
+      }
+      setMessage(`User ${newUser.email} created successfully with Learning & Development access. Add more pages below.`)
       setNewUser({ email: '', full_name: '', role: 'educator', password: '' })
       setShowAdd(false)
-      setTimeout(loadProfiles, 2000)
+      setTimeout(loadProfiles, 3000)
     }
     setLoading(false)
   }
