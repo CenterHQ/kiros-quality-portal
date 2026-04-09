@@ -666,6 +666,217 @@ export const REGISTER_COLUMN_TYPE_LABELS: Record<RegisterColumnType, string> = {
   textarea: 'Long Text',
 }
 
+// ============================================
+// LMS (LEARNING MANAGEMENT SYSTEM) TYPES
+// ============================================
+
+export type LmsModuleTier = 'mandatory' | 'core' | 'advanced'
+export type LmsModuleStatus = 'draft' | 'published' | 'archived'
+export type LmsSectionType = 'content' | 'video' | 'quiz' | 'reflection' | 'action_step'
+export type LmsEnrollmentStatus = 'not_started' | 'in_progress' | 'completed' | 'expired'
+export type LmsQuestionType = 'multiple_choice' | 'true_false' | 'scenario'
+export type LmsPathwayStatus = 'not_started' | 'in_progress' | 'completed'
+export type LmsPdpGoalStatus = 'active' | 'completed' | 'deferred'
+export type LmsPdpReviewStatus = 'draft' | 'submitted' | 'reviewed' | 'acknowledged'
+export type LmsCertificateType = 'internal' | 'external' | 'qualification'
+export type LmsCertificateStatus = 'current' | 'expiring_soon' | 'expired'
+
+export interface LmsModule {
+  id: string
+  title: string
+  description?: string
+  tier: LmsModuleTier
+  related_qa: number[]
+  related_element_codes: string[]
+  duration_minutes: number
+  category?: string
+  renewal_frequency?: 'annual' | 'biennial' | 'triennial' | 'once' | null
+  status: LmsModuleStatus
+  thumbnail_url?: string
+  created_by?: string
+  created_at: string
+  updated_at: string
+}
+
+export interface LmsModuleSection {
+  id: string
+  module_id: string
+  sort_order: number
+  section_type: LmsSectionType
+  title: string
+  content?: string
+  video_url?: string
+  estimated_minutes: number
+  created_at: string
+}
+
+export interface LmsQuizQuestion {
+  id: string
+  section_id: string
+  question: string
+  question_type: LmsQuestionType
+  options: Array<{ text: string; is_correct: boolean; explanation?: string }>
+  sort_order: number
+}
+
+export interface LmsEnrollment {
+  id: string
+  user_id: string
+  module_id: string
+  status: LmsEnrollmentStatus
+  assigned_by?: string
+  due_date?: string
+  started_at?: string
+  completed_at?: string
+  score?: number
+  created_at: string
+  lms_modules?: LmsModule
+  profiles?: Profile
+  assigned_profiles?: Profile
+}
+
+export interface LmsSectionProgress {
+  id: string
+  enrollment_id: string
+  section_id: string
+  completed: boolean
+  completed_at?: string
+}
+
+export interface LmsQuizResponse {
+  id: string
+  enrollment_id: string
+  question_id: string
+  selected_option: number
+  is_correct: boolean
+  answered_at: string
+}
+
+export interface LmsReflection {
+  id: string
+  enrollment_id: string
+  section_id: string
+  response: string
+  submitted_at: string
+}
+
+export interface LmsPathway {
+  id: string
+  title: string
+  description?: string
+  related_qa: number[]
+  tier?: LmsModuleTier
+  estimated_hours?: number
+  status: LmsModuleStatus
+  created_by?: string
+  created_at: string
+}
+
+export interface LmsPathwayModule {
+  id: string
+  pathway_id: string
+  module_id: string
+  sort_order: number
+  is_required: boolean
+  lms_modules?: LmsModule
+}
+
+export interface LmsPathwayEnrollment {
+  id: string
+  user_id: string
+  pathway_id: string
+  status: LmsPathwayStatus
+  started_at?: string
+  completed_at?: string
+  created_at: string
+  lms_pathways?: LmsPathway
+  profiles?: Profile
+}
+
+export interface LmsPdpGoal {
+  id: string
+  user_id: string
+  title: string
+  description?: string
+  related_qa: number[]
+  target_date?: string
+  status: LmsPdpGoalStatus
+  linked_module_ids: string[]
+  linked_pathway_ids: string[]
+  evidence_notes?: string
+  created_at: string
+  updated_at: string
+}
+
+export interface LmsPdpReview {
+  id: string
+  user_id: string
+  reviewer_id?: string
+  review_period?: string
+  goals_summary?: string
+  strengths?: string
+  areas_for_growth?: string
+  agreed_actions?: string
+  staff_signature?: string
+  reviewer_signature?: string
+  status: LmsPdpReviewStatus
+  reviewed_at?: string
+  created_at: string
+  profiles?: Profile
+  reviewer_profiles?: Profile
+}
+
+export interface LmsCertificate {
+  id: string
+  user_id: string
+  title: string
+  certificate_type: LmsCertificateType
+  issuer?: string
+  issue_date?: string
+  expiry_date?: string
+  file_path?: string
+  module_id?: string
+  related_qa: number[]
+  status: LmsCertificateStatus
+  created_at: string
+  profiles?: Profile
+  lms_modules?: LmsModule
+}
+
+export const LMS_TIER_LABELS: Record<LmsModuleTier, string> = {
+  mandatory: 'Mandatory Compliance',
+  core: 'Core Professional Development',
+  advanced: 'Advanced / Exceeding',
+}
+
+export const LMS_TIER_COLORS: Record<LmsModuleTier, { bg: string; text: string }> = {
+  mandatory: { bg: '#fdf0f0', text: '#d9534f' },
+  core: { bg: '#edf8fc', text: '#5bc0de' },
+  advanced: { bg: '#f3e8fa', text: '#7b2d8e' },
+}
+
+export const LMS_ENROLLMENT_STATUS_LABELS: Record<LmsEnrollmentStatus, string> = {
+  not_started: 'Not Started',
+  in_progress: 'In Progress',
+  completed: 'Completed',
+  expired: 'Expired',
+}
+
+export const LMS_CATEGORY_LABELS: Record<string, string> = {
+  first_aid: 'First Aid & Emergency',
+  child_safety: 'Child Safety',
+  health_hygiene: 'Health & Hygiene',
+  whs: 'Work Health & Safety',
+  curriculum: 'Curriculum & Programming',
+  behaviour: 'Behaviour & Wellbeing',
+  families: 'Families & Community',
+  inclusion: 'Inclusion & Diversity',
+  leadership: 'Leadership & Governance',
+  compliance: 'Compliance & Regulations',
+  professional: 'Professional Practice',
+  environment: 'Environment & Sustainability',
+}
+
 export const QA_COLORS: Record<number, string> = {
   1: '#e74c3c',
   2: '#e67e22',
@@ -714,6 +925,13 @@ export const ALL_APP_PAGES: { href: string; label: string; section: string }[] =
   { href: '/policies', label: 'Policies', section: 'Main' },
   { href: '/registers', label: 'Registers', section: 'Main' },
   { href: '/training', label: 'Training', section: 'Main' },
+  // Learning & Development
+  { href: '/learning', label: 'Learning Hub', section: 'Learning' },
+  { href: '/learning/library', label: 'Module Library', section: 'Learning' },
+  { href: '/learning/pathways', label: 'Learning Pathways', section: 'Learning' },
+  { href: '/learning/pdp', label: 'My PDP', section: 'Learning' },
+  { href: '/learning/matrix', label: 'Training Matrix', section: 'Learning' },
+  { href: '/learning/certificates', label: 'Certificates', section: 'Learning' },
   { href: '/documents', label: 'Documents', section: 'Main' },
   { href: '/compliance', label: 'Compliance', section: 'Main' },
   { href: '/forms', label: 'Forms', section: 'Main' },

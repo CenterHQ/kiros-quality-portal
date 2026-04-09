@@ -13,7 +13,6 @@ const navItems = [
   { href: '/rostering', label: 'Rostering', icon: '📅' },
   { href: '/policies', label: 'Policies', icon: '📄' },
   { href: '/registers', label: 'Registers', icon: '🗂️' },
-  { href: '/training', label: 'Training', icon: '📚' },
   { href: '/documents', label: 'Documents', icon: '📁' },
   { href: '/compliance', label: 'Compliance', icon: '⚖️' },
   { href: '/forms', label: 'Forms', icon: '📝' },
@@ -21,6 +20,15 @@ const navItems = [
   { href: '/activity', label: 'Activity', icon: '📰' },
   { href: '/reports', label: 'Reports', icon: '📈' },
   { href: '/guide', label: 'User Guide', icon: '❓' },
+]
+
+const learningItems = [
+  { href: '/learning', label: 'Learning Hub', icon: '🎓' },
+  { href: '/learning/library', label: 'Module Library', icon: '📖' },
+  { href: '/learning/pathways', label: 'Pathways', icon: '🛤️' },
+  { href: '/learning/pdp', label: 'My PDP', icon: '🎯' },
+  { href: '/learning/matrix', label: 'Training Matrix', icon: '📊' },
+  { href: '/learning/certificates', label: 'Certificates', icon: '🏅' },
 ]
 
 const ownaItems = [
@@ -40,11 +48,14 @@ const adminItems = [
 ]
 
 function canAccessPage(profile: Profile, href: string): boolean {
-  // Admins always have full access
   if (profile.role === 'admin') return true
-  // null/undefined means all pages allowed
   if (!profile.allowed_pages) return true
   return profile.allowed_pages.includes(href)
+}
+
+function isActivePath(pathname: string, href: string): boolean {
+  if (href === '/learning') return pathname === '/learning'
+  return pathname === href || (href !== '/' && pathname.startsWith(href))
 }
 
 export default function Sidebar({ profile }: { profile: Profile }) {
@@ -59,8 +70,27 @@ export default function Sidebar({ profile }: { profile: Profile }) {
   }
 
   const filteredNavItems = navItems.filter(item => canAccessPage(profile, item.href))
+  const filteredLearningItems = learningItems.filter(item => canAccessPage(profile, item.href))
   const filteredOwnaItems = ownaItems.filter(item => canAccessPage(profile, item.href))
   const filteredAdminItems = adminItems.filter(item => canAccessPage(profile, item.href))
+
+  const renderLink = (item: { href: string; label: string; icon: string }) => {
+    const isActive = isActivePath(pathname, item.href)
+    return (
+      <a
+        key={item.href}
+        href={item.href}
+        className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition ${
+          isActive
+            ? 'bg-[#470DA8] text-white'
+            : 'text-gray-700 hover:bg-gray-100'
+        }`}
+      >
+        <span>{item.icon}</span>
+        <span>{item.label}</span>
+      </a>
+    )
+  }
 
   return (
     <aside className="w-64 bg-white border-r border-gray-200 min-h-screen flex flex-col">
@@ -80,23 +110,17 @@ export default function Sidebar({ profile }: { profile: Profile }) {
 
       {/* Navigation */}
       <nav className="flex-1 p-2 space-y-1 overflow-y-auto">
-        {filteredNavItems.map((item) => {
-          const isActive = pathname === item.href || (item.href !== '/' && pathname.startsWith(item.href))
-          return (
-            <a
-              key={item.href}
-              href={item.href}
-              className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition ${
-                isActive
-                  ? 'bg-[#470DA8] text-white'
-                  : 'text-gray-700 hover:bg-gray-100'
-              }`}
-            >
-              <span>{item.icon}</span>
-              <span>{item.label}</span>
-            </a>
-          )
-        })}
+        {filteredNavItems.map(renderLink)}
+
+        {/* Learning & Development */}
+        {filteredLearningItems.length > 0 && (
+          <>
+            <div className="pt-4 pb-1 px-3">
+              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Learning & Development</p>
+            </div>
+            {filteredLearningItems.map(renderLink)}
+          </>
+        )}
 
         {/* OWNA Integration */}
         {filteredOwnaItems.length > 0 && (
@@ -104,23 +128,7 @@ export default function Sidebar({ profile }: { profile: Profile }) {
             <div className="pt-4 pb-1 px-3">
               <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">OWNA Integration</p>
             </div>
-            {filteredOwnaItems.map((item) => {
-              const isActive = pathname === item.href || pathname.startsWith(item.href)
-              return (
-                <a
-                  key={item.href}
-                  href={item.href}
-                  className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition ${
-                    isActive
-                      ? 'bg-[#470DA8] text-white'
-                      : 'text-gray-700 hover:bg-gray-100'
-                  }`}
-                >
-                  <span>{item.icon}</span>
-                  <span>{item.label}</span>
-                </a>
-              )
-            })}
+            {filteredOwnaItems.map(renderLink)}
           </>
         )}
 
@@ -129,23 +137,7 @@ export default function Sidebar({ profile }: { profile: Profile }) {
             <div className="pt-4 pb-1 px-3">
               <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Admin</p>
             </div>
-            {filteredAdminItems.map((item) => {
-              const isActive = pathname === item.href || pathname.startsWith(item.href)
-              return (
-                <a
-                  key={item.href}
-                  href={item.href}
-                  className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition ${
-                    isActive
-                      ? 'bg-[#470DA8] text-white'
-                      : 'text-gray-700 hover:bg-gray-100'
-                  }`}
-                >
-                  <span>{item.icon}</span>
-                  <span>{item.label}</span>
-                </a>
-              )
-            })}
+            {filteredAdminItems.map(renderLink)}
           </>
         )}
       </nav>
