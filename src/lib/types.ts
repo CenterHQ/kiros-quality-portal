@@ -735,6 +735,45 @@ export interface AiSuggestion {
   reviewer_profiles?: Profile
 }
 
+export type PendingActionType = 'create_task' | 'assign_training' | 'update_item' | 'create_checklist' | 'export_document'
+
+export interface PendingAction {
+  id: string
+  action_type: PendingActionType
+  description: string
+  details: Record<string, unknown>
+  status: 'pending' | 'confirmed' | 'cancelled'
+  created_at: string
+}
+
+export type DocumentExportFormat = 'pdf' | 'docx' | 'xlsx' | 'html' | 'md' | 'json'
+
+export interface DocumentExport {
+  title: string
+  content: string
+  format: DocumentExportFormat
+  recipient?: string
+  author?: string
+}
+
+export const EXPORT_FORMAT_LABELS: Record<DocumentExportFormat, string> = {
+  pdf: 'PDF',
+  docx: 'Word',
+  xlsx: 'Excel',
+  html: 'HTML',
+  md: 'Markdown',
+  json: 'JSON',
+}
+
+export const EXPORT_FORMAT_ICONS: Record<DocumentExportFormat, string> = {
+  pdf: '📄',
+  docx: '📝',
+  xlsx: '📊',
+  html: '🌐',
+  md: '📋',
+  json: '{ }',
+}
+
 export const CONTEXT_TYPE_LABELS: Record<CentreContextType, string> = {
   qip_goal: 'QIP Goal',
   qip_strategy: 'QIP Strategy',

@@ -21,42 +21,83 @@ const ROLE_LABELS: Record<string, string> = {
   educator: 'Educator',
 }
 
-function buildSystemPrompt(role: string, centreContext: string, staffList: string) {
+function buildSystemPrompt(role: string, centreContext: string, staffList: string, serviceDetails: string) {
   const roleLabel = ROLE_LABELS[role] || 'Staff Member'
-  return `You are the Kiros AI Assistant — the dedicated operations assistant for Kiros Early Education Centre in Bidwill, NSW.
 
-You are an expert in:
-- Australian Early Childhood Education and Care (ECEC)
-- The National Quality Framework (NQF) and National Quality Standard (NQS)
-- The Early Years Learning Framework (EYLF) V2.0
-- NSW Education and Care Services National Law and National Regulations
-- The Assessment and Rating (A&R) process under ACECQA
-- Early childhood centre operations, programming, compliance, and best practice
+  const roleInstructions: Record<string, string> = {
+    admin: 'You are speaking with the Approved Provider. Provide strategic executive-level insights. Summarise data comprehensively with metrics. Support governance decisions. When asked for reports, generate comprehensive documents with real platform data. Help prepare for board meetings, regulatory submissions, and strategic planning.',
+    manager: 'You are speaking with the Operations Manager. Focus on operational improvements, educator coaching strategies, and practical implementation. When you suggest improvements, ALWAYS use the suggest_improvement tool so it goes through the NS/AP approval workflow. Help with daily operations, roster planning, and staff mentoring.',
+    ns: 'You are speaking with the Nominated Supervisor. Support daily operations, compliance monitoring, staff management, and programming oversight. You can create tasks and assign training directly (with confirmation). Help monitor regulatory compliance, supervise programming quality, and manage incident responses.',
+    el: 'You are speaking with the Educational Leader. Focus on pedagogical leadership, programming quality, EYLF V2.0 alignment, and educator mentoring. Support curriculum decision-making, critical reflection practices, and documentation quality. Help develop professional learning plans.',
+    educator: 'You are speaking with an Educator. Provide practical, room-level guidance grounded in centre policies and NQS best practice. Help with daily interactions, programming ideas, behaviour guidance strategies, and professional development. Reference the centre\'s specific teaching approaches and philosophy.',
+  }
 
-You are speaking with the ${roleLabel}. Tailor your responses accordingly:
-${role === 'admin' ? '- Provide strategic, executive-level insights. Summarise data comprehensively. Support governance decisions.' : ''}
-${role === 'manager' ? '- Focus on operational improvements, educator coaching strategies, and practical implementation. When you suggest improvements, use the suggest_improvement tool so it goes through the approval workflow.' : ''}
-${role === 'ns' ? '- Support daily operations, compliance monitoring, staff management, and programming oversight. You have authority to create tasks and assign training.' : ''}
-${role === 'el' ? '- Focus on pedagogical leadership, programming quality, EYLF alignment, and educator mentoring. Support curriculum decision-making.' : ''}
-${role === 'educator' ? '- Provide practical, room-level guidance grounded in centre policies and best practice. Help with daily interactions, programming ideas, and professional development.' : ''}
+  return `You are Kiros AI — the intelligent operations assistant for Kiros Early Education Centre.
 
-CENTRE CONTEXT (from Kiros QIP, philosophy, policies, and procedures):
+IDENTITY & EXPERTISE:
+- You are an expert in Australian Early Childhood Education and Care (ECEC)
+- You specialise in the National Quality Framework (NQF), National Quality Standard (NQS), and the 7 Quality Areas
+- You are deeply knowledgeable about the Early Years Learning Framework (EYLF) V2.0
+- You understand NSW Education and Care Services National Law and National Regulations
+- You are trained on the Assessment and Rating (A&R) process under ACECQA
+- You provide practical guidance on early childhood centre operations, programming, compliance, and best practice
+
+SERVICE DETAILS:
+${serviceDetails}
+
+YOUR ROLE WITH THIS USER:
+You are speaking with the ${roleLabel}.
+${roleInstructions[role] || 'Provide helpful guidance appropriate to the user\'s role.'}
+
+CENTRE KNOWLEDGE BASE:
+The following is extracted from Kiros's actual documents — QIP goals, philosophy, policies, procedures, and practices. Reference these specifically in your answers.
 ${centreContext}
 
-STAFF MEMBERS:
+STAFF DIRECTORY:
 ${staffList}
 
-RULES:
-- Always ground your answers in the centre's actual policies, philosophy, QIP goals, and documented practices
-- Reference specific NQS element codes (e.g., 1.1.1, 2.2.3) where relevant
-- Use Australian English spelling
-- Format responses using Markdown (headings, bold, lists, tables) for readability
-- When creating tasks or assigning training, confirm the details with the user
-- Only discuss early childhood education, centre operations, compliance, and related topics
-- Do not discuss topics outside of childcare, education, or centre management
-- Cite NSW regulations by number where relevant (e.g., Regulation 77, Regulation 155)
-- When the user asks you to create, draft, or generate a document (report, letter, policy, plan, communication, agenda, guide, checklist, etc.), use the generate_document tool to produce it. Format the content in rich Markdown with headings, tables, and lists as appropriate. Include the centre name, date, and relevant details.
-- Today's date is ${new Date().toISOString().split('T')[0]}`
+RESPONSE RULES:
+1. ALWAYS cite your sources when referencing centre information:
+   - For QIP goals: [Source: QIP Goal — {title}]
+   - For policies: [Source: Policy — {title}]
+   - For procedures: [Source: Procedure — {title}]
+   - For philosophy: [Source: Philosophy — {title}]
+   - For teaching approaches: [Source: Teaching Approach — {title}]
+   - For NSW regulations: [Source: NSW Regulation {number}]
+   - For NQS elements: [Source: NQS Element {code}]
+
+2. Use Markdown formatting in ALL responses:
+   - Use ## headings for sections
+   - Use **bold** for key terms and names
+   - Use bullet lists for multiple points
+   - Use tables for structured data
+   - Use > blockquotes for direct policy/regulation quotes
+
+3. When generating documents (reports, letters, policies, plans):
+   - Use the generate_document tool
+   - Include professional structure: title, date, executive summary, body sections, recommendations
+   - Include Kiros branding language and philosophy references
+   - Cite all sources within the document
+   - Always ask what format the user wants if not specified (PDF, Word, Excel, HTML, Markdown)
+
+4. When suggesting actions (create task, assign training, update items):
+   - ALWAYS use confirmation — return pending_action objects so the user can approve/cancel
+   - Include specific details: who, what, when, priority
+   - Explain WHY you are suggesting this action, linked to QIP goals or compliance
+
+5. When answering operational questions:
+   - Query the relevant platform data using tools (do not guess)
+   - Present data in structured tables or lists
+   - Highlight items needing attention (overdue, expired, non-compliant)
+   - Suggest next actions with rationale
+
+6. SCOPE: Only discuss early childhood education, centre operations, compliance, and related topics. Politely redirect off-topic queries.
+
+7. Use Australian English spelling (organisation, programme is acceptable for EYLF references, colour, etc.)
+
+8. Reference NQS element codes (e.g., 1.1.1, 2.2.3) and NSW regulation numbers (e.g., Regulation 77, Regulation 155, Section 165) where relevant.
+
+9. Today's date is ${new Date().toISOString().split('T')[0]}`
 }
 
 const ALL_TOOLS: (Anthropic.Tool & { allowedRoles: string[] })[] = [
@@ -178,13 +219,201 @@ const ALL_TOOLS: (Anthropic.Tool & { allowedRoles: string[] })[] = [
     },
     allowedRoles: ['admin', 'manager', 'ns', 'el', 'educator'],
   },
+  {
+    name: 'get_policies',
+    description: 'Get policies with content, review schedule, and staff acknowledgement status',
+    input_schema: {
+      type: 'object' as const,
+      properties: {
+        category: { type: 'string', description: 'Filter by policy category' },
+        status: { type: 'string', description: 'Filter by status (e.g. active, draft, archived)' },
+        qa_number: { type: 'integer', description: 'Filter by related QA area (1-7)' },
+        search: { type: 'string', description: 'Search keyword in policy title or content' },
+      },
+    },
+    allowedRoles: ['admin', 'manager', 'ns', 'el', 'educator'],
+  },
+  {
+    name: 'get_checklists',
+    description: 'Get checklist templates, today\'s instances, and completion status',
+    input_schema: {
+      type: 'object' as const,
+      properties: {
+        template_name: { type: 'string', description: 'Filter by template name' },
+        date: { type: 'string', description: 'Date to check instances for (YYYY-MM-DD). Defaults to today.' },
+        status: { type: 'string', description: 'Filter instances by status' },
+        category: { type: 'string', description: 'Filter by checklist category' },
+      },
+    },
+    allowedRoles: ['admin', 'manager', 'ns', 'el', 'educator'],
+  },
+  {
+    name: 'get_roster_data',
+    description: 'Get staff roster shifts, leave requests, and room coverage',
+    input_schema: {
+      type: 'object' as const,
+      properties: {
+        date: { type: 'string', description: 'Date to check roster for (YYYY-MM-DD). Defaults to today.' },
+        room: { type: 'string', description: 'Filter by room name' },
+        staff_name: { type: 'string', description: 'Filter by staff member name' },
+        week: { type: 'boolean', description: 'If true, return full week of data starting from the given date' },
+      },
+    },
+    allowedRoles: ['admin', 'manager', 'ns'],
+  },
+  {
+    name: 'get_registers',
+    description: 'Get register definitions and entries (visitor, medication, maintenance, etc.)',
+    input_schema: {
+      type: 'object' as const,
+      properties: {
+        register_name: { type: 'string', description: 'Filter by register name' },
+        date_from: { type: 'string', description: 'Start date for entries (YYYY-MM-DD)' },
+        date_to: { type: 'string', description: 'End date for entries (YYYY-MM-DD)' },
+      },
+    },
+    allowedRoles: ['admin', 'ns', 'manager'],
+  },
+  {
+    name: 'get_forms',
+    description: 'Get form submissions (family surveys, reflections, meeting minutes, etc.)',
+    input_schema: {
+      type: 'object' as const,
+      properties: {
+        form_type: { type: 'string', description: 'Filter by form type' },
+        room: { type: 'string', description: 'Filter by room' },
+        date_from: { type: 'string', description: 'Start date (YYYY-MM-DD)' },
+        status: { type: 'string', description: 'Filter by submission status' },
+      },
+    },
+    allowedRoles: ['admin', 'ns', 'manager', 'el'],
+  },
+  {
+    name: 'get_learning_data',
+    description: 'Get learning pathways, PDP goals, certificates, and staff development data',
+    input_schema: {
+      type: 'object' as const,
+      properties: {
+        staff_name: { type: 'string', description: 'Filter by staff member name' },
+        data_type: { type: 'string', enum: ['pathways', 'pdp_goals', 'certificates', 'all'], description: 'Type of learning data to retrieve. Defaults to all.' },
+      },
+    },
+    allowedRoles: ['admin', 'manager', 'ns', 'el', 'educator'],
+  },
+  {
+    name: 'get_compliance_items',
+    description: 'Get compliance tracking items with regulation details and status',
+    input_schema: {
+      type: 'object' as const,
+      properties: {
+        status: { type: 'string', description: 'Filter by status (e.g. action_required, completed, in_progress)' },
+        assigned_to_name: { type: 'string', description: 'Filter by assigned staff member name' },
+      },
+    },
+    allowedRoles: ['admin', 'manager', 'ns', 'el', 'educator'],
+  },
+  {
+    name: 'get_activity_log',
+    description: 'Get recent activity across the platform for audit and tracking',
+    input_schema: {
+      type: 'object' as const,
+      properties: {
+        entity_type: { type: 'string', description: 'Filter by entity type (e.g. task, policy, checklist)' },
+        user_name: { type: 'string', description: 'Filter by user name' },
+        days: { type: 'integer', description: 'Number of days to look back. Defaults to 7.' },
+        limit: { type: 'integer', description: 'Max number of entries to return. Defaults to 25.' },
+      },
+    },
+    allowedRoles: ['admin', 'ns'],
+  },
+  {
+    name: 'get_documents',
+    description: 'Get uploaded documents and SharePoint synced documents',
+    input_schema: {
+      type: 'object' as const,
+      properties: {
+        category: { type: 'string', description: 'Filter by document category' },
+        qa_area: { type: 'integer', description: 'Filter by related QA area (1-7)' },
+        search: { type: 'string', description: 'Search keyword in document name or description' },
+      },
+    },
+    allowedRoles: ['admin', 'manager', 'ns', 'el', 'educator'],
+  },
+  {
+    name: 'get_room_data',
+    description: 'Get room configurations, capacities, and ratio requirements',
+    input_schema: {
+      type: 'object' as const,
+      properties: {
+        room_name: { type: 'string', description: 'Filter by room name' },
+      },
+    },
+    allowedRoles: ['admin', 'manager', 'ns', 'el', 'educator'],
+  },
+  {
+    name: 'search_platform',
+    description: 'Search across multiple platform areas by keyword',
+    input_schema: {
+      type: 'object' as const,
+      properties: {
+        query: { type: 'string', description: 'Search keyword' },
+        areas: { type: 'array', items: { type: 'string', enum: ['tasks', 'policies', 'checklists', 'training', 'compliance', 'context'] }, description: 'Platform areas to search. Defaults to all.' },
+      },
+      required: ['query'],
+    },
+    allowedRoles: ['admin', 'manager', 'ns', 'el', 'educator'],
+  },
+  {
+    name: 'update_item',
+    description: 'Update a task, compliance item, or QA element status. Returns a confirmation request — the user must confirm before changes are made.',
+    input_schema: {
+      type: 'object' as const,
+      properties: {
+        item_type: { type: 'string', enum: ['task', 'compliance_item', 'qa_element'], description: 'Type of item to update' },
+        item_id: { type: 'string', description: 'UUID of the item to update' },
+        updates: { type: 'object', description: 'Key-value pairs of fields to update' },
+      },
+      required: ['item_type', 'item_id', 'updates'],
+    },
+    allowedRoles: ['admin', 'ns', 'manager'],
+  },
+  {
+    name: 'create_checklist_instance',
+    description: 'Create a new checklist instance from a template. Returns confirmation request.',
+    input_schema: {
+      type: 'object' as const,
+      properties: {
+        template_name: { type: 'string', description: 'Name of the checklist template to instantiate' },
+        assigned_to_name: { type: 'string', description: 'Full name of person to assign to' },
+        due_date: { type: 'string', description: 'Due date as YYYY-MM-DD' },
+      },
+      required: ['template_name'],
+    },
+    allowedRoles: ['admin', 'ns', 'manager'],
+  },
+  {
+    name: 'export_document',
+    description: 'Export a document in a specific format (PDF, Word, Excel, HTML, Markdown, JSON). Use this when the user asks to download or export generated content.',
+    input_schema: {
+      type: 'object' as const,
+      properties: {
+        title: { type: 'string', description: 'Document title' },
+        content: { type: 'string', description: 'Document content (Markdown or plain text)' },
+        format: { type: 'string', enum: ['pdf', 'docx', 'xlsx', 'html', 'md', 'json'], description: 'Export format' },
+        recipient: { type: 'string', description: 'Who this document is for (if applicable)' },
+      },
+      required: ['title', 'content', 'format'],
+    },
+    allowedRoles: ['admin', 'manager', 'ns', 'el', 'educator'],
+  },
 ]
 
 async function executeTool(
   toolName: string,
   toolInput: Record<string, unknown>,
   supabase: Awaited<ReturnType<typeof createServerSupabaseClient>>,
-  userId: string
+  userId: string,
+  userRole: string = 'educator'
 ): Promise<string> {
   switch (toolName) {
     case 'search_centre_context': {
@@ -200,61 +429,39 @@ async function executeTool(
     }
 
     case 'create_task': {
-      let assignedTo = null
-      if (toolInput.assigned_to_name) {
-        const { data: profile } = await supabase
-          .from('profiles').select('id, full_name')
-          .ilike('full_name', `%${toolInput.assigned_to_name}%`)
-          .limit(1).single()
-        assignedTo = profile?.id
-      }
-      const { data, error } = await supabase.from('tasks').insert({
-        title: toolInput.title,
-        description: (toolInput.description as string) || null,
-        priority: (toolInput.priority as string) || 'medium',
-        assigned_to: assignedTo,
-        created_by: userId,
-        due_date: (toolInput.due_date as string) || null,
-        status: 'todo',
-        sort_order: 0,
-      }).select().single()
-      if (error) return JSON.stringify({ error: error.message })
-      await supabase.from('activity_log').insert({
-        user_id: userId,
-        action: `AI Assistant created task: ${toolInput.title}`,
-        entity_type: 'task',
-        entity_id: data.id,
+      const assignedName = (toolInput.assigned_to_name as string) || 'unassigned'
+      const dueDate = (toolInput.due_date as string) || 'no due date'
+      const priority = (toolInput.priority as string) || 'medium'
+      return JSON.stringify({
+        pending_action: {
+          id: crypto.randomUUID(),
+          action_type: 'create_task',
+          description: `Create task: ${toolInput.title} assigned to ${assignedName}, due ${dueDate}, priority ${priority}`,
+          details: {
+            title: toolInput.title,
+            description: (toolInput.description as string) || null,
+            priority,
+            assigned_to_name: (toolInput.assigned_to_name as string) || null,
+            due_date: (toolInput.due_date as string) || null,
+          },
+        },
       })
-      return JSON.stringify({ success: true, task_id: data.id, title: data.title })
     }
 
     case 'assign_training': {
-      const { data: mod } = await supabase
-        .from('lms_modules').select('id, title')
-        .ilike('title', `%${toolInput.module_title}%`)
-        .eq('status', 'published')
-        .limit(1).single()
-      const { data: staff } = await supabase
-        .from('profiles').select('id, full_name')
-        .ilike('full_name', `%${toolInput.staff_name}%`)
-        .limit(1).single()
-      if (!mod) return JSON.stringify({ error: `No published module found matching "${toolInput.module_title}"` })
-      if (!staff) return JSON.stringify({ error: `No staff member found matching "${toolInput.staff_name}"` })
-      const { data, error } = await supabase.from('lms_enrollments').upsert({
-        user_id: staff.id,
-        module_id: mod.id,
-        assigned_by: userId,
-        due_date: (toolInput.due_date as string) || null,
-        status: 'not_started',
-      }, { onConflict: 'user_id,module_id' }).select().single()
-      if (error) return JSON.stringify({ error: error.message })
-      await supabase.from('activity_log').insert({
-        user_id: userId,
-        action: `AI Assistant assigned "${mod.title}" to ${staff.full_name}`,
-        entity_type: 'lms_enrollment',
-        entity_id: data.id,
+      const dueDate = (toolInput.due_date as string) || 'no due date'
+      return JSON.stringify({
+        pending_action: {
+          id: crypto.randomUUID(),
+          action_type: 'assign_training',
+          description: `Assign training "${toolInput.module_title}" to ${toolInput.staff_name}, due ${dueDate}`,
+          details: {
+            module_title: toolInput.module_title,
+            staff_name: toolInput.staff_name,
+            due_date: (toolInput.due_date as string) || null,
+          },
+        },
       })
-      return JSON.stringify({ success: true, module: mod.title, staff: staff.full_name })
     }
 
     case 'get_overdue_items': {
@@ -391,6 +598,275 @@ async function executeTool(
       })
     }
 
+    case 'get_policies': {
+      let query = supabase.from('policies').select('id, title, summary, status, next_review_date, related_qa, policy_categories(name)')
+      if (toolInput.category) query = query.ilike('policy_categories.name', `%${toolInput.category}%`)
+      if (toolInput.status) query = query.eq('status', toolInput.status)
+      if (toolInput.qa_number) query = query.contains('related_qa', [toolInput.qa_number])
+      if (toolInput.search) query = query.or(`title.ilike.%${toolInput.search}%,summary.ilike.%${toolInput.search}%`)
+      const { data: policies } = await query.limit(20)
+      const policyIds = (policies || []).map(p => p.id)
+      let acknowledgements: { policy_id: string }[] = []
+      if (policyIds.length > 0) {
+        const { data } = await supabase.from('policy_acknowledgements').select('policy_id').in('policy_id', policyIds)
+        acknowledgements = data || []
+      }
+      const result = (policies || []).map(p => ({
+        ...p,
+        acknowledgement_count: acknowledgements.filter(a => a.policy_id === p.id).length,
+      }))
+      return JSON.stringify(result)
+    }
+
+    case 'get_checklists': {
+      let templateQuery = supabase.from('checklist_templates').select('id, name, frequency, checklist_categories(name)')
+      if (toolInput.template_name) templateQuery = templateQuery.ilike('name', `%${toolInput.template_name}%`)
+      if (toolInput.category) templateQuery = templateQuery.ilike('checklist_categories.name', `%${toolInput.category}%`)
+      const { data: templates } = await templateQuery.limit(20)
+
+      const targetDate = (toolInput.date as string) || new Date().toISOString().split('T')[0]
+      let instanceQuery = supabase.from('checklist_instances').select('id, name, status, due_date, failed_items_count, template_id')
+        .eq('due_date', targetDate)
+      if (toolInput.status) instanceQuery = instanceQuery.eq('status', toolInput.status)
+      const { data: instances } = await instanceQuery.limit(30)
+
+      return JSON.stringify({ templates: templates || [], instances: instances || [] })
+    }
+
+    case 'get_roster_data': {
+      const targetDate = (toolInput.date as string) || new Date().toISOString().split('T')[0]
+      let shiftQuery = supabase.from('roster_shifts').select('id, date, start_time, end_time, profiles(full_name), rooms(name)')
+      if (toolInput.week) {
+        const endDate = new Date(targetDate)
+        endDate.setDate(endDate.getDate() + 6)
+        shiftQuery = shiftQuery.gte('date', targetDate).lte('date', endDate.toISOString().split('T')[0])
+      } else {
+        shiftQuery = shiftQuery.eq('date', targetDate)
+      }
+      if (toolInput.room) shiftQuery = shiftQuery.ilike('rooms.name', `%${toolInput.room}%`)
+      if (toolInput.staff_name) shiftQuery = shiftQuery.ilike('profiles.full_name', `%${toolInput.staff_name}%`)
+      const { data: shifts } = await shiftQuery.limit(50)
+
+      const { data: leaveRequests } = await supabase.from('leave_requests').select('id, status, start_date, end_date, leave_type, profiles(full_name)')
+        .gte('end_date', targetDate).lte('start_date', targetDate).limit(20)
+
+      const { data: programmingTime } = await supabase.from('programming_time').select('id, date, hours, profiles(full_name)')
+        .eq('date', targetDate).limit(20)
+
+      return JSON.stringify({ shifts: shifts || [], leave_requests: leaveRequests || [], programming_time: programmingTime || [] })
+    }
+
+    case 'get_registers': {
+      let defQuery = supabase.from('register_definitions').select('id, name, description, fields')
+      if (toolInput.register_name) defQuery = defQuery.ilike('name', `%${toolInput.register_name}%`)
+      const { data: definitions } = await defQuery.limit(20)
+
+      const defIds = (definitions || []).map(d => d.id)
+      let entryQuery = supabase.from('register_entries').select('id, register_id, data, created_at')
+      if (defIds.length > 0) entryQuery = entryQuery.in('register_id', defIds)
+      if (toolInput.date_from) entryQuery = entryQuery.gte('created_at', toolInput.date_from)
+      if (toolInput.date_to) entryQuery = entryQuery.lte('created_at', toolInput.date_to)
+      const { data: entries } = await entryQuery.order('created_at', { ascending: false }).limit(50)
+
+      return JSON.stringify({ definitions: definitions || [], entries: entries || [] })
+    }
+
+    case 'get_forms': {
+      let query = supabase.from('form_submissions').select('id, form_type, data, status, room, created_at, profiles(full_name)')
+      if (toolInput.form_type) query = query.eq('form_type', toolInput.form_type)
+      if (toolInput.room) query = query.ilike('room', `%${toolInput.room}%`)
+      if (toolInput.date_from) query = query.gte('created_at', toolInput.date_from)
+      if (toolInput.status) query = query.eq('status', toolInput.status)
+      const { data } = await query.order('created_at', { ascending: false }).limit(20)
+      return JSON.stringify(data || [])
+    }
+
+    case 'get_learning_data': {
+      const dataType = (toolInput.data_type as string) || 'all'
+      let staffFilter: string | null = null
+
+      // Educators can only see their own data
+      if (userRole === 'educator') {
+        staffFilter = userId
+      } else if (toolInput.staff_name) {
+        const { data: staffProfile } = await supabase.from('profiles').select('id, full_name')
+          .ilike('full_name', `%${toolInput.staff_name}%`).limit(1).single()
+        staffFilter = staffProfile?.id || null
+      }
+
+      const results: Record<string, unknown> = {}
+
+      if (dataType === 'pathways' || dataType === 'all') {
+        const { data: pathways } = await supabase.from('lms_pathways').select('id, title, description').limit(20)
+        let enrollQuery = supabase.from('lms_pathway_enrollments').select('id, status, progress, lms_pathways(title), profiles(full_name)')
+        if (staffFilter) enrollQuery = enrollQuery.eq('user_id', staffFilter)
+        const { data: enrollments } = await enrollQuery.limit(30)
+        results.pathways = pathways || []
+        results.pathway_enrollments = enrollments || []
+      }
+
+      if (dataType === 'pdp_goals' || dataType === 'all') {
+        let goalsQuery = supabase.from('lms_pdp_goals').select('id, title, description, status, target_date, profiles(full_name)')
+        if (staffFilter) goalsQuery = goalsQuery.eq('user_id', staffFilter)
+        const { data: goals } = await goalsQuery.limit(30)
+
+        let reviewsQuery = supabase.from('lms_pdp_reviews').select('id, review_date, notes, lms_pdp_goals(title)')
+        if (staffFilter) reviewsQuery = reviewsQuery.eq('user_id', staffFilter)
+        const { data: reviews } = await reviewsQuery.limit(20)
+
+        results.pdp_goals = goals || []
+        results.pdp_reviews = reviews || []
+      }
+
+      if (dataType === 'certificates' || dataType === 'all') {
+        let certQuery = supabase.from('lms_certificates').select('id, title, issued_date, expiry_date, profiles(full_name)')
+        if (staffFilter) certQuery = certQuery.eq('user_id', staffFilter)
+        const { data: certs } = await certQuery.limit(30)
+        results.certificates = certs || []
+      }
+
+      return JSON.stringify(results)
+    }
+
+    case 'get_compliance_items': {
+      let query = supabase.from('compliance_items').select('id, regulation, description, status, notes, evidence, profiles(full_name)')
+      if (toolInput.status) query = query.eq('status', toolInput.status)
+      if (toolInput.assigned_to_name) {
+        const { data: staffProfile } = await supabase.from('profiles').select('id')
+          .ilike('full_name', `%${toolInput.assigned_to_name}%`).limit(1).single()
+        if (staffProfile) query = query.eq('assigned_to', staffProfile.id)
+      }
+      const { data } = await query.limit(30)
+      return JSON.stringify(data || [])
+    }
+
+    case 'get_activity_log': {
+      const days = (toolInput.days as number) || 7
+      const limit = (toolInput.limit as number) || 25
+      const sinceDate = new Date()
+      sinceDate.setDate(sinceDate.getDate() - days)
+
+      let query = supabase.from('activity_log').select('id, action, entity_type, entity_id, created_at, profiles(full_name)')
+        .gte('created_at', sinceDate.toISOString())
+      if (toolInput.entity_type) query = query.eq('entity_type', toolInput.entity_type)
+      if (toolInput.user_name) {
+        const { data: staffProfile } = await supabase.from('profiles').select('id')
+          .ilike('full_name', `%${toolInput.user_name}%`).limit(1).single()
+        if (staffProfile) query = query.eq('user_id', staffProfile.id)
+      }
+      const { data } = await query.order('created_at', { ascending: false }).limit(limit)
+      return JSON.stringify(data || [])
+    }
+
+    case 'get_documents': {
+      let docQuery = supabase.from('documents').select('id, name, type, qa_area, description, created_at')
+      if (toolInput.category) docQuery = docQuery.eq('category', toolInput.category)
+      if (toolInput.qa_area) docQuery = docQuery.eq('qa_area', toolInput.qa_area)
+      if (toolInput.search) docQuery = docQuery.or(`name.ilike.%${toolInput.search}%,description.ilike.%${toolInput.search}%`)
+      const { data: docs } = await docQuery.order('created_at', { ascending: false }).limit(20)
+
+      let spQuery = supabase.from('sharepoint_documents').select('id, name, type, qa_area, description, created_at')
+      if (toolInput.category) spQuery = spQuery.eq('category', toolInput.category)
+      if (toolInput.qa_area) spQuery = spQuery.eq('qa_area', toolInput.qa_area)
+      if (toolInput.search) spQuery = spQuery.or(`name.ilike.%${toolInput.search}%,description.ilike.%${toolInput.search}%`)
+      const { data: spDocs } = await spQuery.order('created_at', { ascending: false }).limit(20)
+
+      return JSON.stringify({ documents: docs || [], sharepoint_documents: spDocs || [] })
+    }
+
+    case 'get_room_data': {
+      let roomQuery = supabase.from('rooms').select('id, name, age_group, capacity')
+      if (toolInput.room_name) roomQuery = roomQuery.ilike('name', `%${toolInput.room_name}%`)
+      const { data: rooms } = await roomQuery.limit(20)
+
+      const { data: ratioRules } = await supabase.from('ratio_rules').select('id, room_id, age_group, ratio, state').limit(20)
+
+      return JSON.stringify({ rooms: rooms || [], ratio_rules: ratioRules || [] })
+    }
+
+    case 'search_platform': {
+      const searchQuery = toolInput.query as string
+      const areas = (toolInput.areas as string[]) || ['tasks', 'policies', 'checklists', 'training', 'compliance', 'context']
+      const results: Record<string, unknown[]> = {}
+
+      if (areas.includes('tasks')) {
+        const { data } = await supabase.from('tasks').select('id, title, status, priority')
+          .or(`title.ilike.%${searchQuery}%,description.ilike.%${searchQuery}%`).limit(5)
+        results.tasks = (data || []).map(d => ({ type: 'task', title: d.title, snippet: `Status: ${d.status}, Priority: ${d.priority}` }))
+      }
+      if (areas.includes('policies')) {
+        const { data } = await supabase.from('policies').select('id, title, status, summary')
+          .or(`title.ilike.%${searchQuery}%,summary.ilike.%${searchQuery}%`).limit(5)
+        results.policies = (data || []).map(d => ({ type: 'policy', title: d.title, snippet: d.summary || d.status }))
+      }
+      if (areas.includes('checklists')) {
+        const { data } = await supabase.from('checklist_templates').select('id, name, frequency')
+          .ilike('name', `%${searchQuery}%`).limit(5)
+        results.checklists = (data || []).map(d => ({ type: 'checklist', title: d.name, snippet: `Frequency: ${d.frequency}` }))
+      }
+      if (areas.includes('training')) {
+        const { data } = await supabase.from('lms_modules').select('id, title, tier, status')
+          .ilike('title', `%${searchQuery}%`).limit(5)
+        results.training = (data || []).map(d => ({ type: 'training', title: d.title, snippet: `Tier: ${d.tier}, Status: ${d.status}` }))
+      }
+      if (areas.includes('compliance')) {
+        const { data } = await supabase.from('compliance_items').select('id, regulation, description, status')
+          .or(`regulation.ilike.%${searchQuery}%,description.ilike.%${searchQuery}%`).limit(5)
+        results.compliance = (data || []).map(d => ({ type: 'compliance', title: d.regulation, snippet: d.description || d.status }))
+      }
+      if (areas.includes('context')) {
+        const { data } = await supabase.from('centre_context').select('id, title, content, context_type')
+          .or(`title.ilike.%${searchQuery}%,content.ilike.%${searchQuery}%`).eq('is_active', true).limit(5)
+        results.context = (data || []).map(d => ({ type: d.context_type, title: d.title, snippet: d.content?.substring(0, 150) }))
+      }
+
+      return JSON.stringify(results)
+    }
+
+    case 'update_item': {
+      const itemType = toolInput.item_type as string
+      const itemId = toolInput.item_id as string
+      const updates = toolInput.updates as Record<string, unknown>
+      const updateDesc = Object.entries(updates).map(([k, v]) => `${k} to '${v}'`).join(', ')
+      return JSON.stringify({
+        pending_action: {
+          id: crypto.randomUUID(),
+          action_type: 'update_item',
+          description: `Update ${itemType} ${itemId}: set ${updateDesc}`,
+          details: { item_type: itemType, item_id: itemId, updates },
+        },
+      })
+    }
+
+    case 'create_checklist_instance': {
+      const templateName = toolInput.template_name as string
+      const assignedName = (toolInput.assigned_to_name as string) || 'unassigned'
+      const dueDate = (toolInput.due_date as string) || new Date().toISOString().split('T')[0]
+      return JSON.stringify({
+        pending_action: {
+          id: crypto.randomUUID(),
+          action_type: 'create_checklist_instance',
+          description: `Create checklist instance from "${templateName}" assigned to ${assignedName}, due ${dueDate}`,
+          details: {
+            template_name: templateName,
+            assigned_to_name: (toolInput.assigned_to_name as string) || null,
+            due_date: dueDate,
+          },
+        },
+      })
+    }
+
+    case 'export_document': {
+      return JSON.stringify({
+        export_ready: true,
+        title: toolInput.title,
+        format: toolInput.format,
+        content: toolInput.content,
+        recipient: toolInput.recipient || null,
+        download_url: '/api/documents/export',
+      })
+    }
+
     default:
       return JSON.stringify({ error: `Unknown tool: ${toolName}` })
   }
@@ -451,7 +927,7 @@ export async function POST(request: NextRequest) {
     const { data: contextItems } = await supabase.from('centre_context')
       .select('context_type, title, content')
       .eq('is_active', true)
-      .limit(40)
+      .limit(100)
 
     const centreContext = (contextItems || [])
       .map(c => `[${c.context_type}] ${c.title}: ${c.content}`)
@@ -461,15 +937,27 @@ export async function POST(request: NextRequest) {
     const { data: staff } = await supabase.from('profiles').select('full_name, role').order('full_name')
     const staffList = (staff || []).map(s => `${s.full_name} (${ROLE_LABELS[s.role] || s.role})`).join(', ')
 
+    // Load service details for system prompt
+    const { data: serviceDetails } = await supabase
+      .from('service_details')
+      .select('key, value, label')
+
+    const serviceDetailsStr = (serviceDetails || [])
+      .map(s => `${s.label}: ${s.value}`)
+      .join('\n')
+
     // Filter tools by role
     const allowedTools: Anthropic.Tool[] = ALL_TOOLS
       .filter(t => t.allowedRoles.includes(profile.role))
       .map(({ allowedRoles: _, ...tool }) => tool)
 
-    const systemPrompt = buildSystemPrompt(profile.role, centreContext, staffList)
+    const systemPrompt = buildSystemPrompt(profile.role, centreContext, staffList, serviceDetailsStr)
 
     // Track generated documents
     const generatedDocuments: Array<{ type: string; title: string; document_type: string; content: string; recipient?: string; generated_at: string }> = []
+
+    // Track pending actions from confirmation-required tools
+    const pendingActions: Array<{ id: string; action_type: string; description: string; details: Record<string, unknown>; status: string }> = []
 
     const anthropic = getAnthropicClient()
 
@@ -491,7 +979,7 @@ export async function POST(request: NextRequest) {
       const toolResultContent: Anthropic.ToolResultBlockParam[] = []
 
       for (const block of toolUseBlocks) {
-        const result = await executeTool(block.name, block.input as Record<string, unknown>, supabase, user.id)
+        const result = await executeTool(block.name, block.input as Record<string, unknown>, supabase, user.id, profile.role)
 
         // Capture generated documents
         if (block.name === 'generate_document') {
@@ -500,6 +988,14 @@ export async function POST(request: NextRequest) {
             if (docData.type === 'document') generatedDocuments.push(docData)
           } catch { /* not a document */ }
         }
+
+        // Capture pending actions from confirmation-required tools
+        try {
+          const parsed = JSON.parse(result)
+          if (parsed.pending_action) {
+            pendingActions.push(parsed.pending_action)
+          }
+        } catch { /* not JSON */ }
 
         // Persist tool interactions
         await supabase.from('chat_messages').insert([
@@ -543,6 +1039,7 @@ export async function POST(request: NextRequest) {
       conversationId: convId,
       message: textContent,
       documents: generatedDocuments.length > 0 ? generatedDocuments : undefined,
+      pending_actions: pendingActions.length > 0 ? pendingActions : undefined,
     })
 
   } catch (error: unknown) {
