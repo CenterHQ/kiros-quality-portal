@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { QA_COLORS, STATUS_COLORS, type QAElement, type Comment, type Profile } from '@/lib/types'
+import { useProfile } from '@/lib/ProfileContext'
 
 interface ElementAction {
   id: string
@@ -40,7 +41,7 @@ export default function ElementDetailPage() {
   const [element, setElement] = useState<QAElement | null>(null)
   const [comments, setComments] = useState<(Comment & { profiles: Profile })[]>([])
   const [newComment, setNewComment] = useState('')
-  const [user, setUser] = useState<Profile | null>(null)
+  const user = useProfile()
   const supabase = createClient()
 
   // Element Actions state
@@ -62,12 +63,6 @@ export default function ElementDetailPage() {
 
   useEffect(() => {
     const load = async () => {
-      const { data: { user: authUser } } = await supabase.auth.getUser()
-      if (authUser) {
-        const { data: p } = await supabase.from('profiles').select('*').eq('id', authUser.id).single()
-        if (p) setUser(p)
-      }
-
       const { data: el } = await supabase.from('qa_elements').select('*').eq('id', params.id).single()
       if (el) setElement(el)
 

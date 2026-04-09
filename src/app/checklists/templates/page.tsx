@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import type { ChecklistTemplate, ChecklistCategory, ChecklistItemDefinition, ChecklistFrequency, ChecklistItemType, Profile } from '@/lib/types'
 import { CHECKLIST_FREQUENCY_LABELS, CHECKLIST_ITEM_TYPE_LABELS, QA_COLORS } from '@/lib/types'
+import { useProfile } from '@/lib/ProfileContext'
 
 const EMPTY_ITEM: Omit<ChecklistItemDefinition, 'id' | 'sort_order'> = {
   title: '',
@@ -15,7 +16,7 @@ export default function ChecklistTemplatesPage() {
   const supabase = createClient()
   const [templates, setTemplates] = useState<ChecklistTemplate[]>([])
   const [categories, setCategories] = useState<ChecklistCategory[]>([])
-  const [user, setUser] = useState<Profile | null>(null)
+  const user = useProfile()
   const [filter, setFilter] = useState<{ category: string; frequency: string; status: string }>({ category: '', frequency: '', status: 'active' })
   const [editing, setEditing] = useState<ChecklistTemplate | null>(null)
   const [showBuilder, setShowBuilder] = useState(false)
@@ -31,11 +32,6 @@ export default function ChecklistTemplatesPage() {
   const [builderStatus, setBuilderStatus] = useState<'active' | 'draft'>('active')
 
   const load = async () => {
-    const { data: { user: au } } = await supabase.auth.getUser()
-    if (au) {
-      const { data: p } = await supabase.from('profiles').select('*').eq('id', au.id).single()
-      if (p) setUser(p as Profile)
-    }
     const { data: cats } = await supabase.from('checklist_categories').select('*').order('sort_order')
     if (cats) setCategories(cats)
     const { data: tmpl } = await supabase.from('checklist_templates').select('*, checklist_categories(*)').order('created_at', { ascending: false })

@@ -3,6 +3,7 @@
 import { useEffect, useState, useRef, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { QA_COLORS, type Profile, type Document } from '@/lib/types'
+import { useProfile } from '@/lib/ProfileContext'
 
 const QA_LABELS: Record<number, string> = {
   0: 'General',
@@ -24,7 +25,7 @@ function formatFileSize(bytes?: number) {
 
 export default function DocumentsPage() {
   const [documents, setDocuments] = useState<Document[]>([])
-  const [currentUser, setCurrentUser] = useState<Profile | null>(null)
+  const currentUser = useProfile()
   const [filterQA, setFilterQA] = useState<number | null>(null)
   const [uploading, setUploading] = useState(false)
   const [dragActive, setDragActive] = useState(false)
@@ -39,29 +40,18 @@ export default function DocumentsPage() {
 
   async function loadData() {
     setLoading(true)
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return
-
-    const [profileRes, docsRes] = await Promise.all([
-      supabase.from('profiles').select('*').eq('id', user.id).single(),
-      supabase.from('documents').select('*, profiles(full_name)').order('created_at', { ascending: false }),
-    ])
-
-    if (profileRes.data) setCurrentUser(profileRes.data)
-    if (docsRes.data) setDocuments(docsRes.data)
+    const { data: docsRes } = await supabase.from('documents').select('*, profiles(full_name)').order('created_at', { ascending: false })
+    if (docsRes) setDocuments(docsRes)
     setLoading(false)
   }
 
   const isAdminOrManager = currentUser?.role === 'admin' || currentUser?.role === 'manager'
 
   async function uploadFiles(files: FileList | File[]) {
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return
-
     setUploading(true)
     for (const file of Array.from(files)) {
       const fileExt = file.name.split('.').pop()
-      const filePath = `${user.id}/${Date.now()}-${file.name}`
+      const filePath = `${currentUser.id}/${Date.now()}-${file.name}`
 
       const { error: uploadError } = await supabase.storage
         .from('documents')
@@ -78,12 +68,12 @@ export default function DocumentsPage() {
         file_size: file.size,
         file_type: file.type || fileExt,
         category: 'general',
-        uploaded_by: user.id,
+        uploaded_by: currentUser.id,
         qa_area: filterQA || null,
       })
 
       await supabase.from('activity_log').insert({
-        user_id: user.id,
+        user_id: currentUser.id,
         action: 'uploaded_document',
         entity_type: 'document',
         details: `Uploaded ${file.name}`,
@@ -95,13 +85,10 @@ export default function DocumentsPage() {
 
   async function handleDelete(doc: Document) {
     if (!confirm(`Delete "${doc.name}"?`)) return
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return
-
     await supabase.storage.from('documents').remove([doc.file_path])
     await supabase.from('documents').delete().eq('id', doc.id)
     await supabase.from('activity_log').insert({
-      user_id: user.id,
+      user_id: currentUser.id,
       action: 'deleted_document',
       entity_type: 'document',
       entity_id: doc.id,

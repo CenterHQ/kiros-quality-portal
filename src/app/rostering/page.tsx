@@ -4,6 +4,7 @@ import { useEffect, useState, useMemo } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import type { Profile, Room, RosterShift, StaffQualification, LeaveRequest, ProgrammingTime, RatioStatus } from '@/lib/types'
 import { AGE_GROUP_LABELS, SHIFT_TYPE_LABELS, QUALIFICATION_LABELS } from '@/lib/types'
+import { useProfile } from '@/lib/ProfileContext'
 
 const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri']
 
@@ -22,7 +23,7 @@ type Tab = 'roster' | 'compliance' | 'leave' | 'programming' | 'staff'
 
 export default function RosteringPage() {
   const supabase = createClient()
-  const [user, setUser] = useState<Profile | null>(null)
+  const user = useProfile()
   const [profiles, setProfiles] = useState<Profile[]>([])
   const [rooms, setRooms] = useState<Room[]>([])
   const [shifts, setShifts] = useState<RosterShift[]>([])
@@ -43,11 +44,6 @@ export default function RosteringPage() {
   const weekLabel = `${new Date(weekDates[0]).toLocaleDateString('en-AU', { day: 'numeric', month: 'short' })} - ${new Date(weekDates[4]).toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' })}`
 
   const load = async () => {
-    const { data: { user: au } } = await supabase.auth.getUser()
-    if (au) {
-      const { data: p } = await supabase.from('profiles').select('*').eq('id', au.id).single()
-      if (p) setUser(p as Profile)
-    }
     const [{ data: rm }, { data: pr }, { data: sq }, { data: lr }, { data: pt }] = await Promise.all([
       supabase.from('rooms').select('*').eq('is_active', true).order('sort_order'),
       supabase.from('profiles').select('*'),

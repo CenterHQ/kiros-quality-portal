@@ -4,11 +4,12 @@ import { useEffect, useState, useMemo } from 'react'
 import { useParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import type { RegisterDefinition, RegisterEntry, RegisterColumnDef, Profile } from '@/lib/types'
+import { useProfile } from '@/lib/ProfileContext'
 
 export default function RegisterDetailPage() {
   const { id } = useParams()
   const supabase = createClient()
-  const [user, setUser] = useState<Profile | null>(null)
+  const user = useProfile()
   const [register, setRegister] = useState<RegisterDefinition | null>(null)
   const [entries, setEntries] = useState<RegisterEntry[]>([])
   const [showAddRow, setShowAddRow] = useState(false)
@@ -22,11 +23,6 @@ export default function RegisterDetailPage() {
   const PAGE_SIZE = 25
 
   const load = async () => {
-    const { data: { user: au } } = await supabase.auth.getUser()
-    if (au) {
-      const { data: p } = await supabase.from('profiles').select('*').eq('id', au.id).single()
-      if (p) setUser(p as Profile)
-    }
     const { data: reg } = await supabase.from('register_definitions').select('*').eq('id', id).single()
     if (reg) setRegister(reg as any)
     const { data: ent } = await supabase.from('register_entries').select('*').eq('register_id', id).order('sort_order')

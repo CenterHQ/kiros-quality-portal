@@ -2,30 +2,22 @@
 
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import { useProfile } from '@/lib/ProfileContext'
 
 export default function NotificationsPage() {
-  const [settings, setSettings] = useState({ notify_comments: true, notify_status_changes: true, notify_assignments: true })
+  const profile = useProfile()
+  const [settings, setSettings] = useState({
+    notify_comments: profile.notify_comments,
+    notify_status_changes: profile.notify_status_changes,
+    notify_assignments: profile.notify_assignments,
+  })
   const [saved, setSaved] = useState(false)
   const supabase = createClient()
 
-  useEffect(() => {
-    const load = async () => {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (user) {
-        const { data } = await supabase.from('profiles').select('notify_comments, notify_status_changes, notify_assignments').eq('id', user.id).single()
-        if (data) setSettings(data)
-      }
-    }
-    load()
-  }, [])
-
   const save = async () => {
-    const { data: { user } } = await supabase.auth.getUser()
-    if (user) {
-      await supabase.from('profiles').update(settings).eq('id', user.id)
-      setSaved(true)
-      setTimeout(() => setSaved(false), 2000)
-    }
+    await supabase.from('profiles').update(settings).eq('id', profile.id)
+    setSaved(true)
+    setTimeout(() => setSaved(false), 2000)
   }
 
   const Toggle = ({ label, checked, onChange }: { label: string; checked: boolean; onChange: (v: boolean) => void }) => (

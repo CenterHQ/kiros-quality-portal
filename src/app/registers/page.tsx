@@ -4,10 +4,11 @@ import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import type { RegisterDefinition, RegisterColumnDef, RegisterColumnType, Profile } from '@/lib/types'
 import { REGISTER_COLUMN_TYPE_LABELS } from '@/lib/types'
+import { useProfile } from '@/lib/ProfileContext'
 
 export default function RegistersPage() {
   const supabase = createClient()
-  const [user, setUser] = useState<Profile | null>(null)
+  const user = useProfile()
   const [registers, setRegisters] = useState<RegisterDefinition[]>([])
   const [entryCounts, setEntryCounts] = useState<Record<string, number>>({})
   const [showBuilder, setShowBuilder] = useState(false)
@@ -21,11 +22,6 @@ export default function RegistersPage() {
   const [regColumns, setRegColumns] = useState<RegisterColumnDef[]>([])
 
   const load = async () => {
-    const { data: { user: au } } = await supabase.auth.getUser()
-    if (au) {
-      const { data: p } = await supabase.from('profiles').select('*').eq('id', au.id).single()
-      if (p) setUser(p as Profile)
-    }
     const { data: regs } = await supabase.from('register_definitions').select('*').eq('status', 'active').order('name')
     if (regs) {
       setRegisters(regs as any)

@@ -5,12 +5,13 @@ import { useParams, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import type { Policy, PolicyCategory, PolicyVersion, PolicyAcknowledgement, ServiceDetail, Profile, ReviewFrequency } from '@/lib/types'
 import { POLICY_STATUS_LABELS, REVIEW_FREQUENCY_LABELS, QA_COLORS } from '@/lib/types'
+import { useProfile } from '@/lib/ProfileContext'
 
 export default function PolicyDetailPage() {
   const { id } = useParams()
   const router = useRouter()
   const supabase = createClient()
-  const [user, setUser] = useState<Profile | null>(null)
+  const user = useProfile()
   const [policy, setPolicy] = useState<Policy | null>(null)
   const [categories, setCategories] = useState<PolicyCategory[]>([])
   const [versions, setVersions] = useState<PolicyVersion[]>([])
@@ -28,11 +29,6 @@ export default function PolicyDetailPage() {
   const [isDrawing, setIsDrawing] = useState(false)
 
   const load = async () => {
-    const { data: { user: au } } = await supabase.auth.getUser()
-    if (au) {
-      const { data: p } = await supabase.from('profiles').select('*').eq('id', au.id).single()
-      if (p) setUser(p as Profile)
-    }
     const [{ data: pol }, { data: cats }, { data: vers }, { data: acks }, { data: sd }, { data: profs }] = await Promise.all([
       supabase.from('policies').select('*, policy_categories(*)').eq('id', id).single(),
       supabase.from('policy_categories').select('*').order('sort_order'),

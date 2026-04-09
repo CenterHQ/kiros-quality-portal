@@ -2,13 +2,11 @@ import { redirect } from 'next/navigation'
 import { headers } from 'next/headers'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
 import Sidebar from '@/components/Sidebar'
+import { ProfileProvider } from '@/lib/ProfileContext'
 
 function canAccessPath(profile: { role: string; allowed_pages?: string[] | null }, pathname: string): boolean {
-  // Admins always have full access
   if (profile.role === 'admin') return true
-  // null/undefined means all pages allowed
   if (!profile.allowed_pages) return true
-  // Check if the current path matches any allowed page
   return profile.allowed_pages.some(page => pathname === page || pathname.startsWith(page + '/'))
 }
 
@@ -20,27 +18,27 @@ export default async function ProtectedLayout({ children }: { children: React.Re
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('*')
+    .select('id, email, full_name, role, avatar_url, notify_comments, notify_status_changes, notify_assignments, allowed_pages, created_at, updated_at')
     .eq('id', user.id)
     .single()
 
   if (!profile) redirect('/login')
 
-  // Get the current pathname from middleware header
   const headersList = await headers()
   const pathname = headersList.get('x-pathname') || ''
 
-  // Check page access (skip for dashboard — always allowed)
   if (pathname && pathname !== '/dashboard' && pathname !== '/' && !canAccessPath(profile, pathname)) {
     redirect('/dashboard')
   }
 
   return (
-    <div className="flex min-h-screen">
-      <Sidebar profile={profile} />
-      <main className="flex-1 p-6 overflow-auto">
-        {children}
-      </main>
-    </div>
+    <ProfileProvider profile={profile}>
+      <div className="flex min-h-screen">
+        <Sidebar profile={profile} />
+        <main className="flex-1 p-6 overflow-auto">
+          {children}
+        </main>
+      </div>
+    </ProfileProvider>
   )
 }

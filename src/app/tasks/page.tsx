@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { DragDropContext, Droppable, Draggable, type DropResult } from '@hello-pangea/dnd'
 import { createClient } from '@/lib/supabase/client'
 import { type Task, type Profile, type Comment } from '@/lib/types'
+import { useProfile } from '@/lib/ProfileContext'
 
 const COLUMNS = [
   { id: 'todo', label: 'To Do', color: '#999' },
@@ -19,7 +20,7 @@ export default function TaskBoardPage() {
   const [profiles, setProfiles] = useState<Profile[]>([])
   const [showAdd, setShowAdd] = useState(false)
   const [newTask, setNewTask] = useState({ title: '', description: '', priority: 'medium', assigned_to: '', due_date: '' })
-  const [user, setUser] = useState<Profile | null>(null)
+  const user = useProfile()
   const [view, setView] = useState<'board' | 'list'>('board')
   const [expandedTask, setExpandedTask] = useState<string | null>(null)
   const [comments, setComments] = useState<Comment[]>([])
@@ -39,11 +40,6 @@ export default function TaskBoardPage() {
 
   useEffect(() => {
     const load = async () => {
-      const { data: { user: au } } = await supabase.auth.getUser()
-      if (au) {
-        const { data: p } = await supabase.from('profiles').select('*').eq('id', au.id).single()
-        if (p) setUser(p)
-      }
       await loadTasks()
       await loadComments()
       const { data: pr } = await supabase.from('profiles').select('*')

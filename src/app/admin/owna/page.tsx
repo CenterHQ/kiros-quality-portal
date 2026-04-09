@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import type { Profile } from '@/lib/types'
+import { useProfile } from '@/lib/ProfileContext'
 
 const API_BASE = 'https://api.owna.com.au'
 const API_KEY = '63db089ff821163db089ff82114abf9e'
@@ -314,7 +315,7 @@ const METHOD_COLORS: Record<string, string> = {
 
 export default function OwnaApiTestingPage() {
   const supabase = createClient()
-  const [user, setUser] = useState<Profile | null>(null)
+  const user = useProfile()
   const [selectedGroup, setSelectedGroup] = useState(0)
   const [selectedEndpoint, setSelectedEndpoint] = useState(0)
   const [paramValues, setParamValues] = useState<Record<string, string>>({})
@@ -325,14 +326,6 @@ export default function OwnaApiTestingPage() {
   const [savedCentreId, setSavedCentreId] = useState('')
 
   useEffect(() => {
-    const load = async () => {
-      const { data: { user: au } } = await supabase.auth.getUser()
-      if (au) {
-        const { data: p } = await supabase.from('profiles').select('*').eq('id', au.id).single()
-        if (p) setUser(p as Profile)
-      }
-    }
-    load()
     const saved = localStorage.getItem('owna_centre_id')
     if (saved) setSavedCentreId(saved)
   }, [])

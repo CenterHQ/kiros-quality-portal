@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import { useProfile } from '@/lib/ProfileContext'
 
 const FORM_CONFIGS: Record<string, { title: string; fields: { name: string; label: string; type: 'text' | 'textarea' | 'select' | 'date'; options?: string[] }[] }> = {
   weekly_reflection: {
@@ -149,6 +150,7 @@ export default function NewFormPage() {
   const [formData, setFormData] = useState<Record<string, string>>({})
   const [saving, setSaving] = useState(false)
   const supabase = createClient()
+  const currentUser = useProfile()
 
   if (!config) return <div className="p-8 text-center text-gray-500">Invalid form type</div>
 
@@ -158,19 +160,17 @@ export default function NewFormPage() {
 
   const saveForm = async (status: 'draft' | 'submitted') => {
     setSaving(true)
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return
 
     await supabase.from('form_submissions').insert({
       form_type: formType,
       data: formData,
-      submitted_by: user.id,
+      submitted_by: currentUser.id,
       room: formData.room || null,
       status,
     })
 
     await supabase.from('activity_log').insert({
-      user_id: user.id,
+      user_id: currentUser.id,
       action: `${status === 'submitted' ? 'Submitted' : 'Saved draft'} ${config.title}`,
       entity_type: 'form',
       entity_id: formType,

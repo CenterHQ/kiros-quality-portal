@@ -8,6 +8,7 @@ import {
   type Profile,
   type ComplianceItem,
 } from '@/lib/types'
+import { useProfile } from '@/lib/ProfileContext'
 
 const COMPLIANCE_STATUSES: ComplianceItem['status'][] = [
   'action_required',
@@ -19,7 +20,7 @@ const COMPLIANCE_STATUSES: ComplianceItem['status'][] = [
 export default function CompliancePage() {
   const [items, setItems] = useState<ComplianceItem[]>([])
   const [profiles, setProfiles] = useState<Profile[]>([])
-  const [currentUser, setCurrentUser] = useState<Profile | null>(null)
+  const currentUser = useProfile()
   const [editingNotes, setEditingNotes] = useState<number | null>(null)
   const [notesValue, setNotesValue] = useState('')
   const [loading, setLoading] = useState(true)
@@ -32,25 +33,17 @@ export default function CompliancePage() {
 
   async function loadData() {
     setLoading(true)
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return
-
-    const [profileRes, itemsRes, profilesRes] = await Promise.all([
-      supabase.from('profiles').select('*').eq('id', user.id).single(),
+    const [itemsRes, profilesRes] = await Promise.all([
       supabase.from('compliance_items').select('*, profiles(full_name)').order('id'),
       supabase.from('profiles').select('*').order('full_name'),
     ])
 
-    if (profileRes.data) setCurrentUser(profileRes.data)
     if (itemsRes.data) setItems(itemsRes.data)
     if (profilesRes.data) setProfiles(profilesRes.data)
     setLoading(false)
   }
 
   async function updateField(id: number, field: string, value: string | null) {
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return
-
     const { error } = await supabase
       .from('compliance_items')
       .update({ [field]: value, updated_at: new Date().toISOString() })
@@ -58,7 +51,7 @@ export default function CompliancePage() {
 
     if (!error) {
       await supabase.from('activity_log').insert({
-        user_id: user.id,
+        user_id: currentUser.id,
         action: `updated_compliance_${field}`,
         entity_type: 'compliance',
         entity_id: String(id),

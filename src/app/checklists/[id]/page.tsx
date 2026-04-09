@@ -4,13 +4,14 @@ import { useEffect, useState, useRef } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import type { ChecklistInstance, ChecklistItemDefinition, ChecklistItemResponse, Profile } from '@/lib/types'
+import { useProfile } from '@/lib/ProfileContext'
 
 export default function ChecklistCompletionPage() {
   const { id } = useParams()
   const router = useRouter()
   const supabase = createClient()
   const [instance, setInstance] = useState<ChecklistInstance | null>(null)
-  const [user, setUser] = useState<Profile | null>(null)
+  const user = useProfile()
   const [responses, setResponses] = useState<Record<string, ChecklistItemResponse>>({})
   const [saving, setSaving] = useState(false)
   const [submitting, setSubmitting] = useState(false)
@@ -18,11 +19,6 @@ export default function ChecklistCompletionPage() {
 
   useEffect(() => {
     const load = async () => {
-      const { data: { user: au } } = await supabase.auth.getUser()
-      if (au) {
-        const { data: p } = await supabase.from('profiles').select('*').eq('id', au.id).single()
-        if (p) setUser(p as Profile)
-      }
       const { data: inst } = await supabase.from('checklist_instances').select('*, checklist_templates(*, checklist_categories(*))').eq('id', id).single()
       if (inst) {
         setInstance(inst as any)

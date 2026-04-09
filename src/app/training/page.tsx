@@ -10,12 +10,13 @@ import {
   type TrainingModule,
   type TrainingAssignment,
 } from '@/lib/types'
+import { useProfile } from '@/lib/ProfileContext'
 
 export default function TrainingPage() {
   const [modules, setModules] = useState<TrainingModule[]>([])
   const [assignments, setAssignments] = useState<TrainingAssignment[]>([])
   const [profiles, setProfiles] = useState<Profile[]>([])
-  const [currentUser, setCurrentUser] = useState<Profile | null>(null)
+  const currentUser = useProfile()
   const [assigningModuleId, setAssigningModuleId] = useState<number | null>(null)
   const [assignForm, setAssignForm] = useState({ user_id: '', due_date: '' })
   const [loading, setLoading] = useState(true)
@@ -28,17 +29,12 @@ export default function TrainingPage() {
 
   async function loadData() {
     setLoading(true)
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return
-
-    const [profileRes, modulesRes, assignmentsRes, profilesRes] = await Promise.all([
-      supabase.from('profiles').select('*').eq('id', user.id).single(),
+    const [modulesRes, assignmentsRes, profilesRes] = await Promise.all([
       supabase.from('training_modules').select('*').order('sort_order'),
       supabase.from('training_assignments').select('*, profiles(id, full_name, email, role), training_modules(*)').order('created_at', { ascending: false }),
       supabase.from('profiles').select('*').order('full_name'),
     ])
 
-    if (profileRes.data) setCurrentUser(profileRes.data)
     if (modulesRes.data) setModules(modulesRes.data)
     if (assignmentsRes.data) setAssignments(assignmentsRes.data)
     if (profilesRes.data) setProfiles(profilesRes.data)
@@ -58,20 +54,17 @@ export default function TrainingPage() {
 
   async function handleAssign(moduleId: number) {
     if (!assignForm.user_id) return
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return
-
     const { error } = await supabase.from('training_assignments').insert({
       module_id: moduleId,
       user_id: assignForm.user_id,
-      assigned_by: user.id,
+      assigned_by: currentUser.id,
       due_date: assignForm.due_date || null,
       status: 'assigned',
     })
 
     if (!error) {
       await supabase.from('activity_log').insert({
-        user_id: user.id,
+        user_id: currentUser.id,
         action: 'assigned_training',
         entity_type: 'training',
         entity_id: String(moduleId),
@@ -84,9 +77,6 @@ export default function TrainingPage() {
   }
 
   async function handleMarkComplete(assignmentId: string) {
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return
-
     const { error } = await supabase
       .from('training_assignments')
       .update({ status: 'completed', completed_at: new Date().toISOString() })
@@ -94,7 +84,7 @@ export default function TrainingPage() {
 
     if (!error) {
       await supabase.from('activity_log').insert({
-        user_id: user.id,
+        user_id: currentUser.id,
         action: 'completed_training',
         entity_type: 'training',
         entity_id: assignmentId,

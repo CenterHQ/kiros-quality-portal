@@ -4,12 +4,13 @@ import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import type { Policy, PolicyCategory, PolicyAcknowledgement, Profile } from '@/lib/types'
 import { POLICY_STATUS_LABELS, REVIEW_FREQUENCY_LABELS, QA_COLORS } from '@/lib/types'
+import { useProfile } from '@/lib/ProfileContext'
 
 type Tab = 'library' | 'review_schedule' | 'acknowledgements'
 
 export default function PoliciesPage() {
   const supabase = createClient()
-  const [user, setUser] = useState<Profile | null>(null)
+  const user = useProfile()
   const [policies, setPolicies] = useState<Policy[]>([])
   const [categories, setCategories] = useState<PolicyCategory[]>([])
   const [acknowledgements, setAcknowledgements] = useState<PolicyAcknowledgement[]>([])
@@ -20,11 +21,6 @@ export default function PoliciesPage() {
   const [search, setSearch] = useState('')
 
   const load = async () => {
-    const { data: { user: au } } = await supabase.auth.getUser()
-    if (au) {
-      const { data: p } = await supabase.from('profiles').select('*').eq('id', au.id).single()
-      if (p) setUser(p as Profile)
-    }
     const [{ data: pol }, { data: cats }, { data: acks }, { data: profs }] = await Promise.all([
       supabase.from('policies').select('*, policy_categories(*), profiles!policies_created_by_fkey(full_name)').order('title'),
       supabase.from('policy_categories').select('*').order('sort_order'),

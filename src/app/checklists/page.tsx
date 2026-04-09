@@ -4,12 +4,13 @@ import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import type { ChecklistTemplate, ChecklistInstance, ChecklistCategory, SmartTicket, Profile, ChecklistItemDefinition } from '@/lib/types'
 import { CHECKLIST_FREQUENCY_LABELS, QA_COLORS } from '@/lib/types'
+import { useProfile } from '@/lib/ProfileContext'
 
 type Tab = 'today' | 'upcoming' | 'history' | 'tickets'
 
 export default function ChecklistsPage() {
   const supabase = createClient()
-  const [user, setUser] = useState<Profile | null>(null)
+  const user = useProfile()
   const [templates, setTemplates] = useState<ChecklistTemplate[]>([])
   const [instances, setInstances] = useState<ChecklistInstance[]>([])
   const [categories, setCategories] = useState<ChecklistCategory[]>([])
@@ -23,11 +24,6 @@ export default function ChecklistsPage() {
   const [categoryFilter, setCategoryFilter] = useState('')
 
   const load = async () => {
-    const { data: { user: au } } = await supabase.auth.getUser()
-    if (au) {
-      const { data: p } = await supabase.from('profiles').select('*').eq('id', au.id).single()
-      if (p) setUser(p as Profile)
-    }
     const [{ data: tmpl }, { data: inst }, { data: cats }, { data: tix }, { data: profs }] = await Promise.all([
       supabase.from('checklist_templates').select('*, checklist_categories(*)').eq('status', 'active').order('name'),
       supabase.from('checklist_instances').select('*, checklist_templates(*, checklist_categories(*)), profiles!checklist_instances_assigned_to_fkey(full_name)').order('due_date', { ascending: false }),

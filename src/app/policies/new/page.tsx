@@ -5,11 +5,12 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import type { PolicyCategory, ServiceDetail, Profile, ReviewFrequency } from '@/lib/types'
 import { REVIEW_FREQUENCY_LABELS, QA_COLORS } from '@/lib/types'
+import { useProfile } from '@/lib/ProfileContext'
 
 export default function NewPolicyPage() {
   const supabase = createClient()
   const router = useRouter()
-  const [user, setUser] = useState<Profile | null>(null)
+  const user = useProfile()
   const [categories, setCategories] = useState<PolicyCategory[]>([])
   const [serviceDetails, setServiceDetails] = useState<ServiceDetail[]>([])
   const [saving, setSaving] = useState(false)
@@ -25,11 +26,6 @@ export default function NewPolicyPage() {
 
   useEffect(() => {
     const load = async () => {
-      const { data: { user: au } } = await supabase.auth.getUser()
-      if (au) {
-        const { data: p } = await supabase.from('profiles').select('*').eq('id', au.id).single()
-        if (p) setUser(p as Profile)
-      }
       const [{ data: cats }, { data: sd }] = await Promise.all([
         supabase.from('policy_categories').select('*').order('sort_order'),
         supabase.from('service_details').select('*'),
