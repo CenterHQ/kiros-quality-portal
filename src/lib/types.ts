@@ -7,6 +7,7 @@ export interface Profile {
   notify_comments: boolean
   notify_status_changes: boolean
   notify_assignments: boolean
+  allowed_pages?: string[] | null
   created_at: string
   updated_at: string
 }
@@ -702,3 +703,34 @@ export const ROLE_LABELS: Record<string, string> = {
   el: 'Educational Leader',
   educator: 'Educator',
 }
+
+export const ALL_APP_PAGES: { href: string; label: string; section: string }[] = [
+  // Main
+  { href: '/dashboard', label: 'Dashboard', section: 'Main' },
+  { href: '/elements', label: 'QA Elements', section: 'Main' },
+  { href: '/tasks', label: 'Task Board', section: 'Main' },
+  { href: '/checklists', label: 'Checklists', section: 'Main' },
+  { href: '/rostering', label: 'Rostering', section: 'Main' },
+  { href: '/policies', label: 'Policies', section: 'Main' },
+  { href: '/registers', label: 'Registers', section: 'Main' },
+  { href: '/training', label: 'Training', section: 'Main' },
+  { href: '/documents', label: 'Documents', section: 'Main' },
+  { href: '/compliance', label: 'Compliance', section: 'Main' },
+  { href: '/forms', label: 'Forms', section: 'Main' },
+  { href: '/resources', label: 'Resources', section: 'Main' },
+  { href: '/activity', label: 'Activity', section: 'Main' },
+  { href: '/reports', label: 'Reports', section: 'Main' },
+  { href: '/guide', label: 'User Guide', section: 'Main' },
+  // OWNA Integration
+  { href: '/owna/children', label: 'Children & Rooms', section: 'OWNA Integration' },
+  { href: '/owna/attendance', label: 'Attendance', section: 'OWNA Integration' },
+  { href: '/owna/staff', label: 'Staff', section: 'OWNA Integration' },
+  { href: '/owna/families', label: 'Families & Billing', section: 'OWNA Integration' },
+  { href: '/owna/enrolments', label: 'Enrolment Pipeline', section: 'OWNA Integration' },
+  { href: '/owna/health', label: 'Health & Safety', section: 'OWNA Integration' },
+  // Admin
+  { href: '/admin/owna', label: 'OWNA API Testing', section: 'Admin' },
+  { href: '/admin/users', label: 'User Management', section: 'Admin' },
+  { href: '/admin/notifications', label: 'Notifications', section: 'Admin' },
+  { href: '/admin/tags', label: 'Tags', section: 'Admin' },
+]

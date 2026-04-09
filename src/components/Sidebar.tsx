@@ -39,6 +39,14 @@ const adminItems = [
   { href: '/admin/tags', label: 'Tags', icon: '🏷️' },
 ]
 
+function canAccessPage(profile: Profile, href: string): boolean {
+  // Admins always have full access
+  if (profile.role === 'admin') return true
+  // null/undefined means all pages allowed
+  if (!profile.allowed_pages) return true
+  return profile.allowed_pages.includes(href)
+}
+
 export default function Sidebar({ profile }: { profile: Profile }) {
   const pathname = usePathname()
   const router = useRouter()
@@ -49,6 +57,10 @@ export default function Sidebar({ profile }: { profile: Profile }) {
     router.push('/login')
     router.refresh()
   }
+
+  const filteredNavItems = navItems.filter(item => canAccessPage(profile, item.href))
+  const filteredOwnaItems = ownaItems.filter(item => canAccessPage(profile, item.href))
+  const filteredAdminItems = adminItems.filter(item => canAccessPage(profile, item.href))
 
   return (
     <aside className="w-64 bg-white border-r border-gray-200 min-h-screen flex flex-col">
@@ -68,7 +80,7 @@ export default function Sidebar({ profile }: { profile: Profile }) {
 
       {/* Navigation */}
       <nav className="flex-1 p-2 space-y-1 overflow-y-auto">
-        {navItems.map((item) => {
+        {filteredNavItems.map((item) => {
           const isActive = pathname === item.href || (item.href !== '/' && pathname.startsWith(item.href))
           return (
             <a
@@ -87,33 +99,37 @@ export default function Sidebar({ profile }: { profile: Profile }) {
         })}
 
         {/* OWNA Integration */}
-        <div className="pt-4 pb-1 px-3">
-          <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">OWNA Integration</p>
-        </div>
-        {ownaItems.map((item) => {
-          const isActive = pathname === item.href || pathname.startsWith(item.href)
-          return (
-            <a
-              key={item.href}
-              href={item.href}
-              className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition ${
-                isActive
-                  ? 'bg-[#470DA8] text-white'
-                  : 'text-gray-700 hover:bg-gray-100'
-              }`}
-            >
-              <span>{item.icon}</span>
-              <span>{item.label}</span>
-            </a>
-          )
-        })}
+        {filteredOwnaItems.length > 0 && (
+          <>
+            <div className="pt-4 pb-1 px-3">
+              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">OWNA Integration</p>
+            </div>
+            {filteredOwnaItems.map((item) => {
+              const isActive = pathname === item.href || pathname.startsWith(item.href)
+              return (
+                <a
+                  key={item.href}
+                  href={item.href}
+                  className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition ${
+                    isActive
+                      ? 'bg-[#470DA8] text-white'
+                      : 'text-gray-700 hover:bg-gray-100'
+                  }`}
+                >
+                  <span>{item.icon}</span>
+                  <span>{item.label}</span>
+                </a>
+              )
+            })}
+          </>
+        )}
 
-        {(profile.role === 'admin' || profile.role === 'manager') && (
+        {(profile.role === 'admin' || profile.role === 'manager') && filteredAdminItems.length > 0 && (
           <>
             <div className="pt-4 pb-1 px-3">
               <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Admin</p>
             </div>
-            {adminItems.map((item) => {
+            {filteredAdminItems.map((item) => {
               const isActive = pathname === item.href || pathname.startsWith(item.href)
               return (
                 <a
