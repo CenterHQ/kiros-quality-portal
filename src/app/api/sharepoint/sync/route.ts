@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
 import { downloadFile, getFileMetadata, getTokenFromRefresh } from '@/lib/microsoft-graph'
+
+export const dynamic = 'force-dynamic'
 import mammoth from 'mammoth'
 
 async function getValidToken(supabase: any) {

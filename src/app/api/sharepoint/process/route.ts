@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
 import Anthropic from '@anthropic-ai/sdk'
 
+export const dynamic = 'force-dynamic'
+
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
 
 const CONTEXT_EXTRACTION_PROMPT = `You are an expert in Australian Early Childhood Education and Care (ECEC), the National Quality Framework (NQF), and Assessment & Rating (A&R).

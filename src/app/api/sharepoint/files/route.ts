@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
 import { listFiles, getTokenFromRefresh } from '@/lib/microsoft-graph'
 
+export const dynamic = 'force-dynamic'
+
 async function getValidToken(supabase: any) {
   const { data: conn } = await supabase
     .from('sharepoint_connection')

@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getAuthUrl } from '@/lib/microsoft-graph'
 
+export const dynamic = 'force-dynamic'
+
 export async function GET(request: NextRequest) {
   // Debug mode: check env vars are set
   const debug = request.nextUrl.searchParams.get('debug')
