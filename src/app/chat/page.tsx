@@ -67,15 +67,19 @@ export default function ChatPage() {
     setConversationId(convId)
     setConversationLoading(true)
     setSidebarOpen(false)
-    const res = await fetch(`/api/chat/conversations?id=${convId}`)
-    const data = await res.json()
-    setMessages((data.messages || []).map((m: { id: string; role: string; content: string; created_at: string }) => ({
-      id: m.id,
-      role: m.role as 'user' | 'assistant',
-      content: m.content,
-      documents: extractDocuments(m.content),
-      timestamp: new Date(m.created_at),
-    })))
+    try {
+      const res = await fetch(`/api/chat/conversations?id=${convId}`)
+      const data = await res.json()
+      setMessages((data.messages || []).map((m: { id: string; role: string; content: string; documents?: GeneratedDocument[]; created_at: string }) => ({
+        id: m.id,
+        role: m.role as 'user' | 'assistant',
+        content: m.content,
+        documents: m.documents || [],
+        timestamp: new Date(m.created_at),
+      })))
+    } catch {
+      setMessages([])
+    }
     setConversationLoading(false)
   }
 
@@ -95,13 +99,6 @@ export default function ChatPage() {
   const startNewConversation = () => {
     setConversationId(null)
     setMessages([])
-  }
-
-  // Extract document blocks from assistant messages
-  const extractDocuments = (content: string): GeneratedDocument[] => {
-    // Documents are embedded as JSON in the response when the tool is used
-    // The AI references them in its response text
-    return []
   }
 
   const sendMessage = async () => {
@@ -255,7 +252,7 @@ ${doc.content.replace(/^# .+\n?/m, '').replace(/^## /gm, '<h2>').replace(/<h2>(.
   ]
 
   return (
-    <div className="flex h-[calc(100vh-48px)] -m-6 bg-gray-50">
+    <div className="flex h-[calc(100vh-24px)] -m-6 bg-gray-50">
       {/* Mobile sidebar overlay backdrop */}
       {sidebarOpen && (
         <div

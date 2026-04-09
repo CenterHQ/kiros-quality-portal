@@ -11,7 +11,7 @@ export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url)
   const conversationId = searchParams.get('id')
 
-  // If specific conversation requested, return its messages
+  // If specific conversation requested, return its messages with document metadata
   if (conversationId) {
     const { data: messages } = await supabase
       .from('chat_messages')
@@ -19,9 +19,17 @@ export async function GET(request: NextRequest) {
       .eq('conversation_id', conversationId)
       .in('role', ['user', 'assistant'])
       .order('created_at', { ascending: true })
-      .limit(100)
+      .limit(200)
 
-    return NextResponse.json({ messages: messages || [] })
+    // Enrich messages with document data from metadata
+    const enriched = (messages || []).map(m => ({
+      ...m,
+      documents: m.metadata && typeof m.metadata === 'object' && 'documents' in (m.metadata as Record<string, unknown>)
+        ? (m.metadata as Record<string, unknown>).documents
+        : undefined,
+    }))
+
+    return NextResponse.json({ messages: enriched })
   }
 
   // Otherwise return conversation list

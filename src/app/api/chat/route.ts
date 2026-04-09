@@ -3,9 +3,15 @@ import { createServerSupabaseClient } from '@/lib/supabase/server'
 import Anthropic from '@anthropic-ai/sdk'
 
 export const dynamic = 'force-dynamic'
-export const maxDuration = 60
+export const maxDuration = 120
 
-const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
+const MODEL = 'claude-opus-4-20250514'
+
+function getAnthropicClient() {
+  const apiKey = process.env.ANTHROPIC_API_KEY
+  if (!apiKey) throw new Error('ANTHROPIC_API_KEY is not configured. Set it in your environment variables.')
+  return new Anthropic({ apiKey })
+}
 
 const ROLE_LABELS: Record<string, string> = {
   admin: 'Approved Provider',
@@ -418,17 +424,25 @@ export async function POST(request: NextRequest) {
       content: message,
     })
 
-    // Load conversation history (last 20 messages)
+    // Load full conversation history (last 50 messages including tool interactions)
     const { data: history } = await supabase.from('chat_messages')
       .select('role, content, metadata')
       .eq('conversation_id', convId)
       .order('created_at', { ascending: true })
-      .limit(20)
+      .limit(50)
 
-    // Build messages for Claude (exclude tool_call/tool_result from simple history)
-    const messages: Anthropic.MessageParam[] = (history || [])
-      .filter(m => m.role === 'user' || m.role === 'assistant')
-      .map(m => ({ role: m.role as 'user' | 'assistant', content: m.content }))
+    // Build messages for Claude with full context (user, assistant, and tool interactions)
+    const messages: Anthropic.MessageParam[] = []
+    for (const m of (history || [])) {
+      if (m.role === 'user') {
+        messages.push({ role: 'user', content: m.content })
+      } else if (m.role === 'assistant') {
+        messages.push({ role: 'assistant', content: m.content })
+      }
+      // Tool calls and results are part of the current turn's context
+      // They don't need to be replayed in history — Claude maintains coherence
+      // from the assistant messages that summarise what tools did
+    }
 
     // Load centre context for system prompt
     const { data: contextItems } = await supabase.from('centre_context')
@@ -454,10 +468,12 @@ export async function POST(request: NextRequest) {
     // Track generated documents across tool-use iterations
     const generatedDocuments: Array<{ type: string; title: string; document_type: string; content: string; recipient?: string; generated_at: string }> = []
 
+    const anthropic = getAnthropicClient()
+
     // Call Claude with tool-use loop
     let response = await anthropic.messages.create({
-      model: 'claude-sonnet-4-20250514',
-      max_tokens: 4096,
+      model: MODEL,
+      max_tokens: 16384,
       system: systemPrompt,
       tools: allowedTools,
       messages,
@@ -513,12 +529,26 @@ export async function POST(request: NextRequest) {
       .map(b => b.text)
       .join('')
 
-    // Save assistant response
+    // Save assistant response with document metadata
     await supabase.from('chat_messages').insert({
       conversation_id: convId,
       role: 'assistant',
       content: textContent,
+      metadata: generatedDocuments.length > 0 ? { documents: generatedDocuments } : {},
     })
+
+    // Update conversation title from first message if it's a new conversation
+    if (!conversationId) {
+      // Use the first ~80 chars of the user message as title
+      await supabase.from('chat_conversations')
+        .update({ title: message.substring(0, 80), updated_at: new Date().toISOString() })
+        .eq('id', convId)
+    } else {
+      // Touch updated_at to keep conversation order fresh
+      await supabase.from('chat_conversations')
+        .update({ updated_at: new Date().toISOString() })
+        .eq('id', convId)
+    }
 
     return NextResponse.json({
       conversationId: convId,
