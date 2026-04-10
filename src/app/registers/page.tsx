@@ -14,6 +14,8 @@ export default function RegistersPage() {
   const [showBuilder, setShowBuilder] = useState(false)
   const [editingReg, setEditingReg] = useState<RegisterDefinition | null>(null)
   const [saving, setSaving] = useState(false)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   // Builder state
   const [regName, setRegName] = useState('')
@@ -22,16 +24,25 @@ export default function RegistersPage() {
   const [regColumns, setRegColumns] = useState<RegisterColumnDef[]>([])
 
   const load = async () => {
-    const { data: regs } = await supabase.from('register_definitions').select('*').eq('status', 'active').order('name')
-    if (regs) {
-      setRegisters(regs as any)
-      // Get entry counts
-      const counts: Record<string, number> = {}
-      for (const reg of regs) {
-        const { count } = await supabase.from('register_entries').select('*', { count: 'exact', head: true }).eq('register_id', reg.id)
-        counts[reg.id] = count || 0
+    setError(null)
+    setLoading(true)
+    try {
+      const { data: regs } = await supabase.from('register_definitions').select('*').eq('status', 'active').order('name')
+      if (regs) {
+        setRegisters(regs as any)
+        // Get entry counts
+        const counts: Record<string, number> = {}
+        for (const reg of regs) {
+          const { count } = await supabase.from('register_entries').select('*', { count: 'exact', head: true }).eq('register_id', reg.id)
+          counts[reg.id] = count || 0
+        }
+        setEntryCounts(counts)
       }
-      setEntryCounts(counts)
+    } catch (err) {
+      console.error('Failed to load registers:', err)
+      setError(err instanceof Error ? err.message : 'Failed to load data')
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -136,6 +147,16 @@ export default function RegistersPage() {
   }
 
   const ICON_OPTIONS = ['📋', '💻', '👤', '🧪', '🔧', '💊', '🚗', '🔑', '📱', '🏷️', '📦', '🗂️', '🎒', '⚡', '🌡️']
+
+  if (loading && !showBuilder) return <div className="max-w-6xl mx-auto py-12 text-center text-muted-foreground">Loading registers...</div>
+
+  if (error && !showBuilder) return (
+    <div className="py-16 text-center animate-fade-in">
+      <p className="text-lg font-semibold text-foreground mb-2">Unable to load data</p>
+      <p className="text-sm text-muted-foreground mb-4">{error}</p>
+      <button onClick={() => load()} className="px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:opacity-90 transition">Retry</button>
+    </div>
+  )
 
   if (showBuilder) {
     return (

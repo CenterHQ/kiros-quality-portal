@@ -246,21 +246,21 @@ export default function ElementDetailPage() {
       ]} />
 
       {/* Header */}
-      <button onClick={() => router.back()} className="text-sm text-muted-foreground hover:text-gray-700 mb-4 inline-block">&larr; Back to Elements</button>
+      <button onClick={() => router.back()} className="text-sm text-muted-foreground hover:text-foreground mb-4 inline-block">&larr; Back to Elements</button>
 
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden mb-6">
-        <div className="flex items-center gap-4 p-6 border-b border-gray-200">
+      <div className="bg-card rounded-xl shadow-sm border border-border overflow-hidden mb-6">
+        <div className="flex items-center gap-4 p-6 border-b border-border">
           <div className="w-12 h-12 rounded-lg flex items-center justify-center text-white font-bold" style={{ backgroundColor: qaColor }}>
             QA{element.qa_number}
           </div>
           <div className="flex-1">
-            <h1 className="text-xl font-bold text-gray-900">{element.element_code} — {element.element_name}</h1>
+            <h1 className="text-xl font-bold text-foreground">{element.element_code} — {element.element_name}</h1>
             <p className="text-sm text-muted-foreground">{element.standard_number}: {element.standard_name}</p>
           </div>
         </div>
 
         {/* Status & Rating Controls */}
-        <div className="p-6 grid grid-cols-1 md:grid-cols-3 gap-4 border-b border-gray-200 bg-gray-50">
+        <div className="p-6 grid grid-cols-1 md:grid-cols-3 gap-4 border-b border-border bg-muted">
           <div>
             <label className="block text-xs font-semibold text-muted-foreground uppercase mb-1">Current Rating</label>
             <select value={element.current_rating} onChange={(e) => updateField('current_rating', e.target.value)}
@@ -292,8 +292,8 @@ export default function ElementDetailPage() {
 
         {/* Concept */}
         {element.concept && (
-          <div className="p-6 border-b border-gray-200">
-            <p className="text-sm text-gray-600 italic">{element.concept}</p>
+          <div className="p-6 border-b border-border">
+            <p className="text-sm text-muted-foreground italic">{element.concept}</p>
           </div>
         )}
       </div>
@@ -345,9 +345,9 @@ export default function ElementDetailPage() {
       </div>
 
       {/* Editable Notes */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden mb-6">
-        <div className="px-6 py-4 border-b border-gray-200">
-          <h2 className="font-semibold text-gray-900">Actions & Notes</h2>
+      <div className="bg-card rounded-xl shadow-sm border border-border overflow-hidden mb-6">
+        <div className="px-6 py-4 border-b border-border">
+          <h2 className="font-semibold text-foreground">Actions & Notes</h2>
         </div>
         <div className="p-6 space-y-4">
           <div>
@@ -374,23 +374,24 @@ export default function ElementDetailPage() {
       </div>
 
       {/* Element Actions Checklist */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden mb-6">
-        <div className="px-6 py-4 border-b border-gray-200">
+      <div className="bg-card rounded-xl shadow-sm border border-border overflow-hidden mb-6">
+        <div className="px-6 py-4 border-b border-border">
           <div className="flex items-center justify-between">
-            <h2 className="font-semibold text-gray-900">Actions Checklist</h2>
+            <h2 className="font-semibold text-foreground">Actions Checklist</h2>
             <span className="text-sm text-muted-foreground">{completedActionCount}/{totalActionCount} complete</span>
           </div>
           {/* Progress bar */}
-          <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
+          <div className="w-full bg-muted rounded-full h-2 mt-2">
             <div className="h-2 rounded-full bg-primary transition-all" style={{ width: `${actionProgress}%` }} />
           </div>
         </div>
-        <div className="divide-y divide-gray-100">
+        <div className="divide-y divide-border">
           {elementActions.map(action => (
             <div key={action.id} className="p-4">
               <div className="flex items-start gap-3">
                 {/* Checkbox */}
                 <button onClick={() => toggleActionStatus(action)}
+                  aria-label={action.status === 'completed' ? 'Mark action incomplete' : 'Mark action complete'}
                   className={`w-5 h-5 rounded border-2 flex items-center justify-center flex-shrink-0 mt-0.5 transition ${
                     action.status === 'completed' ? 'bg-green-500 border-green-500 text-white' : 'border-border hover:border-primary'
                   }`}>
@@ -399,11 +400,11 @@ export default function ElementDetailPage() {
                 <div className="flex-1 min-w-0">
                   {/* Title and toggle */}
                   <button onClick={() => toggleExpand(action.id)} className="text-left w-full">
-                    <p className={`text-sm font-medium ${action.status === 'completed' ? 'text-gray-400 line-through' : 'text-gray-900'}`}>
+                    <p className={`text-sm font-medium ${action.status === 'completed' ? 'text-muted-foreground line-through' : 'text-foreground'}`}>
                       {action.title}
                     </p>
                     {action.description && !expandedActions.includes(action.id) && (
-                      <p className="text-xs text-gray-400 mt-0.5 truncate">{action.description}</p>
+                      <p className="text-xs text-muted-foreground mt-0.5 truncate">{action.description}</p>
                     )}
                   </button>
                   {/* Tags */}
@@ -419,14 +420,14 @@ export default function ElementDetailPage() {
                   {/* Expanded content */}
                   {expandedActions.includes(action.id) && (
                     <div className="mt-3 space-y-3">
-                      {action.description && <p className="text-sm text-gray-600">{action.description}</p>}
+                      {action.description && <p className="text-sm text-muted-foreground">{action.description}</p>}
                       {/* Steps */}
                       {action.steps && action.steps.length > 0 && (
                         <div>
                           <p className="text-xs font-semibold text-muted-foreground uppercase mb-1">Steps</p>
                           <ol className="list-decimal list-inside space-y-1">
                             {action.steps.map((step: string, i: number) => (
-                              <li key={i} className="text-sm text-gray-600">{step}</li>
+                              <li key={i} className="text-sm text-muted-foreground">{step}</li>
                             ))}
                           </ol>
                         </div>
@@ -435,14 +436,14 @@ export default function ElementDetailPage() {
                       {action.prerequisites && (
                         <div>
                           <p className="text-xs font-semibold text-muted-foreground uppercase mb-1">Prerequisites</p>
-                          <p className="text-sm text-gray-600">{action.prerequisites}</p>
+                          <p className="text-sm text-muted-foreground">{action.prerequisites}</p>
                         </div>
                       )}
                       {/* Evidence Required */}
                       {action.evidence_required && (
                         <div>
                           <p className="text-xs font-semibold text-muted-foreground uppercase mb-1">Evidence Required</p>
-                          <p className="text-sm text-gray-600">{action.evidence_required}</p>
+                          <p className="text-sm text-muted-foreground">{action.evidence_required}</p>
                         </div>
                       )}
                       {/* Evidence Files */}
@@ -489,18 +490,18 @@ export default function ElementDetailPage() {
                 {action.due_date && (
                   <span className={`text-xs px-2 py-0.5 rounded-full flex-shrink-0 ${
                     action.due_date < new Date().toISOString().split('T')[0] && action.status !== 'completed'
-                      ? 'bg-red-100 text-red-600' : 'bg-gray-100 text-muted-foreground'
+                      ? 'bg-red-100 text-red-600' : 'bg-muted text-muted-foreground'
                   }`}>{action.due_date}</span>
                 )}
               </div>
             </div>
           ))}
           {elementActions.length === 0 && (
-            <div className="p-6 text-center text-sm text-gray-400">No actions yet. Add one below.</div>
+            <div className="p-6 text-center text-sm text-muted-foreground">No actions yet. Add one below.</div>
           )}
         </div>
         {/* Add new action */}
-        <div className="px-6 py-4 border-t border-gray-200 bg-gray-50">
+        <div className="px-6 py-4 border-t border-border bg-muted">
           {!showNewActionForm ? (
             <button onClick={() => setShowNewActionForm(true)}
               className="text-sm text-primary font-medium hover:underline">
@@ -561,7 +562,7 @@ export default function ElementDetailPage() {
                   Add Action
                 </button>
                 <button onClick={() => { setShowNewActionForm(false); setNewAction({ title: '', description: '', steps: '', prerequisites: '', evidence_required: '', assigned_to: '', due_date: '' }) }}
-                  className="px-4 py-2 border border-border rounded-lg text-sm text-gray-600 hover:bg-gray-50 transition">
+                  className="px-4 py-2 border border-border rounded-lg text-sm text-muted-foreground hover:bg-muted transition">
                   Cancel
                 </button>
               </div>
@@ -571,9 +572,9 @@ export default function ElementDetailPage() {
       </div>
 
       {/* Comments */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-        <div className="px-6 py-4 border-b border-gray-200">
-          <h2 className="font-semibold text-gray-900">Discussion ({comments.length})</h2>
+      <div className="bg-card rounded-xl shadow-sm border border-border overflow-hidden">
+        <div className="px-6 py-4 border-b border-border">
+          <h2 className="font-semibold text-foreground">Discussion ({comments.length})</h2>
         </div>
         <div className="p-6">
           {comments.length > 0 ? (
@@ -586,15 +587,15 @@ export default function ElementDetailPage() {
                   <div className="flex-1">
                     <div className="flex items-center gap-2">
                       <span className="text-sm font-medium">{c.profiles?.full_name || 'Unknown'}</span>
-                      <span className="text-xs text-gray-400">{new Date(c.created_at).toLocaleString()}</span>
+                      <span className="text-xs text-muted-foreground">{new Date(c.created_at).toLocaleString()}</span>
                     </div>
-                    <p className="text-sm text-gray-700 mt-1">{c.content}</p>
+                    <p className="text-sm text-foreground mt-1">{c.content}</p>
                   </div>
                 </div>
               ))}
             </div>
           ) : (
-            <p className="text-sm text-gray-400 mb-4">No comments yet. Start a discussion.</p>
+            <p className="text-sm text-muted-foreground mb-4">No comments yet. Start a discussion.</p>
           )}
           <div className="flex gap-3">
             <textarea

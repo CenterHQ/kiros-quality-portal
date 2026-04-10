@@ -408,7 +408,7 @@ export default function ContextManagementPage() {
                   onClick={() => setEditing({ ...editing, is_active: !editing.is_active })}
                   className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${editing.is_active ? 'bg-green-500' : 'bg-gray-300'}`}
                 >
-                  <span className={`inline-block h-4 w-4 rounded-full bg-white transition-transform ${editing.is_active ? 'translate-x-6' : 'translate-x-1'}`} />
+                  <span className={`inline-block h-4 w-4 rounded-full bg-card transition-transform ${editing.is_active ? 'translate-x-6' : 'translate-x-1'}`} />
                 </button>
                 <span className="text-sm text-foreground">{editing.is_active ? 'Active — AI will use this' : 'Inactive — AI will ignore this'}</span>
               </div>

@@ -44,7 +44,7 @@ interface ActionStepState {
 function LoadingSpinner() {
   return (
     <div className="flex items-center justify-center min-h-[60vh]">
-      <div className="animate-spin rounded-full h-12 w-12 border-4 border-gray-200 border-t-primary" />
+      <div className="animate-spin rounded-full h-12 w-12 border-4 border-border border-t-primary" />
     </div>
   )
 }
@@ -592,9 +592,9 @@ export default function ModulePlayerPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-muted">
       {/* Breadcrumbs + Top Bar */}
-      <div className="sticky top-0 z-30 bg-white border-b border-gray-200 shadow-sm">
+      <div className="sticky top-0 z-30 bg-card border-b border-border shadow-sm">
         <div className="px-4 pt-2">
           <Breadcrumbs items={[
             { label: 'Learning', href: '/learning' },
@@ -605,7 +605,7 @@ export default function ModulePlayerPage() {
         <div className="flex items-center justify-between px-4 py-2">
           <Link
             href="/learning"
-            className="flex items-center gap-2 text-sm text-gray-600 hover:text-primary transition-colors"
+            className="flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors"
           >
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -616,7 +616,7 @@ export default function ModulePlayerPage() {
           {/* Mobile sidebar toggle */}
           <button
             onClick={() => setSidebarOpen(!sidebarOpen)}
-            className="lg:hidden p-2 rounded-lg hover:bg-gray-100 text-gray-600"
+            className="lg:hidden p-2 rounded-lg hover:bg-muted text-muted-foreground"
             aria-label="Toggle module navigation"
           >
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -624,14 +624,14 @@ export default function ModulePlayerPage() {
             </svg>
           </button>
 
-          <div className="hidden sm:flex items-center gap-3 text-sm text-gray-500">
+          <div className="hidden sm:flex items-center gap-3 text-sm text-muted-foreground">
             <span>{completedCount} / {sections.length} sections</span>
             <span className="font-medium text-primary">{progressPercent}%</span>
           </div>
         </div>
 
         {/* Progress bar */}
-        <div className="h-1 bg-gray-100">
+        <div className="h-1 bg-muted">
           <div
             className="h-full transition-all duration-500 ease-out rounded-r bg-primary"
             style={{ width: `${progressPercent}%` }}
@@ -674,15 +674,15 @@ export default function ModulePlayerPage() {
           className={`
             fixed lg:sticky top-0 lg:top-[calc(2.75rem+4px)] left-0 z-50 lg:z-10
             w-72 h-screen lg:h-[calc(100vh-2.75rem-4px)]
-            bg-white border-r border-gray-200 overflow-y-auto
+            bg-card border-r border-border overflow-y-auto
             transition-transform duration-300 lg:transition-none
             ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
             flex-shrink-0
           `}
         >
           {/* Module Info */}
-          <div className="p-4 border-b border-gray-100">
-            <h2 className="text-base font-bold text-gray-900 leading-tight mb-2">{mod.title}</h2>
+          <div className="p-4 border-b border-border">
+            <h2 className="text-base font-bold text-foreground leading-tight mb-2">{mod.title}</h2>
 
             <div className="flex flex-wrap gap-1.5 mb-2">
               <TierBadge tier={mod.tier} />
@@ -695,12 +695,12 @@ export default function ModulePlayerPage() {
             </div>
 
             {mod.category && (
-              <p className="text-xs text-gray-500 mb-1">
+              <p className="text-xs text-muted-foreground mb-1">
                 {LMS_CATEGORY_LABELS[mod.category] || mod.category}
               </p>
             )}
 
-            <div className="flex items-center gap-1.5 text-xs text-gray-400">
+            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
               <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
@@ -710,7 +710,7 @@ export default function ModulePlayerPage() {
 
           {/* Section Navigation */}
           <nav className="p-2">
-            <p className="px-2 py-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">
+            <p className="px-2 py-1 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
               Sections
             </p>
             {sections.map((section, idx) => {
@@ -724,7 +724,7 @@ export default function ModulePlayerPage() {
                     w-full flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-left text-sm transition-colors
                     ${isCurrent
                       ? 'bg-primary/10 text-primary font-medium'
-                      : 'text-gray-700 hover:bg-gray-50'
+                      : 'text-foreground hover:bg-muted'
                     }
                   `}
                 >
@@ -741,7 +741,7 @@ export default function ModulePlayerPage() {
                         <span className="w-2 h-2 rounded-full bg-primary" />
                       </span>
                     ) : (
-                      <span className="flex items-center justify-center w-5 h-5 rounded-full border-2 border-gray-300">
+                      <span className="flex items-center justify-center w-5 h-5 rounded-full border-2 border-border">
                         <span className="w-1.5 h-1.5 rounded-full bg-gray-300" />
                       </span>
                     )}
@@ -749,7 +749,7 @@ export default function ModulePlayerPage() {
 
                   <span className="flex-1 truncate">{section.title}</span>
 
-                  <span className="flex-shrink-0 text-gray-400">
+                  <span className="flex-shrink-0 text-muted-foreground">
                     <SectionIcon type={section.section_type} />
                   </span>
                 </button>
@@ -765,7 +765,7 @@ export default function ModulePlayerPage() {
               <>
                 {/* Section Header */}
                 <div className="mb-6">
-                  <div className="flex items-center gap-2 text-xs text-gray-400 mb-1">
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1">
                     <SectionIcon type={currentSection.section_type} />
                     <span>{SECTION_TYPE_LABELS[currentSection.section_type]}</span>
                     {currentSection.estimated_minutes > 0 && (
@@ -775,11 +775,11 @@ export default function ModulePlayerPage() {
                       </>
                     )}
                   </div>
-                  <h1 className="text-2xl font-bold text-gray-900">{currentSection.title}</h1>
+                  <h1 className="text-2xl font-bold text-foreground">{currentSection.title}</h1>
                 </div>
 
                 {/* Section Content */}
-                <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 sm:p-8 mb-6">
+                <div className="bg-card rounded-xl shadow-sm border border-border p-6 sm:p-8 mb-6">
                   <SectionContent
                     section={currentSection}
                     completed={isSectionCompleted(currentSection.id)}
@@ -812,8 +812,8 @@ export default function ModulePlayerPage() {
                 {/* Complete Module Button */}
                 {allSectionsCompleted && !moduleCompleted && (
                   <div className="bg-primary/5 border border-primary/20 rounded-xl p-6 mb-6 text-center">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-2">All sections completed!</h3>
-                    <p className="text-gray-600 text-sm mb-4">
+                    <h3 className="text-lg font-semibold text-foreground mb-2">All sections completed!</h3>
+                    <p className="text-muted-foreground text-sm mb-4">
                       You have completed all sections in this module. Click below to finalize.
                     </p>
                     <button
@@ -831,7 +831,7 @@ export default function ModulePlayerPage() {
                   <button
                     onClick={() => navigateSection(currentSectionIndex - 1)}
                     disabled={currentSectionIndex === 0}
-                    className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                    className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-muted-foreground hover:bg-muted disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
                   >
                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -839,7 +839,7 @@ export default function ModulePlayerPage() {
                     Previous
                   </button>
 
-                  <span className="text-sm text-gray-400">
+                  <span className="text-sm text-muted-foreground">
                     {currentSectionIndex + 1} / {sections.length}
                   </span>
 
@@ -857,10 +857,10 @@ export default function ModulePlayerPage() {
 
                 {/* Centre-Specific Content */}
                 {centreContent.length > 0 && (
-                  <div className="mt-8 border-t border-gray-200 pt-6">
+                  <div className="mt-8 border-t border-border pt-6">
                     <div className="flex items-center gap-2 mb-4">
                       <div className="w-8 h-8 rounded-lg bg-gradient-to-r from-primary to-kiros-purple-light flex items-center justify-center text-white text-sm">K</div>
-                      <h3 className="text-lg font-semibold text-gray-900">At Kiros Early Education</h3>
+                      <h3 className="text-lg font-semibold text-foreground">At Kiros Early Education</h3>
                     </div>
                     <div className="space-y-4">
                       {centreContent.map((item: any) => (
@@ -872,8 +872,8 @@ export default function ModulePlayerPage() {
                                item.content_type === 'case_study' ? 'Our Practice' : 'Your Action Step'}
                             </span>
                           </div>
-                          <h4 className="font-medium text-gray-900 mb-1">{item.title}</h4>
-                          <p className="text-sm text-gray-700 leading-relaxed">{item.content}</p>
+                          <h4 className="font-medium text-foreground mb-1">{item.title}</h4>
+                          <p className="text-sm text-foreground leading-relaxed">{item.content}</p>
                         </div>
                       ))}
                     </div>
@@ -881,7 +881,7 @@ export default function ModulePlayerPage() {
                 )}
               </>
             ) : (
-              <div className="text-center py-16 text-gray-500">
+              <div className="text-center py-16 text-muted-foreground">
                 <p>This module has no sections yet.</p>
                 <Link href="/learning" className="text-primary hover:underline mt-2 inline-block">
                   Back to Library
@@ -990,7 +990,7 @@ function SectionContent({
         />
       )
     default:
-      return <p className="text-gray-500">Unknown section type.</p>
+      return <p className="text-muted-foreground">Unknown section type.</p>
   }
 }
 
@@ -1012,13 +1012,13 @@ function ContentSection({
   return (
     <div>
       <div
-        className="text-gray-700 leading-relaxed whitespace-pre-wrap"
+        className="text-foreground leading-relaxed whitespace-pre-wrap"
         style={{ wordBreak: 'break-word' }}
       >
         {section.content || 'No content available.'}
       </div>
 
-      <div className="mt-8 pt-6 border-t border-gray-100">
+      <div className="mt-8 pt-6 border-t border-border">
         {completed ? (
           <CompletedBadge />
         ) : (
@@ -1065,21 +1065,21 @@ function VideoSection({
           />
         </div>
       ) : (
-        <div className="bg-gray-100 rounded-lg p-8 text-center text-gray-500 mb-4">
+        <div className="bg-muted rounded-lg p-8 text-center text-muted-foreground mb-4">
           No video URL provided.
         </div>
       )}
 
       {section.content && (
-        <div className="bg-gray-50 rounded-lg p-4 mb-4">
-          <h4 className="text-sm font-semibold text-gray-700 mb-2">Notes</h4>
-          <div className="text-gray-600 text-sm leading-relaxed whitespace-pre-wrap">
+        <div className="bg-muted rounded-lg p-4 mb-4">
+          <h4 className="text-sm font-semibold text-foreground mb-2">Notes</h4>
+          <div className="text-muted-foreground text-sm leading-relaxed whitespace-pre-wrap">
             {section.content}
           </div>
         </div>
       )}
 
-      <div className="mt-6 pt-6 border-t border-gray-100">
+      <div className="mt-6 pt-6 border-t border-border">
         {completed ? (
           <CompletedBadge />
         ) : (
@@ -1129,7 +1129,7 @@ function QuizSection({
   onSubmit: () => void
 }) {
   if (questions.length === 0) {
-    return <p className="text-gray-500">Loading quiz questions...</p>
+    return <p className="text-muted-foreground">Loading quiz questions...</p>
   }
 
   const allAnswered = answers.length === questions.length
@@ -1137,7 +1137,7 @@ function QuizSection({
   return (
     <div>
       {section.content && (
-        <p className="text-gray-600 mb-6 whitespace-pre-wrap">{section.content}</p>
+        <p className="text-muted-foreground mb-6 whitespace-pre-wrap">{section.content}</p>
       )}
 
       {submitted && score !== null && (
@@ -1169,15 +1169,15 @@ function QuizSection({
           const selectedIdx = selectedAnswer?.selectedOption ?? -1
 
           return (
-            <div key={q.id} className="border border-gray-200 rounded-lg p-5">
-              <p className="font-medium text-gray-900 mb-4">
+            <div key={q.id} className="border border-border rounded-lg p-5">
+              <p className="font-medium text-foreground mb-4">
                 {qIdx + 1}. {q.question}
               </p>
 
               <div className="space-y-2">
                 {q.options.map((opt, optIdx) => {
                   const isSelected = selectedIdx === optIdx
-                  let optionClasses = 'border-gray-200 hover:border-gray-300'
+                  let optionClasses = 'border-border hover:border-border'
                   let indicator = ''
 
                   if (submitted) {
@@ -1208,7 +1208,7 @@ function QuizSection({
                         className="mt-0.5 accent-primary"
                       />
                       <div className="flex-1">
-                        <span className={`text-sm ${indicator || 'text-gray-700'}`}>{opt.text}</span>
+                        <span className={`text-sm ${indicator || 'text-foreground'}`}>{opt.text}</span>
                         {submitted && isSelected && !opt.is_correct && opt.explanation && (
                           <p className="text-xs text-red-500 mt-1">{opt.explanation}</p>
                         )}
@@ -1225,7 +1225,7 @@ function QuizSection({
         })}
       </div>
 
-      <div className="mt-8 pt-6 border-t border-gray-100">
+      <div className="mt-8 pt-6 border-t border-border">
         {submitted ? (
           <CompletedBadge />
         ) : (
@@ -1266,7 +1266,7 @@ function ReflectionSection({
       {section.content && (
         <div className="bg-primary/5 rounded-lg p-5 mb-6 border-l-4 border-primary">
           <h4 className="text-sm font-semibold text-primary mb-2">Reflection Prompt</h4>
-          <p className="text-gray-700 whitespace-pre-wrap">{section.content}</p>
+          <p className="text-foreground whitespace-pre-wrap">{section.content}</p>
         </div>
       )}
 
@@ -1275,10 +1275,10 @@ function ReflectionSection({
         onChange={(e) => onChange(e.target.value)}
         rows={6}
         placeholder="Write your reflection here..."
-        className="w-full border border-gray-300 rounded-lg px-4 py-3 text-gray-700 text-sm leading-relaxed resize-y focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
+        className="w-full border border-border rounded-lg px-4 py-3 text-foreground text-sm leading-relaxed resize-y focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
       />
 
-      <div className="mt-6 pt-6 border-t border-gray-100 flex items-center gap-3">
+      <div className="mt-6 pt-6 border-t border-border flex items-center gap-3">
         {completed && <CompletedBadge />}
         <button
           onClick={onSave}
@@ -1321,7 +1321,7 @@ function ActionStepSection({
             </svg>
             Action Required
           </h4>
-          <p className="text-gray-700 whitespace-pre-wrap">{section.content}</p>
+          <p className="text-foreground whitespace-pre-wrap">{section.content}</p>
         </div>
       )}
 
@@ -1336,27 +1336,27 @@ function ActionStepSection({
             disabled={completed || saving}
             className="mt-0.5 w-5 h-5 accent-primary rounded"
           />
-          <span className={`text-sm font-medium ${completed ? 'text-green-700' : 'text-gray-700'}`}>
+          <span className={`text-sm font-medium ${completed ? 'text-green-700' : 'text-foreground'}`}>
             I have completed this action step
           </span>
         </label>
 
         {!completed && (
           <div>
-            <label className="block text-sm text-gray-600 mb-1">Notes (optional)</label>
+            <label className="block text-sm text-muted-foreground mb-1">Notes (optional)</label>
             <textarea
               value={actionStep.notes}
               onChange={(e) => onNotesChange(e.target.value)}
               rows={3}
               placeholder="Any notes about how you completed this action..."
-              className="w-full border border-gray-300 rounded-lg px-4 py-3 text-gray-700 text-sm resize-y focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
+              className="w-full border border-border rounded-lg px-4 py-3 text-foreground text-sm resize-y focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
             />
           </div>
         )}
       </div>
 
       {completed && (
-        <div className="mt-6 pt-6 border-t border-gray-100">
+        <div className="mt-6 pt-6 border-t border-border">
           <CompletedBadge />
         </div>
       )}

@@ -152,7 +152,7 @@ export default function NewFormPage() {
   const supabase = createClient()
   const currentUser = useProfile()
 
-  if (!config) return <div className="p-8 text-center text-gray-500">Invalid form type</div>
+  if (!config) return <div className="p-8 text-center text-muted-foreground">Invalid form type</div>
 
   const updateField = (name: string, value: string) => {
     setFormData(prev => ({ ...prev, [name]: value }))
@@ -181,36 +181,36 @@ export default function NewFormPage() {
 
   return (
     <div className="max-w-3xl mx-auto">
-      <button onClick={() => router.back()} className="text-sm text-gray-500 hover:text-gray-700 mb-4">&larr; Back to Forms</button>
+      <button onClick={() => router.back()} className="text-sm text-muted-foreground hover:text-foreground mb-4">&larr; Back to Forms</button>
       <h1 className="text-2xl font-bold mb-6">{config.title}</h1>
 
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 space-y-4">
+      <div className="bg-card rounded-xl shadow-sm border border-border p-6 space-y-4">
         {config.fields.map(field => (
           <div key={field.name}>
-            <label className="block text-sm font-medium text-gray-700 mb-1">{field.label}</label>
+            <label className="block text-sm font-medium text-foreground mb-1">{field.label}</label>
             {field.type === 'textarea' ? (
               <textarea value={formData[field.name] || ''} onChange={e => updateField(field.name, e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary outline-none resize-y min-h-[80px]" />
+                className="w-full px-4 py-2 border border-border rounded-lg text-sm focus:ring-2 focus:ring-primary outline-none resize-y min-h-[80px]" />
             ) : field.type === 'select' ? (
               <select value={formData[field.name] || ''} onChange={e => updateField(field.name, e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary outline-none">
+                className="w-full px-4 py-2 border border-border rounded-lg text-sm focus:ring-2 focus:ring-primary outline-none">
                 <option value="">Select...</option>
                 {field.options?.map(o => <option key={o} value={o}>{o}</option>)}
               </select>
             ) : (
               <input type={field.type} value={formData[field.name] || ''} onChange={e => updateField(field.name, e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary outline-none" />
+                className="w-full px-4 py-2 border border-border rounded-lg text-sm focus:ring-2 focus:ring-primary outline-none" />
             )}
           </div>
         ))}
 
-        <div className="flex gap-3 pt-4 border-t border-gray-200">
+        <div className="flex gap-3 pt-4 border-t border-border">
           <button onClick={() => saveForm('submitted')} disabled={saving}
             className="px-6 py-2 bg-primary text-white rounded-lg text-sm font-medium hover:opacity-90 disabled:opacity-50">
             {saving ? 'Saving...' : 'Submit'}
           </button>
           <button onClick={() => saveForm('draft')} disabled={saving}
-            className="px-6 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-200 disabled:opacity-50">
+            className="px-6 py-2 bg-muted text-foreground rounded-lg text-sm font-medium hover:bg-accent disabled:opacity-50">
             Save as Draft
           </button>
         </div>

@@ -8,11 +8,13 @@ export default function OwnaStaffPage() {
   const [onDuty, setOnDuty] = useState<any[]>([])
   const [rp, setRp] = useState<any>(null)
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [selectedDate, setSelectedDate] = useState(todayStr())
   const [expandedStaff, setExpandedStaff] = useState<string | null>(null)
   const [staffDetail, setStaffDetail] = useState<any>(null)
 
   const load = async () => {
+    setError(null)
     setLoading(true)
     try {
       const [staffRes, dutyRes, rpRes] = await Promise.all([
@@ -24,8 +26,12 @@ export default function OwnaStaffPage() {
       if (dutyRes?.data) setOnDuty(dutyRes.data)
       if (rpRes?.data) setRp(rpRes.data)
       else setRp(rpRes)
-    } catch (err) { console.error('Failed to load staff:', err) }
-    setLoading(false)
+    } catch (err) {
+      console.error('Failed to load staff:', err)
+      setError(err instanceof Error ? err.message : 'Failed to load data')
+    } finally {
+      setLoading(false)
+    }
   }
 
   useEffect(() => { load() }, [selectedDate])
@@ -50,40 +56,48 @@ export default function OwnaStaffPage() {
     catch { return '-' }
   }
 
-  if (loading) return <div className="max-w-6xl mx-auto py-12 text-center text-gray-400">Loading OWNA staff data...</div>
+  if (loading) return <div className="max-w-6xl mx-auto py-12 text-center text-muted-foreground">Loading OWNA staff data...</div>
+
+  if (error) return (
+    <div className="py-16 text-center animate-fade-in">
+      <p className="text-lg font-semibold text-foreground mb-2">Unable to load data</p>
+      <p className="text-sm text-muted-foreground mb-4">{error}</p>
+      <button onClick={() => load()} className="px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:opacity-90 transition">Retry</button>
+    </div>
+  )
 
   return (
     <div className="max-w-6xl mx-auto">
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold">Staff Dashboard</h1>
-          <p className="text-gray-500 text-sm mt-1">Staff profiles and on-duty status from OWNA</p>
+          <p className="text-muted-foreground text-sm mt-1">Staff profiles and on-duty status from OWNA</p>
         </div>
         <div className="flex items-center gap-3">
-          <input type="date" value={selectedDate} onChange={e => setSelectedDate(e.target.value)} className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary" />
+          <input type="date" value={selectedDate} onChange={e => setSelectedDate(e.target.value)} className="px-3 py-2 border border-border rounded-lg text-sm focus:ring-2 focus:ring-primary" />
           <button onClick={() => setSelectedDate(todayStr())} className="px-3 py-1.5 bg-primary text-white rounded-lg text-xs font-medium hover:opacity-90">Today</button>
         </div>
       </div>
 
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
-          <p className="text-xs text-gray-500 mb-1">Total Active Staff</p>
+        <div className="bg-card rounded-xl shadow-sm border border-border p-4">
+          <p className="text-xs text-muted-foreground mb-1">Total Active Staff</p>
           <p className="text-2xl font-bold text-primary">{staff.length}</p>
         </div>
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
-          <p className="text-xs text-gray-500 mb-1">On Duty</p>
+        <div className="bg-card rounded-xl shadow-sm border border-border p-4">
+          <p className="text-xs text-muted-foreground mb-1">On Duty</p>
           <p className="text-2xl font-bold text-green-600">{onDuty.length}</p>
         </div>
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
-          <p className="text-xs text-gray-500 mb-1">Responsible Person</p>
-          <p className="text-sm font-bold text-gray-900 mt-1">{rpName || 'Not set'}</p>
+        <div className="bg-card rounded-xl shadow-sm border border-border p-4">
+          <p className="text-xs text-muted-foreground mb-1">Responsible Person</p>
+          <p className="text-sm font-bold text-foreground mt-1">{rpName || 'Not set'}</p>
         </div>
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
-          <p className="text-xs text-gray-500 mb-1">Staff Types</p>
+        <div className="bg-card rounded-xl shadow-sm border border-border p-4">
+          <p className="text-xs text-muted-foreground mb-1">Staff Types</p>
           <div className="flex flex-wrap gap-1 mt-1">
             {Array.from(new Set(staff.map((s: any) => s.staffType).filter(Boolean))).map((t: any) => (
-              <span key={t} className="px-1.5 py-0.5 bg-gray-100 text-gray-600 rounded text-xs">{t} ({staff.filter((s: any) => s.staffType === t).length})</span>
+              <span key={t} className="px-1.5 py-0.5 bg-muted text-muted-foreground rounded text-xs">{t} ({staff.filter((s: any) => s.staffType === t).length})</span>
             ))}
           </div>
         </div>
@@ -91,8 +105,8 @@ export default function OwnaStaffPage() {
 
       {/* On Duty */}
       {onDuty.length > 0 && (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5 mb-6">
-          <h2 className="font-semibold text-gray-900 text-sm mb-3">On Duty — {new Date(selectedDate).toLocaleDateString()}</h2>
+        <div className="bg-card rounded-xl shadow-sm border border-border p-5 mb-6">
+          <h2 className="font-semibold text-foreground text-sm mb-3">On Duty — {new Date(selectedDate).toLocaleDateString()}</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
             {onDuty.map((d: any, i: number) => (
               <div key={d.staffId || i} className="flex items-center gap-3 p-3 bg-green-50 rounded-lg border border-green-200">
@@ -100,8 +114,8 @@ export default function OwnaStaffPage() {
                   {(d.staffName || '??').split(' ').map((n: string) => n[0]).join('').substring(0, 2)}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="font-medium text-sm text-gray-900">{d.staffName}</p>
-                  <p className="text-xs text-gray-500">{d.status} {d.rpRank === 1 ? '(RP)' : ''}</p>
+                  <p className="font-medium text-sm text-foreground">{d.staffName}</p>
+                  <p className="text-xs text-muted-foreground">{d.status} {d.rpRank === 1 ? '(RP)' : ''}</p>
                 </div>
                 <div className="text-right text-xs">
                   <p className="text-green-600">{formatTime(d.loggedIn)}</p>
@@ -113,24 +127,24 @@ export default function OwnaStaffPage() {
       )}
 
       {/* All Staff */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-        <div className="px-5 py-3 bg-gray-50 border-b border-gray-200">
-          <h2 className="font-semibold text-gray-900 text-sm">All Staff ({staff.length})</h2>
+      <div className="bg-card rounded-xl shadow-sm border border-border overflow-hidden">
+        <div className="px-5 py-3 bg-muted border-b border-border">
+          <h2 className="font-semibold text-foreground text-sm">All Staff ({staff.length})</h2>
         </div>
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b border-gray-200">
-              <th className="text-left py-3 px-4 font-medium text-gray-600">Name</th>
-              <th className="text-left py-3 px-2 font-medium text-gray-600">Type</th>
-              <th className="text-left py-3 px-2 font-medium text-gray-600">Employment</th>
-              <th className="text-left py-3 px-2 font-medium text-gray-600">Email</th>
-              <th className="text-left py-3 px-2 font-medium text-gray-600">Phone</th>
-              <th className="text-center py-3 px-2 font-medium text-gray-600">On Duty</th>
+            <tr className="border-b border-border">
+              <th className="text-left py-3 px-4 font-medium text-muted-foreground">Name</th>
+              <th className="text-left py-3 px-2 font-medium text-muted-foreground">Type</th>
+              <th className="text-left py-3 px-2 font-medium text-muted-foreground">Employment</th>
+              <th className="text-left py-3 px-2 font-medium text-muted-foreground">Email</th>
+              <th className="text-left py-3 px-2 font-medium text-muted-foreground">Phone</th>
+              <th className="text-center py-3 px-2 font-medium text-muted-foreground">On Duty</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-100">
+          <tbody className="divide-y divide-border">
             {staff.map((s: any) => (
-              <tr key={s.id} className="hover:bg-gray-50 cursor-pointer" onClick={() => loadStaffDetail(s.id)}>
+              <tr key={s.id} className="hover:bg-muted cursor-pointer" onClick={() => loadStaffDetail(s.id)}>
                 <td className="py-2.5 px-4">
                   <div className="flex items-center gap-3">
                     {s.picture ? (
@@ -140,15 +154,15 @@ export default function OwnaStaffPage() {
                         {(s.firstname || '?')[0]}{(s.surname || '?')[0]}
                       </div>
                     )}
-                    <span className="font-medium text-gray-900">{s.firstname} {s.surname}</span>
+                    <span className="font-medium text-foreground">{s.firstname} {s.surname}</span>
                   </div>
                 </td>
                 <td className="py-2.5 px-2">
-                  <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600">{s.staffType || '-'}</span>
+                  <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-muted text-muted-foreground">{s.staffType || '-'}</span>
                 </td>
-                <td className="py-2.5 px-2 text-gray-500 text-xs">{s.empType || '-'}</td>
-                <td className="py-2.5 px-2 text-gray-500 text-xs">{s.emailAddress || '-'}</td>
-                <td className="py-2.5 px-2 text-gray-500 text-xs">{s.contactNumber || '-'}</td>
+                <td className="py-2.5 px-2 text-muted-foreground text-xs">{s.empType || '-'}</td>
+                <td className="py-2.5 px-2 text-muted-foreground text-xs">{s.emailAddress || '-'}</td>
+                <td className="py-2.5 px-2 text-muted-foreground text-xs">{s.contactNumber || '-'}</td>
                 <td className="py-2.5 px-2 text-center">
                   {onDutyIds.has(s.id) ? (
                     <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-green-50 text-green-600">On Duty</span>
@@ -160,12 +174,12 @@ export default function OwnaStaffPage() {
         </table>
 
         {expandedStaff && staffDetail && (
-          <div className="border-t border-gray-200 bg-gray-50 p-6">
+          <div className="border-t border-border bg-muted p-6">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="font-semibold text-gray-900">Staff Details</h3>
-              <button onClick={() => setExpandedStaff(null)} className="text-gray-400 hover:text-gray-600">&#10005;</button>
+              <h3 className="font-semibold text-foreground">Staff Details</h3>
+              <button onClick={() => setExpandedStaff(null)} className="text-muted-foreground hover:text-muted-foreground">&#10005;</button>
             </div>
-            <pre className="text-xs font-mono text-gray-600 bg-white p-4 rounded-lg border border-gray-200 max-h-64 overflow-auto whitespace-pre-wrap">{JSON.stringify(staffDetail, null, 2)}</pre>
+            <pre className="text-xs font-mono text-muted-foreground bg-card p-4 rounded-lg border border-border max-h-64 overflow-auto whitespace-pre-wrap">{JSON.stringify(staffDetail, null, 2)}</pre>
           </div>
         )}
       </div>

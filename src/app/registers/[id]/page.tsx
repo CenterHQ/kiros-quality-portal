@@ -5,12 +5,14 @@ import { useParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import type { RegisterDefinition, RegisterEntry, RegisterColumnDef, Profile } from '@/lib/types'
 import { useProfile } from '@/lib/ProfileContext'
+import { useToast } from '@/components/ui/toast'
 import Breadcrumbs from '@/components/Breadcrumbs'
 
 export default function RegisterDetailPage() {
   const { id } = useParams()
   const supabase = createClient()
   const user = useProfile()
+  const { toast } = useToast()
   const [register, setRegister] = useState<RegisterDefinition | null>(null)
   const [entries, setEntries] = useState<RegisterEntry[]>([])
   const [showAddRow, setShowAddRow] = useState(false)
@@ -62,7 +64,7 @@ export default function RegisterDetailPage() {
     return result
   }, [entries, searchTerm, sortCol, sortDir])
 
-  if (!register) return <div className="max-w-6xl mx-auto py-12 text-center text-gray-400">Loading...</div>
+  if (!register) return <div className="max-w-6xl mx-auto py-12 text-center text-muted-foreground">Loading...</div>
 
   const columns = register.columns.sort((a, b) => a.sort_order - b.sort_order)
   const isPrivileged = user && ['admin', 'manager', 'ns'].includes(user.role)
@@ -92,7 +94,7 @@ export default function RegisterDetailPage() {
     // Validate required fields
     for (const col of columns) {
       if (col.required && !newRow[col.id] && newRow[col.id] !== false) {
-        alert(`"${col.name}" is required`)
+        toast({ type: 'warning', message: `"${col.name}" is required` })
         return
       }
     }
@@ -147,8 +149,8 @@ export default function RegisterDetailPage() {
 
   const renderCellInput = (col: RegisterColumnDef, value: unknown, onChange: (val: unknown) => void, compact = false) => {
     const cls = compact
-      ? 'w-full px-2 py-1 border border-gray-300 rounded text-xs focus:ring-1 focus:ring-primary focus:border-transparent'
-      : 'w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent'
+      ? 'w-full px-2 py-1 border border-border rounded text-xs focus:ring-1 focus:ring-primary focus:border-transparent'
+      : 'w-full px-3 py-2 border border-border rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent'
 
     switch (col.type) {
       case 'text':
@@ -169,7 +171,7 @@ export default function RegisterDetailPage() {
           </select>
         )
       case 'checkbox':
-        return <input type="checkbox" checked={!!value} onChange={e => onChange(e.target.checked)} className="rounded border-gray-300 text-primary focus:ring-primary" />
+        return <input type="checkbox" checked={!!value} onChange={e => onChange(e.target.checked)} className="rounded border-border text-primary focus:ring-primary" />
       case 'textarea':
         return <textarea value={String(value || '')} onChange={e => onChange(e.target.value)} rows={compact ? 1 : 2} className={cls} />
       default:
@@ -178,9 +180,9 @@ export default function RegisterDetailPage() {
   }
 
   const renderCellValue = (col: RegisterColumnDef, value: unknown) => {
-    if (value === undefined || value === null || value === '') return <span className="text-gray-300">-</span>
+    if (value === undefined || value === null || value === '') return <span className="text-muted-foreground">-</span>
     switch (col.type) {
-      case 'checkbox': return <span className={value ? 'text-green-500' : 'text-gray-300'}>{value ? '&#10003;' : '&#10007;'}</span>
+      case 'checkbox': return <span className={value ? 'text-green-500' : 'text-muted-foreground'}>{value ? '&#10003;' : '&#10007;'}</span>
       case 'date': return <span>{new Date(String(value)).toLocaleDateString()}</span>
       case 'currency': return <span>${Number(value).toFixed(2)}</span>
       case 'url': return <a href={String(value)} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline truncate block max-w-[200px]">{String(value)}</a>
@@ -197,36 +199,36 @@ export default function RegisterDetailPage() {
       ]} />
       <div className="flex items-center justify-between mb-6">
         <div>
-          <a href="/registers" className="text-sm text-gray-500 hover:text-gray-700 mb-1 inline-block">&larr; Back to Registers</a>
+          <a href="/registers" className="text-sm text-muted-foreground hover:text-foreground mb-1 inline-block">&larr; Back to Registers</a>
           <div className="flex items-center gap-3">
             <span className="text-2xl">{register.icon}</span>
             <div>
               <h1 className="text-2xl font-bold">{register.name}</h1>
-              {register.description && <p className="text-gray-500 text-sm">{register.description}</p>}
+              {register.description && <p className="text-muted-foreground text-sm">{register.description}</p>}
             </div>
           </div>
         </div>
         <div className="flex gap-2">
-          <button onClick={exportCSV} className="px-3 py-2 border border-gray-300 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50">Export CSV</button>
+          <button onClick={exportCSV} className="px-3 py-2 border border-border text-foreground rounded-lg text-sm font-medium hover:bg-accent">Export CSV</button>
           <button onClick={initNewRow} className="px-4 py-2 bg-primary text-white rounded-lg text-sm font-medium hover:opacity-90">+ Add Entry</button>
         </div>
       </div>
 
       {/* Search and stats */}
       <div className="flex items-center justify-between mb-4">
-        <input type="text" value={searchTerm} onChange={e => { setSearchTerm(e.target.value); setPage(0) }} placeholder="Search entries..." className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent w-full md:w-64" />
-        <span className="text-xs text-gray-400">{processedEntries.length} entries</span>
+        <input type="text" value={searchTerm} onChange={e => { setSearchTerm(e.target.value); setPage(0) }} placeholder="Search entries..." className="px-3 py-2 border border-border rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent w-full md:w-64" />
+        <span className="text-xs text-muted-foreground">{processedEntries.length} entries</span>
       </div>
 
       {/* Table */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+      <div className="bg-card rounded-xl shadow-sm border border-border overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="bg-gray-50 border-b border-gray-200">
-                <th className="text-left py-3 px-3 font-medium text-gray-600 text-xs w-10">#</th>
+              <tr className="bg-muted border-b border-border">
+                <th className="text-left py-3 px-3 font-medium text-muted-foreground text-xs w-10">#</th>
                 {columns.map(col => (
-                  <th key={col.id} className="text-left py-3 px-3 font-medium text-gray-600 text-xs cursor-pointer hover:text-primary select-none" onClick={() => toggleSort(col.id)}>
+                  <th key={col.id} className="text-left py-3 px-3 font-medium text-muted-foreground text-xs cursor-pointer hover:text-primary select-none" onClick={() => toggleSort(col.id)}>
                     <div className="flex items-center gap-1">
                       {col.name}
                       {col.required && <span className="text-red-400">*</span>}
@@ -234,14 +236,14 @@ export default function RegisterDetailPage() {
                     </div>
                   </th>
                 ))}
-                <th className="text-right py-3 px-3 font-medium text-gray-600 text-xs w-24">Actions</th>
+                <th className="text-right py-3 px-3 font-medium text-muted-foreground text-xs w-24">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100">
+            <tbody className="divide-y divide-border">
               {/* Add row form */}
               {showAddRow && (
                 <tr className="bg-purple-50/50">
-                  <td className="py-2 px-3 text-xs text-gray-400">New</td>
+                  <td className="py-2 px-3 text-xs text-muted-foreground">New</td>
                   {columns.map(col => (
                     <td key={col.id} className="py-2 px-3">
                       {renderCellInput(col, newRow[col.id], (val) => setNewRow({ ...newRow, [col.id]: val }), true)}
@@ -250,7 +252,7 @@ export default function RegisterDetailPage() {
                   <td className="py-2 px-3 text-right">
                     <div className="flex gap-1 justify-end">
                       <button onClick={addRow} className="px-2 py-1 bg-primary text-white rounded text-xs hover:opacity-90">Save</button>
-                      <button onClick={() => setShowAddRow(false)} className="px-2 py-1 border border-gray-300 text-gray-500 rounded text-xs hover:bg-gray-50">Cancel</button>
+                      <button onClick={() => setShowAddRow(false)} className="px-2 py-1 border border-border text-muted-foreground rounded text-xs hover:bg-accent">Cancel</button>
                     </div>
                   </td>
                 </tr>
@@ -258,7 +260,7 @@ export default function RegisterDetailPage() {
 
               {pagedEntries.length === 0 && !showAddRow && (
                 <tr>
-                  <td colSpan={columns.length + 2} className="py-12 text-center text-gray-400">
+                  <td colSpan={columns.length + 2} className="py-12 text-center text-muted-foreground">
                     <p className="text-4xl mb-3">📊</p>
                     <p className="text-sm">No entries yet. Click &quot;+ Add Entry&quot; to start adding data.</p>
                   </td>
@@ -266,8 +268,8 @@ export default function RegisterDetailPage() {
               )}
 
               {pagedEntries.map((entry, idx) => (
-                <tr key={entry.id} className="hover:bg-gray-50 transition">
-                  <td className="py-2.5 px-3 text-xs text-gray-400">{page * PAGE_SIZE + idx + 1}</td>
+                <tr key={entry.id} className="hover:bg-accent transition">
+                  <td className="py-2.5 px-3 text-xs text-muted-foreground">{page * PAGE_SIZE + idx + 1}</td>
                   {columns.map(col => (
                     <td key={col.id} className="py-2.5 px-3 text-sm">
                       {editingRow === entry.id ? (
@@ -281,11 +283,11 @@ export default function RegisterDetailPage() {
                     {editingRow === entry.id ? (
                       <div className="flex gap-1 justify-end">
                         <button onClick={() => saveEdit(entry.id)} className="px-2 py-1 bg-green-500 text-white rounded text-xs hover:opacity-90">Save</button>
-                        <button onClick={() => setEditingRow(null)} className="px-2 py-1 border border-gray-300 text-gray-500 rounded text-xs hover:bg-gray-50">Cancel</button>
+                        <button onClick={() => setEditingRow(null)} className="px-2 py-1 border border-border text-muted-foreground rounded text-xs hover:bg-accent">Cancel</button>
                       </div>
                     ) : (
                       <div className="flex gap-1 justify-end md:opacity-0 md:group-hover:opacity-100">
-                        <button onClick={() => startEdit(entry)} className="px-3 py-2 border border-gray-300 text-gray-500 rounded text-xs hover:bg-gray-50 min-h-[44px]">Edit</button>
+                        <button onClick={() => startEdit(entry)} className="px-3 py-2 border border-border text-muted-foreground rounded text-xs hover:bg-accent min-h-[44px]">Edit</button>
                         {isPrivileged && (
                           <button onClick={() => deleteRow(entry.id)} className="px-3 py-2 border border-red-200 text-red-400 rounded text-xs hover:bg-red-50 min-h-[44px]">Del</button>
                         )}
@@ -300,16 +302,16 @@ export default function RegisterDetailPage() {
 
         {/* Pagination */}
         {totalPages > 1 && (
-          <div className="flex items-center justify-between px-4 py-3 border-t border-gray-200 bg-gray-50">
-            <span className="text-xs text-gray-400">
+          <div className="flex items-center justify-between px-4 py-3 border-t border-border bg-muted">
+            <span className="text-xs text-muted-foreground">
               Showing {page * PAGE_SIZE + 1}-{Math.min((page + 1) * PAGE_SIZE, processedEntries.length)} of {processedEntries.length}
             </span>
             <div className="flex gap-1">
-              <button onClick={() => setPage(p => Math.max(0, p - 1))} disabled={page === 0} className="px-3 py-1 border border-gray-300 rounded text-xs hover:bg-white disabled:opacity-50">Prev</button>
+              <button onClick={() => setPage(p => Math.max(0, p - 1))} disabled={page === 0} className="px-3 py-1 border border-border rounded text-xs hover:bg-accent disabled:opacity-50">Prev</button>
               {Array.from({ length: totalPages }, (_, i) => (
-                <button key={i} onClick={() => setPage(i)} className={`px-3 py-1 border rounded text-xs ${page === i ? 'bg-primary text-white border-primary' : 'border-gray-300 hover:bg-white'}`}>{i + 1}</button>
+                <button key={i} onClick={() => setPage(i)} className={`px-3 py-1 border rounded text-xs ${page === i ? 'bg-primary text-white border-primary' : 'border-border hover:bg-accent'}`}>{i + 1}</button>
               ))}
-              <button onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))} disabled={page === totalPages - 1} className="px-3 py-1 border border-gray-300 rounded text-xs hover:bg-white disabled:opacity-50">Next</button>
+              <button onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))} disabled={page === totalPages - 1} className="px-3 py-1 border border-border rounded text-xs hover:bg-accent disabled:opacity-50">Next</button>
             </div>
           </div>
         )}

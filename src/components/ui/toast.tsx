@@ -83,7 +83,7 @@ function Toast({ type, message, description, duration = DEFAULT_DURATION, onClos
       data-slot="toast"
       role="alert"
       className={cn(
-        'pointer-events-auto relative w-80 overflow-hidden rounded-lg border border-l-4 bg-white p-4 shadow-lg animate-slide-in-right',
+        'pointer-events-auto relative w-80 overflow-hidden rounded-lg border border-l-4 bg-card p-4 shadow-lg animate-slide-in-right',
         ACCENT_MAP[type],
       )}
     >

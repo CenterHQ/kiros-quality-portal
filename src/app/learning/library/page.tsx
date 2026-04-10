@@ -3,6 +3,7 @@
 import { useEffect, useState, useMemo, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useProfile } from '@/lib/ProfileContext'
+import { useToast } from '@/components/ui/toast'
 import Link from 'next/link'
 import type {
   Profile,
@@ -27,6 +28,7 @@ type ModuleWithStats = LmsModule & {
 export default function ModuleLibraryPage() {
   const supabase = createClient()
   const user = useProfile()
+  const { toast } = useToast()
 
   const [loading, setLoading] = useState(true)
   const [modules, setModules] = useState<LmsModule[]>([])
@@ -152,7 +154,7 @@ export default function ModuleLibraryPage() {
       setAllEnrollments(prev => [...prev, data])
     } catch (err) {
       console.error('Failed to enroll:', err)
-      alert('Failed to enrol. You may already be enrolled in this module.')
+      toast({ type: 'warning', message: 'Failed to enrol. You may already be enrolled in this module.' })
     } finally {
       setEnrollingModule(null)
     }
@@ -193,7 +195,7 @@ export default function ModuleLibraryPage() {
       setAssignDueDate('')
     } catch (err) {
       console.error('Failed to assign:', err)
-      alert('Failed to assign module. The user may already be enrolled.')
+      toast({ type: 'warning', message: 'Failed to assign module. The user may already be enrolled.' })
     } finally {
       setAssignLoading(false)
     }

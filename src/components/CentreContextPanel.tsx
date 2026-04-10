@@ -30,21 +30,22 @@ export default function CentreContextPanel({
   if (!loading && items.length === 0) return null
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border-l-4 border-l-primary">
+    <div className="bg-card rounded-xl shadow-sm border-l-4 border-l-primary">
       {/* Header */}
       <button
         onClick={() => setCollapsed(!collapsed)}
-        className="w-full flex items-center justify-between px-4 py-3 text-left hover:bg-gray-50 rounded-t-xl transition-colors"
+        aria-label={collapsed ? 'Expand context panel' : 'Collapse context panel'}
+        className="w-full flex items-center justify-between px-4 py-3 text-left hover:bg-accent rounded-t-xl transition-colors"
       >
         <div className="flex items-center gap-2">
           <div className="w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-bold bg-primary">
             K
           </div>
-          <span className="text-sm font-semibold text-gray-800">{title}</span>
-          <span className="text-xs text-gray-400">({items.length})</span>
+          <span className="text-sm font-semibold text-foreground">{title}</span>
+          <span className="text-xs text-muted-foreground">({items.length})</span>
         </div>
         <svg
-          className={`w-4 h-4 text-gray-400 transition-transform duration-300 ${collapsed ? '-rotate-90' : ''}`}
+          className={`w-4 h-4 text-muted-foreground transition-transform duration-300 ${collapsed ? '-rotate-90' : ''}`}
           fill="none" viewBox="0 0 24 24" stroke="currentColor"
         >
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
@@ -68,7 +69,7 @@ export default function CentreContextPanel({
               return (
                 <div
                   key={item.id}
-                  className="rounded-lg border border-gray-100 hover:border-gray-200 transition-colors"
+                  className="rounded-lg border border-border hover:border-border transition-colors"
                 >
                   <button
                     onClick={() => setExpandedId(isExpanded ? null : item.id)}
@@ -81,7 +82,7 @@ export default function CentreContextPanel({
                       >
                         {label}
                       </span>
-                      <span className="text-sm text-gray-700 font-medium leading-tight">
+                      <span className="text-sm text-foreground font-medium leading-tight">
                         {item.title}
                       </span>
                     </div>
@@ -89,23 +90,23 @@ export default function CentreContextPanel({
 
                   {isExpanded && (
                     <div className="px-3 pb-3 space-y-2">
-                      <p className="text-xs text-gray-600 leading-relaxed">
+                      <p className="text-xs text-muted-foreground leading-relaxed">
                         {item.content}
                       </p>
                       {item.source_quote && (
-                        <blockquote className="text-xs text-gray-500 italic border-l-2 border-purple-300 pl-3 py-1 bg-purple-50/50 rounded-r">
+                        <blockquote className="text-xs text-muted-foreground italic border-l-2 border-purple-300 pl-3 py-1 bg-purple-50/50 rounded-r">
                           &ldquo;{item.source_quote}&rdquo;
                         </blockquote>
                       )}
                       {item.related_element_codes?.length > 0 && (
                         <div className="flex flex-wrap gap-1">
                           {item.related_element_codes.slice(0, 4).map((code) => (
-                            <span key={code} className="text-xs px-2 py-0.5 bg-gray-100 text-gray-500 rounded">
+                            <span key={code} className="text-xs px-2 py-0.5 bg-muted text-muted-foreground rounded">
                               {code}
                             </span>
                           ))}
                           {item.related_element_codes.length > 4 && (
-                            <span className="text-xs px-2 py-0.5 bg-gray-100 text-gray-400 rounded">
+                            <span className="text-xs px-2 py-0.5 bg-muted text-muted-foreground rounded">
                               +{item.related_element_codes.length - 4} more
                             </span>
                           )}

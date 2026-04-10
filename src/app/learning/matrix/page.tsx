@@ -315,13 +315,13 @@ export default function StaffTrainingMatrixPage() {
     return (
       <div className="p-6 max-w-[1600px] mx-auto">
         <div className="animate-pulse space-y-6">
-          <div className="h-8 bg-gray-200 rounded w-64" />
+          <div className="h-8 bg-muted rounded w-64" />
           <div className="grid grid-cols-4 gap-4">
             {[...Array(4)].map((_, i) => (
-              <div key={i} className="h-28 bg-gray-200 rounded-xl" />
+              <div key={i} className="h-28 bg-muted rounded-xl" />
             ))}
           </div>
-          <div className="h-64 bg-gray-200 rounded-xl" />
+          <div className="h-64 bg-muted rounded-xl" />
         </div>
       </div>
     )
@@ -332,8 +332,8 @@ export default function StaffTrainingMatrixPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Staff Training Matrix</h1>
-          <p className="text-gray-500 mt-1">
+          <h1 className="text-2xl font-bold text-foreground">Staff Training Matrix</h1>
+          <p className="text-muted-foreground mt-1">
             {isPrivileged
               ? 'Compliance overview for all staff qualifications and mandatory training'
               : 'Your qualification and training compliance status'}
@@ -355,7 +355,7 @@ export default function StaffTrainingMatrixPage() {
 
       {/* Compliance Dashboard */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
+        <div className="bg-card rounded-xl shadow-sm border border-border p-5">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
               <svg className="w-5 h-5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -363,13 +363,13 @@ export default function StaffTrainingMatrixPage() {
               </svg>
             </div>
             <div>
-              <p className="text-sm text-gray-500">Total Staff</p>
-              <p className="text-2xl font-bold text-gray-900">{stats.totalStaff}</p>
+              <p className="text-sm text-muted-foreground">Total Staff</p>
+              <p className="text-2xl font-bold text-foreground">{stats.totalStaff}</p>
             </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
+        <div className="bg-card rounded-xl shadow-sm border border-border p-5">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-lg bg-green-100 flex items-center justify-center">
               <svg className="w-5 h-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -377,13 +377,13 @@ export default function StaffTrainingMatrixPage() {
               </svg>
             </div>
             <div>
-              <p className="text-sm text-gray-500">Fully Compliant</p>
+              <p className="text-sm text-muted-foreground">Fully Compliant</p>
               <p className="text-2xl font-bold text-green-600">{stats.fullyCompliant}</p>
             </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
+        <div className="bg-card rounded-xl shadow-sm border border-border p-5">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-lg bg-red-100 flex items-center justify-center">
               <svg className="w-5 h-5 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -391,13 +391,13 @@ export default function StaffTrainingMatrixPage() {
               </svg>
             </div>
             <div>
-              <p className="text-sm text-gray-500">Compliance Gaps</p>
+              <p className="text-sm text-muted-foreground">Compliance Gaps</p>
               <p className="text-2xl font-bold text-red-600">{stats.gaps}</p>
             </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
+        <div className="bg-card rounded-xl shadow-sm border border-border p-5">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-lg bg-amber-100 flex items-center justify-center">
               <svg className="w-5 h-5 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -405,7 +405,7 @@ export default function StaffTrainingMatrixPage() {
               </svg>
             </div>
             <div>
-              <p className="text-sm text-gray-500">Expiring Soon</p>
+              <p className="text-sm text-muted-foreground">Expiring Soon</p>
               <p className="text-2xl font-bold text-amber-600">{stats.expiringSoon}</p>
             </div>
           </div>
@@ -413,31 +413,31 @@ export default function StaffTrainingMatrixPage() {
       </div>
 
       {/* Qualification Compliance Grid */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-        <div className="px-6 py-4 border-b border-gray-200">
-          <h2 className="text-lg font-semibold text-gray-900">Qualification Compliance</h2>
-          <p className="text-sm text-gray-500 mt-0.5">Staff qualifications and expiry status</p>
+      <div className="bg-card rounded-xl shadow-sm border border-border overflow-hidden">
+        <div className="px-6 py-4 border-b border-border">
+          <h2 className="text-lg font-semibold text-foreground">Qualification Compliance</h2>
+          <p className="text-sm text-muted-foreground mt-0.5">Staff qualifications and expiry status</p>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="bg-gray-50 border-b border-gray-200">
-                <th className="text-left px-4 py-3 font-medium text-gray-600 whitespace-nowrap sticky left-0 bg-gray-50 z-10">Staff Member</th>
-                <th className="text-left px-4 py-3 font-medium text-gray-600 whitespace-nowrap">Role</th>
+              <tr className="bg-muted border-b border-border">
+                <th className="text-left px-4 py-3 font-medium text-muted-foreground whitespace-nowrap sticky left-0 bg-muted z-10">Staff Member</th>
+                <th className="text-left px-4 py-3 font-medium text-muted-foreground whitespace-nowrap">Role</th>
                 {QUAL_COLUMNS.map(qt => (
-                  <th key={qt} className="text-center px-3 py-3 font-medium text-gray-600 whitespace-nowrap">
+                  <th key={qt} className="text-center px-3 py-3 font-medium text-muted-foreground whitespace-nowrap">
                     {(QUALIFICATION_LABELS[qt] || qt).replace(/\s*\(.*\)/, '')}
                   </th>
                 ))}
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100">
+            <tbody className="divide-y divide-border">
               {profiles.map(p => {
                 const staffQuals = qualLookup[p.id] || {}
                 return (
-                  <tr key={p.id} className="hover:bg-gray-50 transition-colors">
-                    <td className="px-4 py-3 font-medium text-gray-900 whitespace-nowrap sticky left-0 bg-white z-10">{p.full_name}</td>
-                    <td className="px-4 py-3 text-gray-600 whitespace-nowrap">{ROLE_LABELS[p.role] || p.role}</td>
+                  <tr key={p.id} className="hover:bg-muted transition-colors">
+                    <td className="px-4 py-3 font-medium text-foreground whitespace-nowrap sticky left-0 bg-card z-10">{p.full_name}</td>
+                    <td className="px-4 py-3 text-muted-foreground whitespace-nowrap">{ROLE_LABELS[p.role] || p.role}</td>
                     {QUAL_COLUMNS.map(qt => {
                       const q = staffQuals[qt]
                       const status = q ? computeQualStatus(q) : 'not_recorded'
@@ -451,32 +451,32 @@ export default function StaffTrainingMatrixPage() {
                           <div className="flex flex-col items-center gap-1">
                             <StatusDot status={status} />
                             {q?.expiry_date && (
-                              <span className="text-xs text-gray-400">
+                              <span className="text-xs text-muted-foreground">
                                 {new Date(q.expiry_date).toLocaleDateString('en-AU', { day: '2-digit', month: 'short', year: '2-digit' })}
                               </span>
                             )}
                           </div>
                           {isSelected && q && (
-                            <div className="absolute z-20 top-full left-1/2 -translate-x-1/2 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg p-3 w-56 text-left">
-                              <p className="font-medium text-gray-900 text-xs mb-1">{QUALIFICATION_LABELS[qt]}</p>
+                            <div className="absolute z-20 top-full left-1/2 -translate-x-1/2 mt-1 bg-card border border-border rounded-lg shadow-lg p-3 w-56 text-left">
+                              <p className="font-medium text-foreground text-xs mb-1">{QUALIFICATION_LABELS[qt]}</p>
                               {q.certificate_number && (
-                                <p className="text-xs text-gray-500">Cert #: {q.certificate_number}</p>
+                                <p className="text-xs text-muted-foreground">Cert #: {q.certificate_number}</p>
                               )}
                               {q.issuing_body && (
-                                <p className="text-xs text-gray-500">Issuer: {q.issuing_body}</p>
+                                <p className="text-xs text-muted-foreground">Issuer: {q.issuing_body}</p>
                               )}
                               {q.issue_date && (
-                                <p className="text-xs text-gray-500">Issued: {new Date(q.issue_date).toLocaleDateString('en-AU')}</p>
+                                <p className="text-xs text-muted-foreground">Issued: {new Date(q.issue_date).toLocaleDateString('en-AU')}</p>
                               )}
                               {q.expiry_date && (
-                                <p className="text-xs text-gray-500">Expires: {new Date(q.expiry_date).toLocaleDateString('en-AU')}</p>
+                                <p className="text-xs text-muted-foreground">Expires: {new Date(q.expiry_date).toLocaleDateString('en-AU')}</p>
                               )}
                               <p className="text-xs mt-1">
                                 <span className={`inline-block px-1.5 py-0.5 rounded text-xs font-medium ${
                                   status === 'current' ? 'bg-green-100 text-green-700' :
                                   status === 'expiring_soon' ? 'bg-amber-100 text-amber-700' :
                                   status === 'expired' ? 'bg-red-100 text-red-700' :
-                                  'bg-gray-100 text-gray-500'
+                                  'bg-muted text-muted-foreground'
                                 }`}>
                                   {status.replace(/_/g, ' ')}
                                 </span>
@@ -491,7 +491,7 @@ export default function StaffTrainingMatrixPage() {
               })}
               {profiles.length === 0 && (
                 <tr>
-                  <td colSpan={QUAL_COLUMNS.length + 2} className="px-4 py-8 text-center text-gray-400">
+                  <td colSpan={QUAL_COLUMNS.length + 2} className="px-4 py-8 text-center text-muted-foreground">
                     No staff data available
                   </td>
                 </tr>
@@ -503,29 +503,29 @@ export default function StaffTrainingMatrixPage() {
 
       {/* Training Module Matrix */}
       {mandatoryModules.length > 0 && (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-          <div className="px-6 py-4 border-b border-gray-200">
-            <h2 className="text-lg font-semibold text-gray-900">Mandatory Training Modules</h2>
-            <p className="text-sm text-gray-500 mt-0.5">Staff completion status for all mandatory compliance modules</p>
+        <div className="bg-card rounded-xl shadow-sm border border-border overflow-hidden">
+          <div className="px-6 py-4 border-b border-border">
+            <h2 className="text-lg font-semibold text-foreground">Mandatory Training Modules</h2>
+            <p className="text-sm text-muted-foreground mt-0.5">Staff completion status for all mandatory compliance modules</p>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="bg-gray-50 border-b border-gray-200">
-                  <th className="text-left px-4 py-3 font-medium text-gray-600 whitespace-nowrap sticky left-0 bg-gray-50 z-10">Staff Member</th>
+                <tr className="bg-muted border-b border-border">
+                  <th className="text-left px-4 py-3 font-medium text-muted-foreground whitespace-nowrap sticky left-0 bg-muted z-10">Staff Member</th>
                   {mandatoryModules.map(m => (
-                    <th key={m.id} className="text-center px-3 py-3 font-medium text-gray-600 whitespace-nowrap max-w-[140px]">
+                    <th key={m.id} className="text-center px-3 py-3 font-medium text-muted-foreground whitespace-nowrap max-w-[140px]">
                       <span className="block truncate" title={m.title}>{m.title}</span>
                     </th>
                   ))}
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-100">
+              <tbody className="divide-y divide-border">
                 {profiles.map(p => {
                   const staffEnrolls = enrollLookup[p.id] || {}
                   return (
-                    <tr key={p.id} className="hover:bg-gray-50 transition-colors">
-                      <td className="px-4 py-3 font-medium text-gray-900 whitespace-nowrap sticky left-0 bg-white z-10">{p.full_name}</td>
+                    <tr key={p.id} className="hover:bg-muted transition-colors">
+                      <td className="px-4 py-3 font-medium text-foreground whitespace-nowrap sticky left-0 bg-card z-10">{p.full_name}</td>
                       {mandatoryModules.map(m => {
                         const e = staffEnrolls[m.id]
                         const status = getEnrollmentDisplayStatus(e)
@@ -539,25 +539,25 @@ export default function StaffTrainingMatrixPage() {
                             <div className="flex flex-col items-center gap-1">
                               <StatusDot status={status} />
                               {status === 'completed' && e?.score != null && (
-                                <span className="text-xs text-gray-400">{e.score}%</span>
+                                <span className="text-xs text-muted-foreground">{e.score}%</span>
                               )}
                             </div>
                             {isSelected && e && (
-                              <div className="absolute z-20 top-full left-1/2 -translate-x-1/2 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg p-3 w-56 text-left">
-                                <p className="font-medium text-gray-900 text-xs mb-1">{m.title}</p>
-                                <p className="text-xs text-gray-500">
+                              <div className="absolute z-20 top-full left-1/2 -translate-x-1/2 mt-1 bg-card border border-border rounded-lg shadow-lg p-3 w-56 text-left">
+                                <p className="font-medium text-foreground text-xs mb-1">{m.title}</p>
+                                <p className="text-xs text-muted-foreground">
                                   Status: <span className="capitalize">{status.replace(/_/g, ' ')}</span>
                                 </p>
                                 {e.completed_at && (
-                                  <p className="text-xs text-gray-500">
+                                  <p className="text-xs text-muted-foreground">
                                     Completed: {new Date(e.completed_at).toLocaleDateString('en-AU')}
                                   </p>
                                 )}
                                 {e.score != null && (
-                                  <p className="text-xs text-gray-500">Score: {e.score}%</p>
+                                  <p className="text-xs text-muted-foreground">Score: {e.score}%</p>
                                 )}
                                 {e.due_date && (
-                                  <p className="text-xs text-gray-500">
+                                  <p className="text-xs text-muted-foreground">
                                     Due: {new Date(e.due_date).toLocaleDateString('en-AU')}
                                   </p>
                                 )}
@@ -570,8 +570,8 @@ export default function StaffTrainingMatrixPage() {
                   )
                 })}
                 {/* Summary row */}
-                <tr className="bg-gray-50 border-t-2 border-gray-200 font-medium">
-                  <td className="px-4 py-3 text-gray-700 sticky left-0 bg-gray-50 z-10">Completion</td>
+                <tr className="bg-muted border-t-2 border-border font-medium">
+                  <td className="px-4 py-3 text-foreground sticky left-0 bg-muted z-10">Completion</td>
                   {mandatoryModules.map(m => {
                     const s = moduleSummary[m.id] || { completed: 0, total: 0 }
                     const pct = s.total > 0 ? Math.round((s.completed / s.total) * 100) : 0
@@ -592,12 +592,12 @@ export default function StaffTrainingMatrixPage() {
 
       {/* Expiry Alerts */}
       {expiryAlerts.length > 0 && (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-          <div className="px-6 py-4 border-b border-gray-200">
-            <h2 className="text-lg font-semibold text-gray-900">Expiry Alerts</h2>
-            <p className="text-sm text-gray-500 mt-0.5">Qualifications and certificates expiring within the next 60 days</p>
+        <div className="bg-card rounded-xl shadow-sm border border-border overflow-hidden">
+          <div className="px-6 py-4 border-b border-border">
+            <h2 className="text-lg font-semibold text-foreground">Expiry Alerts</h2>
+            <p className="text-sm text-muted-foreground mt-0.5">Qualifications and certificates expiring within the next 60 days</p>
           </div>
-          <div className="divide-y divide-gray-100">
+          <div className="divide-y divide-border">
             {expiryAlerts.map((alert, i) => {
               const urgencyClass =
                 alert.daysRemaining < 0 ? 'border-l-4 border-l-red-500 bg-red-50' :
@@ -607,12 +607,12 @@ export default function StaffTrainingMatrixPage() {
                 <div key={i} className={`px-6 py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 ${urgencyClass}`}>
                   <div className="flex items-center gap-3">
                     <div>
-                      <p className="font-medium text-gray-900 text-sm">{alert.staffName}</p>
-                      <p className="text-xs text-gray-600">{alert.item}</p>
+                      <p className="font-medium text-foreground text-sm">{alert.staffName}</p>
+                      <p className="text-xs text-muted-foreground">{alert.item}</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-3 text-sm">
-                    <span className="text-gray-500">
+                    <span className="text-muted-foreground">
                       {new Date(alert.expiryDate).toLocaleDateString('en-AU', { day: '2-digit', month: 'short', year: 'numeric' })}
                     </span>
                     <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
@@ -624,7 +624,7 @@ export default function StaffTrainingMatrixPage() {
                         ? `Expired ${Math.abs(alert.daysRemaining)}d ago`
                         : `${alert.daysRemaining}d remaining`}
                     </span>
-                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600">
+                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-muted text-muted-foreground">
                       {alert.type}
                     </span>
                   </div>
@@ -636,21 +636,21 @@ export default function StaffTrainingMatrixPage() {
       )}
 
       {expiryAlerts.length === 0 && !loading && (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8 text-center">
+        <div className="bg-card rounded-xl shadow-sm border border-border p-8 text-center">
           <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-3">
             <svg className="w-6 h-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
             </svg>
           </div>
-          <p className="text-gray-600 font-medium">No upcoming expiry alerts</p>
-          <p className="text-sm text-gray-400 mt-1">All qualifications and certificates are up to date</p>
+          <p className="text-muted-foreground font-medium">No upcoming expiry alerts</p>
+          <p className="text-sm text-muted-foreground mt-1">All qualifications and certificates are up to date</p>
         </div>
       )}
 
       {/* Legend */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
-        <p className="text-xs font-medium text-gray-500 mb-2">Legend</p>
-        <div className="flex flex-wrap gap-4 text-xs text-gray-600">
+      <div className="bg-card rounded-xl shadow-sm border border-border p-4">
+        <p className="text-xs font-medium text-muted-foreground mb-2">Legend</p>
+        <div className="flex flex-wrap gap-4 text-xs text-muted-foreground">
           <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-full bg-green-500 inline-block" /> Current / Completed</span>
           <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-full bg-blue-500 inline-block" /> In Progress</span>
           <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-full bg-amber-500 inline-block" /> Expiring Soon</span>

@@ -27,10 +27,10 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-muted flex items-center justify-center p-4">
       <div className="w-full max-w-md">
-        <div className="bg-white rounded-xl shadow-lg overflow-hidden">
-          <div className="bg-white p-8 text-center border-b border-gray-100">
+        <div className="bg-card rounded-xl shadow-lg overflow-hidden">
+          <div className="bg-card p-8 text-center border-b border-border">
             <img src="/logo.jpg" alt="Kiro's Early Education Centre" className="h-14 mx-auto mb-3" />
             <div className="inline-block bg-gradient-to-r from-primary to-kiros-purple-light text-white text-sm font-medium px-4 py-1 rounded-full">
               Quality Uplift Portal
@@ -43,7 +43,7 @@ export default function LoginPage() {
               </div>
             )}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+              <label className="block text-sm font-medium text-foreground mb-1">Email</label>
               <input
                 type="email"
                 value={email}
@@ -54,7 +54,7 @@ export default function LoginPage() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
+              <label className="block text-sm font-medium text-foreground mb-1">Password</label>
               <input
                 type="password"
                 value={password}

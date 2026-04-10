@@ -5,6 +5,7 @@ import { useParams, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import type { ChecklistInstance, ChecklistItemDefinition, ChecklistItemResponse, Profile } from '@/lib/types'
 import { useProfile } from '@/lib/ProfileContext'
+import { useToast } from '@/components/ui/toast'
 import Breadcrumbs from '@/components/Breadcrumbs'
 
 export default function ChecklistCompletionPage() {
@@ -13,6 +14,7 @@ export default function ChecklistCompletionPage() {
   const supabase = createClient()
   const [instance, setInstance] = useState<ChecklistInstance | null>(null)
   const user = useProfile()
+  const { toast } = useToast()
   const [responses, setResponses] = useState<Record<string, ChecklistItemResponse>>({})
   const [saving, setSaving] = useState(false)
   const [submitting, setSubmitting] = useState(false)
@@ -31,7 +33,7 @@ export default function ChecklistCompletionPage() {
   }, [id])
 
   if (!instance) {
-    return <div className="max-w-3xl mx-auto py-12 text-center text-gray-400">Loading...</div>
+    return <div className="max-w-3xl mx-auto py-12 text-center text-muted-foreground">Loading...</div>
   }
 
   const items: ChecklistItemDefinition[] = instance.items_snapshot?.length > 0 ? instance.items_snapshot : (instance.checklist_templates as any)?.items || []
@@ -96,7 +98,7 @@ export default function ChecklistCompletionPage() {
       return !r || r.value === undefined || r.value === null || r.value === ''
     })
     if (missingRequired.length > 0) {
-      alert(`Please complete all required fields. Missing: ${missingRequired.map(i => i.title).join(', ')}`)
+      toast({ type: 'warning', message: `Please complete all required fields. Missing: ${missingRequired.map(i => i.title).join(', ')}` })
       return
     }
 
@@ -155,7 +157,7 @@ export default function ChecklistCompletionPage() {
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <a href="/checklists" className="text-sm text-muted-foreground hover:text-gray-700 mb-1 inline-block">&larr; Back to Checklists</a>
+          <a href="/checklists" className="text-sm text-muted-foreground hover:text-foreground mb-1 inline-block">&larr; Back to Checklists</a>
           <h1 className="text-2xl font-bold">{instance.name}</h1>
           <div className="flex items-center gap-3 text-sm text-muted-foreground mt-1">
             <span>Due: {new Date(instance.due_date).toLocaleDateString()}</span>
@@ -166,12 +168,12 @@ export default function ChecklistCompletionPage() {
 
       {/* Progress bar */}
       {!isReadOnly && (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 mb-6">
+        <div className="bg-card rounded-xl shadow-sm border border-border p-4 mb-6">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-medium text-gray-700">Progress</span>
+            <span className="text-sm font-medium text-foreground">Progress</span>
             <span className="text-sm text-muted-foreground">{answeredItems.length}/{applicableItems.length} items ({progress}%)</span>
           </div>
-          <div className="h-3 bg-gray-100 rounded-full overflow-hidden">
+          <div className="h-3 bg-muted rounded-full overflow-hidden">
             <div className="h-full bg-primary rounded-full transition-all" style={{ width: `${progress}%` }} />
           </div>
           {failedItems.length > 0 && (
@@ -186,7 +188,7 @@ export default function ChecklistCompletionPage() {
           if (item.type === 'heading') {
             return (
               <div key={item.id} className={`${index > 0 ? 'mt-6' : ''}`}>
-                <h2 className="font-semibold text-gray-900 text-lg border-b border-gray-200 pb-2">{item.title}</h2>
+                <h2 className="font-semibold text-foreground text-lg border-b border-border pb-2">{item.title}</h2>
               </div>
             )
           }
@@ -197,11 +199,11 @@ export default function ChecklistCompletionPage() {
           const isAnswered = value !== undefined && value !== null && value !== ''
 
           return (
-            <div key={item.id} className={`bg-white rounded-xl shadow-sm border p-4 ${isFailed ? 'border-red-200 bg-red-50/30' : isAnswered ? 'border-green-200' : 'border-gray-200'}`}>
+            <div key={item.id} className={`bg-card rounded-xl shadow-sm border p-4 ${isFailed ? 'border-red-200 bg-red-50/30' : isAnswered ? 'border-green-200' : 'border-border'}`}>
               <div className="flex items-start gap-3">
                 <div className="flex-1">
                   <div className="flex items-start gap-2">
-                    <p className="text-sm font-medium text-gray-900">
+                    <p className="text-sm font-medium text-foreground">
                       {item.title}
                       {item.required && <span className="text-red-400 ml-0.5">*</span>}
                     </p>
@@ -210,45 +212,45 @@ export default function ChecklistCompletionPage() {
                   <div className="mt-3">
                     {item.type === 'yes_no' && (
                       <div className="flex gap-2">
-                        <button onClick={() => !isReadOnly && updateResponse(item.id, true)} disabled={isReadOnly} className={`px-4 py-2 rounded-lg text-sm font-medium transition ${value === true ? 'bg-green-500 text-white' : 'bg-gray-100 text-gray-600 hover:bg-green-50'}`}>
+                        <button onClick={() => !isReadOnly && updateResponse(item.id, true)} disabled={isReadOnly} className={`px-4 py-2 rounded-lg text-sm font-medium transition ${value === true ? 'bg-green-500 text-white' : 'bg-muted text-muted-foreground hover:bg-green-50'}`}>
                           Yes
                         </button>
-                        <button onClick={() => !isReadOnly && updateResponse(item.id, false)} disabled={isReadOnly} className={`px-4 py-2 rounded-lg text-sm font-medium transition ${value === false ? 'bg-red-500 text-white' : 'bg-gray-100 text-gray-600 hover:bg-red-50'}`}>
+                        <button onClick={() => !isReadOnly && updateResponse(item.id, false)} disabled={isReadOnly} className={`px-4 py-2 rounded-lg text-sm font-medium transition ${value === false ? 'bg-red-500 text-white' : 'bg-muted text-muted-foreground hover:bg-red-50'}`}>
                           No
                         </button>
                       </div>
                     )}
 
                     {item.type === 'text' && (
-                      <textarea value={String(value || '')} onChange={e => updateResponse(item.id, e.target.value)} disabled={isReadOnly} rows={2} className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent disabled:bg-gray-50" placeholder="Enter text..." />
+                      <textarea value={String(value || '')} onChange={e => updateResponse(item.id, e.target.value)} disabled={isReadOnly} rows={2} className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent disabled:bg-muted" placeholder="Enter text..." />
                     )}
 
                     {item.type === 'number' && (
-                      <input type="number" value={value !== undefined && value !== null ? String(value) : ''} onChange={e => updateResponse(item.id, e.target.value ? Number(e.target.value) : '')} disabled={isReadOnly} className="w-full max-w-xs px-3 py-2 border border-border rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent disabled:bg-gray-50" placeholder="Enter number..." />
+                      <input type="number" value={value !== undefined && value !== null ? String(value) : ''} onChange={e => updateResponse(item.id, e.target.value ? Number(e.target.value) : '')} disabled={isReadOnly} className="w-full max-w-xs px-3 py-2 border border-border rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent disabled:bg-muted" placeholder="Enter number..." />
                     )}
 
                     {item.type === 'dropdown' && (
-                      <select value={String(value || '')} onChange={e => updateResponse(item.id, e.target.value)} disabled={isReadOnly} className="w-full max-w-sm px-3 py-2 border border-border rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent disabled:bg-gray-50">
+                      <select value={String(value || '')} onChange={e => updateResponse(item.id, e.target.value)} disabled={isReadOnly} className="w-full max-w-sm px-3 py-2 border border-border rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent disabled:bg-muted">
                         <option value="">Select...</option>
                         {(item.options || []).map(opt => <option key={opt} value={opt}>{opt}</option>)}
                       </select>
                     )}
 
                     {item.type === 'date' && (
-                      <input type="date" value={String(value || '')} onChange={e => updateResponse(item.id, e.target.value)} disabled={isReadOnly} className="w-full max-w-xs px-3 py-2 border border-border rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent disabled:bg-gray-50" />
+                      <input type="date" value={String(value || '')} onChange={e => updateResponse(item.id, e.target.value)} disabled={isReadOnly} className="w-full max-w-xs px-3 py-2 border border-border rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent disabled:bg-muted" />
                     )}
 
                     {item.type === 'time' && (
-                      <input type="time" value={String(value || '')} onChange={e => updateResponse(item.id, e.target.value)} disabled={isReadOnly} className="w-full max-w-xs px-3 py-2 border border-border rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent disabled:bg-gray-50" />
+                      <input type="time" value={String(value || '')} onChange={e => updateResponse(item.id, e.target.value)} disabled={isReadOnly} className="w-full max-w-xs px-3 py-2 border border-border rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent disabled:bg-muted" />
                     )}
 
                     {item.type === 'photo' && (
                       <div>
                         {response?.photo_url ? (
                           <div className="relative">
-                            <img src={response.photo_url} alt="Evidence" className="max-w-xs rounded-lg border border-gray-200" />
+                            <img src={response.photo_url} alt="Evidence" className="max-w-xs rounded-lg border border-border" />
                             {!isReadOnly && (
-                              <button onClick={() => setResponses(prev => ({ ...prev, [item.id]: { ...prev[item.id], photo_url: undefined, value: '' } }))} className="absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 text-xs flex items-center justify-center">x</button>
+                              <button onClick={() => setResponses(prev => ({ ...prev, [item.id]: { ...prev[item.id], photo_url: undefined, value: '' } }))} aria-label="Remove photo" className="absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 text-xs flex items-center justify-center">x</button>
                             )}
                           </div>
                         ) : (
@@ -294,19 +296,19 @@ export default function ChecklistCompletionPage() {
       </div>
 
       {/* Overall notes */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 mt-6">
-        <label className="block text-sm font-medium text-gray-700 mb-2">Overall Notes</label>
-        <textarea value={notes} onChange={e => setNotes(e.target.value)} disabled={isReadOnly} rows={3} className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent disabled:bg-gray-50" placeholder="Any additional observations or notes..." />
+      <div className="bg-card rounded-xl shadow-sm border border-border p-4 mt-6">
+        <label className="block text-sm font-medium text-foreground mb-2">Overall Notes</label>
+        <textarea value={notes} onChange={e => setNotes(e.target.value)} disabled={isReadOnly} rows={3} className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent disabled:bg-muted" placeholder="Any additional observations or notes..." />
       </div>
 
       {/* Actions */}
       {!isReadOnly && (
-        <div className="flex items-center justify-between mt-6 mb-12 bg-white rounded-xl shadow-sm border border-gray-200 p-4">
-          <button onClick={saveProgress} disabled={saving} className="px-4 py-2 border border-border text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50 disabled:opacity-50">
+        <div className="flex items-center justify-between mt-6 mb-12 bg-card rounded-xl shadow-sm border border-border p-4">
+          <button onClick={saveProgress} disabled={saving} className="px-4 py-2 border border-border text-foreground rounded-lg text-sm font-medium hover:bg-muted disabled:opacity-50">
             {saving ? 'Saving...' : 'Save Progress'}
           </button>
           <div className="flex items-center gap-3">
-            <span className="text-sm text-gray-400">{answeredItems.length}/{applicableItems.length} completed</span>
+            <span className="text-sm text-muted-foreground">{answeredItems.length}/{applicableItems.length} completed</span>
             <button onClick={submitChecklist} disabled={submitting} className="px-6 py-2 bg-primary text-white rounded-lg text-sm font-medium hover:opacity-90 disabled:opacity-50">
               {submitting ? 'Submitting...' : 'Submit Checklist'}
             </button>
@@ -413,7 +415,7 @@ function SignaturePad({ itemId, disabled, value, onChange }: { itemId: string; d
 
   return (
     <div>
-      <div className="border border-border rounded-lg overflow-hidden inline-block bg-white">
+      <div className="border border-border rounded-lg overflow-hidden inline-block bg-card">
         <canvas
           ref={canvasRef}
           width={400}
@@ -429,7 +431,7 @@ function SignaturePad({ itemId, disabled, value, onChange }: { itemId: string; d
         />
       </div>
       <div className="flex items-center gap-2 mt-1">
-        <p className="text-xs text-gray-400">Draw your signature above</p>
+        <p className="text-xs text-muted-foreground">Draw your signature above</p>
         {signed && !disabled && (
           <button onClick={clearSig} className="text-xs text-red-500 hover:underline">Clear</button>
         )}

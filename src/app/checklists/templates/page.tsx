@@ -165,11 +165,11 @@ export default function ChecklistTemplatesPage() {
       <div className="max-w-4xl mx-auto">
         <div className="flex items-center justify-between mb-6">
           <div>
-            <button onClick={() => { setShowBuilder(false); resetBuilder() }} className="text-sm text-muted-foreground hover:text-gray-700 mb-1">&larr; Back to Templates</button>
+            <button onClick={() => { setShowBuilder(false); resetBuilder() }} className="text-sm text-muted-foreground hover:text-foreground mb-1">&larr; Back to Templates</button>
             <h1 className="text-2xl font-bold">{editing ? 'Edit Template' : 'Create Checklist Template'}</h1>
           </div>
           <div className="flex gap-2">
-            <button onClick={() => { setBuilderStatus('draft'); saveTemplate() }} disabled={saving || !builderName.trim()} className="px-4 py-2 border border-border text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50 disabled:opacity-50">
+            <button onClick={() => { setBuilderStatus('draft'); saveTemplate() }} disabled={saving || !builderName.trim()} className="px-4 py-2 border border-border text-foreground rounded-lg text-sm font-medium hover:bg-muted disabled:opacity-50">
               Save as Draft
             </button>
             <button onClick={saveTemplate} disabled={saving || !builderName.trim() || builderItems.length === 0} className="px-4 py-2 bg-primary text-white rounded-lg text-sm font-medium hover:opacity-90 disabled:opacity-50">
@@ -179,35 +179,35 @@ export default function ChecklistTemplatesPage() {
         </div>
 
         {/* Template details */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
-          <h2 className="font-semibold text-gray-900 mb-4">Template Details</h2>
+        <div className="bg-card rounded-xl shadow-sm border border-border p-6 mb-6">
+          <h2 className="font-semibold text-foreground mb-4">Template Details</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-gray-700 mb-1">Template Name *</label>
+              <label className="block text-sm font-medium text-foreground mb-1">Template Name *</label>
               <input type="text" value={builderName} onChange={e => setBuilderName(e.target.value)} placeholder="e.g., Daily Opening Checklist" className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent" />
             </div>
             <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+              <label className="block text-sm font-medium text-foreground mb-1">Description</label>
               <textarea value={builderDesc} onChange={e => setBuilderDesc(e.target.value)} rows={2} placeholder="Brief description of when and how this checklist should be used" className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent" />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
+              <label className="block text-sm font-medium text-foreground mb-1">Category</label>
               <select value={builderCategory || ''} onChange={e => setBuilderCategory(e.target.value ? Number(e.target.value) : null)} className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent">
                 <option value="">Select category...</option>
                 {categories.map(c => <option key={c.id} value={c.id}>{c.icon} {c.name}</option>)}
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Frequency</label>
+              <label className="block text-sm font-medium text-foreground mb-1">Frequency</label>
               <select value={builderFrequency} onChange={e => setBuilderFrequency(e.target.value as ChecklistFrequency)} className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent">
                 {Object.entries(CHECKLIST_FREQUENCY_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
               </select>
             </div>
             <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-gray-700 mb-1">Related Quality Areas</label>
+              <label className="block text-sm font-medium text-foreground mb-1">Related Quality Areas</label>
               <div className="flex flex-wrap gap-2">
                 {[1, 2, 3, 4, 5, 6, 7].map(qa => (
-                  <button key={qa} onClick={() => setBuilderQA(builderQA.includes(qa) ? builderQA.filter(q => q !== qa) : [...builderQA, qa])} className={`px-3 py-1 rounded-full text-xs font-medium border transition ${builderQA.includes(qa) ? 'text-white border-transparent' : 'text-gray-600 border-border bg-white hover:bg-gray-50'}`} style={builderQA.includes(qa) ? { backgroundColor: QA_COLORS[qa] } : {}}>
+                  <button key={qa} onClick={() => setBuilderQA(builderQA.includes(qa) ? builderQA.filter(q => q !== qa) : [...builderQA, qa])} className={`px-3 py-1 rounded-full text-xs font-medium border transition ${builderQA.includes(qa) ? 'text-white border-transparent' : 'text-muted-foreground border-border bg-card hover:bg-muted'}`} style={builderQA.includes(qa) ? { backgroundColor: QA_COLORS[qa] } : {}}>
                     QA{qa}
                   </button>
                 ))}
@@ -217,17 +217,17 @@ export default function ChecklistTemplatesPage() {
         </div>
 
         {/* Items builder */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
+        <div className="bg-card rounded-xl shadow-sm border border-border p-6 mb-6">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="font-semibold text-gray-900">Checklist Items ({builderItems.length})</h2>
+            <h2 className="font-semibold text-foreground">Checklist Items ({builderItems.length})</h2>
             <div className="flex gap-2">
-              <button onClick={() => addItem('heading')} className="px-3 py-1.5 border border-border text-gray-600 rounded-lg text-xs font-medium hover:bg-gray-50">+ Section</button>
+              <button onClick={() => addItem('heading')} className="px-3 py-1.5 border border-border text-muted-foreground rounded-lg text-xs font-medium hover:bg-muted">+ Section</button>
               <button onClick={() => addItem('yes_no')} className="px-3 py-1.5 bg-primary text-white rounded-lg text-xs font-medium hover:opacity-90">+ Item</button>
             </div>
           </div>
 
           {builderItems.length === 0 && (
-            <div className="text-center py-12 text-gray-400">
+            <div className="text-center py-12 text-muted-foreground">
               <p className="text-4xl mb-3">📋</p>
               <p className="text-sm">No items yet. Click &quot;+ Item&quot; or &quot;+ Section&quot; to start building your checklist.</p>
             </div>
@@ -235,15 +235,15 @@ export default function ChecklistTemplatesPage() {
 
           <div className="space-y-3">
             {builderItems.map((item, index) => (
-              <div key={item.id} className={`border rounded-lg p-4 ${item.type === 'heading' ? 'bg-gray-50 border-border' : 'border-gray-200'}`}>
+              <div key={item.id} className={`border rounded-lg p-4 ${item.type === 'heading' ? 'bg-muted border-border' : 'border-border'}`}>
                 <div className="flex items-start gap-3">
                   <div className="flex flex-col gap-1 pt-1">
-                    <button onClick={() => moveItem(index, 'up')} disabled={index === 0} className="text-gray-400 hover:text-gray-600 disabled:opacity-30 text-xs">&#9650;</button>
-                    <button onClick={() => moveItem(index, 'down')} disabled={index === builderItems.length - 1} className="text-gray-400 hover:text-gray-600 disabled:opacity-30 text-xs">&#9660;</button>
+                    <button onClick={() => moveItem(index, 'up')} disabled={index === 0} className="text-muted-foreground hover:text-muted-foreground disabled:opacity-30 text-xs">&#9650;</button>
+                    <button onClick={() => moveItem(index, 'down')} disabled={index === builderItems.length - 1} className="text-muted-foreground hover:text-muted-foreground disabled:opacity-30 text-xs">&#9660;</button>
                   </div>
                   <div className="flex-1 space-y-3">
                     <div className="flex items-center gap-3">
-                      <span className="text-xs text-gray-400 font-mono w-6">{index + 1}</span>
+                      <span className="text-xs text-muted-foreground font-mono w-6">{index + 1}</span>
                       <input type="text" value={item.title} onChange={e => updateItem(index, { title: e.target.value })} placeholder={item.type === 'heading' ? 'Section heading...' : 'Checklist item text...'} className={`flex-1 px-3 py-1.5 border border-border rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent ${item.type === 'heading' ? 'font-semibold' : ''}`} />
                       <select value={item.type} onChange={e => updateItem(index, { type: e.target.value as ChecklistItemType })} className="px-2 py-1.5 border border-border rounded-lg text-xs focus:ring-2 focus:ring-primary focus:border-transparent">
                         {Object.entries(CHECKLIST_ITEM_TYPE_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
@@ -263,7 +263,7 @@ export default function ChecklistTemplatesPage() {
                       <div className="flex items-center gap-4 text-xs">
                         <label className="flex items-center gap-1.5">
                           <input type="checkbox" checked={item.required || false} onChange={e => updateItem(index, { required: e.target.checked })} className="rounded border-border text-primary focus:ring-primary" />
-                          <span className="text-gray-600">Required</span>
+                          <span className="text-muted-foreground">Required</span>
                         </label>
                         {builderItems.filter(i => i.type === 'yes_no' && i.id !== item.id).length > 0 && (
                           <div className="flex items-center gap-1.5">
@@ -285,7 +285,7 @@ export default function ChecklistTemplatesPage() {
                       </div>
                     )}
                   </div>
-                  <button onClick={() => removeItem(index)} className="text-gray-400 hover:text-red-500 transition p-1">
+                  <button onClick={() => removeItem(index)} className="text-muted-foreground hover:text-red-500 transition p-1">
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                   </button>
                 </div>
@@ -294,7 +294,7 @@ export default function ChecklistTemplatesPage() {
           </div>
 
           {builderItems.length > 0 && (
-            <div className="flex gap-2 mt-4 pt-4 border-t border-gray-100">
+            <div className="flex gap-2 mt-4 pt-4 border-t border-border">
               <button onClick={() => addItem('yes_no')} className="px-3 py-1.5 border border-dashed border-border text-muted-foreground rounded-lg text-xs hover:border-primary hover:text-primary transition">+ Yes/No</button>
               <button onClick={() => addItem('text')} className="px-3 py-1.5 border border-dashed border-border text-muted-foreground rounded-lg text-xs hover:border-primary hover:text-primary transition">+ Text</button>
               <button onClick={() => addItem('number')} className="px-3 py-1.5 border border-dashed border-border text-muted-foreground rounded-lg text-xs hover:border-primary hover:text-primary transition">+ Number</button>
@@ -317,7 +317,7 @@ export default function ChecklistTemplatesPage() {
       <div className="flex items-center justify-between mb-6">
         <div>
           <div className="flex items-center gap-3 mb-1">
-            <a href="/checklists" className="text-sm text-muted-foreground hover:text-gray-700">&larr; Checklists</a>
+            <a href="/checklists" className="text-sm text-muted-foreground hover:text-foreground">&larr; Checklists</a>
           </div>
           <h1 className="text-2xl font-bold">Checklist Templates</h1>
           <p className="text-muted-foreground text-sm mt-1">Create and manage checklist templates for your service</p>
@@ -349,7 +349,7 @@ export default function ChecklistTemplatesPage() {
 
       {/* Template grid */}
       {filtered.length === 0 ? (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-12 text-center text-gray-400">
+        <div className="bg-card rounded-xl shadow-sm border border-border p-12 text-center text-muted-foreground">
           <p className="text-4xl mb-3">📋</p>
           <p className="text-sm">No templates found. {isPrivileged ? 'Create your first template to get started.' : 'Ask your manager to create checklist templates.'}</p>
         </div>
@@ -359,21 +359,21 @@ export default function ChecklistTemplatesPage() {
             const cat = t.checklist_categories as ChecklistCategory | undefined
             const itemCount = (t.items || []).filter((i: ChecklistItemDefinition) => i.type !== 'heading').length
             return (
-              <div key={t.id} className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition">
+              <div key={t.id} className="bg-card rounded-xl shadow-sm border border-border overflow-hidden hover:shadow-md transition">
                 <div className="p-5">
                   <div className="flex items-start justify-between mb-3">
                     <div className="flex items-center gap-2">
                       <span className="text-lg">{cat?.icon || '📋'}</span>
                       <div>
-                        <h3 className="font-semibold text-gray-900 text-sm">{t.name}</h3>
-                        {cat && <p className="text-xs text-gray-400">{cat.name}</p>}
+                        <h3 className="font-semibold text-foreground text-sm">{t.name}</h3>
+                        {cat && <p className="text-xs text-muted-foreground">{cat.name}</p>}
                       </div>
                     </div>
                     <div className="flex items-center gap-1">
                       {t.is_system_template && (
                         <span className="px-1.5 py-0.5 bg-blue-50 text-blue-600 rounded text-xs font-medium">System</span>
                       )}
-                      <span className={`px-1.5 py-0.5 rounded text-xs font-medium ${t.status === 'active' ? 'bg-green-50 text-green-600' : t.status === 'draft' ? 'bg-yellow-50 text-yellow-600' : 'bg-gray-100 text-muted-foreground'}`}>
+                      <span className={`px-1.5 py-0.5 rounded text-xs font-medium ${t.status === 'active' ? 'bg-green-50 text-green-600' : t.status === 'draft' ? 'bg-yellow-50 text-yellow-600' : 'bg-muted text-muted-foreground'}`}>
                         {t.status}
                       </span>
                     </div>
@@ -381,7 +381,7 @@ export default function ChecklistTemplatesPage() {
 
                   {t.description && <p className="text-xs text-muted-foreground mb-3 line-clamp-2">{t.description}</p>}
 
-                  <div className="flex items-center gap-3 text-xs text-gray-400 mb-3">
+                  <div className="flex items-center gap-3 text-xs text-muted-foreground mb-3">
                     <span>{CHECKLIST_FREQUENCY_LABELS[t.frequency]}</span>
                     <span>{itemCount} items</span>
                   </div>
@@ -395,9 +395,9 @@ export default function ChecklistTemplatesPage() {
                   )}
 
                   {isPrivileged && (
-                    <div className="flex gap-2 pt-3 border-t border-gray-100">
-                      <button onClick={() => openBuilder(t)} className="flex-1 px-3 py-1.5 border border-border text-gray-600 rounded-lg text-xs font-medium hover:bg-gray-50">Edit</button>
-                      <button onClick={() => duplicateTemplate(t)} className="px-3 py-1.5 border border-border text-gray-600 rounded-lg text-xs font-medium hover:bg-gray-50">Duplicate</button>
+                    <div className="flex gap-2 pt-3 border-t border-border">
+                      <button onClick={() => openBuilder(t)} className="flex-1 px-3 py-1.5 border border-border text-muted-foreground rounded-lg text-xs font-medium hover:bg-muted">Edit</button>
+                      <button onClick={() => duplicateTemplate(t)} className="px-3 py-1.5 border border-border text-muted-foreground rounded-lg text-xs font-medium hover:bg-muted">Duplicate</button>
                       {t.status !== 'archived' && (
                         <button onClick={() => archiveTemplate(t.id)} className="px-3 py-1.5 border border-red-200 text-red-500 rounded-lg text-xs font-medium hover:bg-red-50">Archive</button>
                       )}

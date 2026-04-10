@@ -7,25 +7,31 @@ export default function OwnaChildrenPage() {
   const [rooms, setRooms] = useState<any[]>([])
   const [children, setChildren] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [selectedRoom, setSelectedRoom] = useState('')
   const [search, setSearch] = useState('')
   const [expandedChild, setExpandedChild] = useState<string | null>(null)
   const [childDetail, setChildDetail] = useState<any>(null)
 
-  useEffect(() => {
-    const load = async () => {
-      try {
-        const [roomRes, childRes] = await Promise.all([
-          ownaFetch(`/api/room/${DEMO_CENTRE_ID}/list?take=100`),
-          ownaFetch(`/api/children/${DEMO_CENTRE_ID}/list?attending=true&take=500`),
-        ])
-        if (roomRes?.data) setRooms(roomRes.data.filter((r: any) => !r.disabled))
-        if (childRes?.data) setChildren(childRes.data)
-      } catch (err) { console.error('Failed to load:', err) }
+  const loadData = async () => {
+    setError(null)
+    setLoading(true)
+    try {
+      const [roomRes, childRes] = await Promise.all([
+        ownaFetch(`/api/room/${DEMO_CENTRE_ID}/list?take=100`),
+        ownaFetch(`/api/children/${DEMO_CENTRE_ID}/list?attending=true&take=500`),
+      ])
+      if (roomRes?.data) setRooms(roomRes.data.filter((r: any) => !r.disabled))
+      if (childRes?.data) setChildren(childRes.data)
+    } catch (err) {
+      console.error('Failed to load:', err)
+      setError(err instanceof Error ? err.message : 'Failed to load data')
+    } finally {
       setLoading(false)
     }
-    load()
-  }, [])
+  }
+
+  useEffect(() => { loadData() }, [])
 
   const loadChildDetail = async (childId: string) => {
     if (expandedChild === childId) { setExpandedChild(null); return }
@@ -68,6 +74,14 @@ export default function OwnaChildrenPage() {
   }
 
   if (loading) return <div className="max-w-6xl mx-auto py-12 text-center text-muted-foreground">Loading OWNA children data...</div>
+
+  if (error) return (
+    <div className="py-16 text-center animate-fade-in">
+      <p className="text-lg font-semibold text-foreground mb-2">Unable to load data</p>
+      <p className="text-sm text-muted-foreground mb-4">{error}</p>
+      <button onClick={() => loadData()} className="px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:opacity-90 transition">Retry</button>
+    </div>
+  )
 
   return (
     <div className="max-w-6xl mx-auto">

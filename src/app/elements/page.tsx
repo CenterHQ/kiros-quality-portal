@@ -11,6 +11,8 @@ import { QABadge } from '@/components/ui/qa-badge'
 
 export default function ElementsPage() {
   const [elements, setElements] = useState<QAElement[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [search, setSearch] = useState('')
   const [filterQA, setFilterQA] = useState<number | null>(null)
   const searchParams = useSearchParams()
@@ -20,11 +22,22 @@ export default function ElementsPage() {
     if (qa) setFilterQA(parseInt(qa))
   }, [searchParams])
 
-  useEffect(() => {
-    const supabase = createClient()
-    supabase.from('qa_elements').select('*, profiles(full_name)').order('qa_number').order('element_code')
-      .then(({ data }) => { if (data) setElements(data) })
-  }, [])
+  const loadData = async () => {
+    setError(null)
+    setLoading(true)
+    try {
+      const supabase = createClient()
+      const { data } = await supabase.from('qa_elements').select('*, profiles(full_name)').order('qa_number').order('element_code')
+      if (data) setElements(data)
+    } catch (err) {
+      console.error('Failed to load elements:', err)
+      setError(err instanceof Error ? err.message : 'Failed to load data')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => { loadData() }, [])
 
   const filtered = elements.filter(el => {
     if (filterQA && el.qa_number !== filterQA) return false
@@ -37,6 +50,16 @@ export default function ElementsPage() {
     acc[el.qa_number].elements.push(el)
     return acc
   }, {} as Record<number, { name: string; elements: QAElement[] }>)
+
+  if (loading) return <div className="max-w-7xl mx-auto py-12 text-center text-muted-foreground">Loading elements...</div>
+
+  if (error) return (
+    <div className="py-16 text-center animate-fade-in">
+      <p className="text-lg font-semibold text-foreground mb-2">Unable to load data</p>
+      <p className="text-sm text-muted-foreground mb-4">{error}</p>
+      <button onClick={() => loadData()} className="px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:opacity-90 transition">Retry</button>
+    </div>
+  )
 
   return (
     <div className="max-w-7xl mx-auto">

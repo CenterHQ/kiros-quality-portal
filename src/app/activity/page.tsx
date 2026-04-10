@@ -55,7 +55,10 @@ export default function ActivityPage() {
               newEntry.profiles = profile
             }
           }
-          setActivities(prev => [newEntry, ...prev].slice(0, 100))
+          setActivities(prev => {
+            if (prev.some(a => a.id === newEntry.id)) return prev
+            return [newEntry, ...prev].slice(0, 100)
+          })
         }
       )
       .subscribe()

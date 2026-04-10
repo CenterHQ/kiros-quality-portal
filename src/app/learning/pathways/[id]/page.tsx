@@ -158,11 +158,11 @@ export default function PathwayDetailPage() {
     return (
       <div className="p-8">
         <div className="animate-pulse space-y-4">
-          <div className="h-6 bg-gray-200 rounded w-32" />
-          <div className="h-8 bg-gray-200 rounded w-96" />
+          <div className="h-6 bg-muted rounded w-32" />
+          <div className="h-8 bg-muted rounded w-96" />
           <div className="space-y-3">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="h-20 bg-gray-200 rounded-xl" />
+              <div key={i} className="h-20 bg-muted rounded-xl" />
             ))}
           </div>
         </div>
@@ -173,7 +173,7 @@ export default function PathwayDetailPage() {
   if (!pathway) {
     return (
       <div className="p-8">
-        <p className="text-gray-500">Pathway not found.</p>
+        <p className="text-muted-foreground">Pathway not found.</p>
         <Link href="/learning/pathways" className="text-sm mt-2 inline-block text-primary">
           Back to Pathways
         </Link>
@@ -204,7 +204,7 @@ export default function PathwayDetailPage() {
       </Link>
 
       {/* Header card */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
+      <div className="bg-card rounded-xl shadow-sm border border-border p-6 mb-6">
         <div className="flex flex-wrap items-center gap-2 mb-3">
           {tierColor && (
             <span
@@ -230,10 +230,10 @@ export default function PathwayDetailPage() {
           )}
         </div>
 
-        <h1 className="text-2xl font-bold text-gray-900 mb-2">{pathway.title}</h1>
-        <p className="text-gray-500 mb-4">{pathway.description || 'No description provided.'}</p>
+        <h1 className="text-2xl font-bold text-foreground mb-2">{pathway.title}</h1>
+        <p className="text-muted-foreground mb-4">{pathway.description || 'No description provided.'}</p>
 
-        <div className="flex items-center gap-4 text-sm text-gray-400 mb-4">
+        <div className="flex items-center gap-4 text-sm text-muted-foreground mb-4">
           <span>{totalCount} module{totalCount !== 1 ? 's' : ''}</span>
           {pathway.estimated_hours && <span>{pathway.estimated_hours}h estimated</span>}
         </div>
@@ -241,14 +241,14 @@ export default function PathwayDetailPage() {
         {/* Progress bar */}
         <div>
           <div className="flex justify-between text-sm mb-1">
-            <span className="text-gray-600 font-medium">
+            <span className="text-muted-foreground font-medium">
               {completedCount} of {totalCount} modules completed
             </span>
             <span className={`font-semibold ${progressPercent === 100 ? 'text-green-500' : 'text-primary'}`}>
               {progressPercent}%
             </span>
           </div>
-          <div className="w-full bg-gray-100 rounded-full h-3">
+          <div className="w-full bg-muted rounded-full h-3">
             <div
               className="h-3 rounded-full transition-all"
               style={{
@@ -261,7 +261,7 @@ export default function PathwayDetailPage() {
       </div>
 
       {/* Module List */}
-      <h2 className="text-lg font-semibold text-gray-900 mb-3">Modules</h2>
+      <h2 className="text-lg font-semibold text-foreground mb-3">Modules</h2>
       <div className="space-y-3">
         {modules.map((pm, index) => {
           const mod = pm.lms_modules
@@ -272,7 +272,7 @@ export default function PathwayDetailPage() {
           return (
             <div
               key={pm.id}
-              className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 flex items-center gap-4"
+              className="bg-card rounded-xl shadow-sm border border-border p-4 flex items-center gap-4"
             >
               {/* Status indicator */}
               <div className="flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center">
@@ -287,8 +287,8 @@ export default function PathwayDetailPage() {
                     <div className="w-3 h-3 rounded-full bg-blue-500" />
                   </div>
                 ) : (
-                  <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
-                    <span className="text-sm font-semibold text-gray-400">{index + 1}</span>
+                  <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
+                    <span className="text-sm font-semibold text-muted-foreground">{index + 1}</span>
                   </div>
                 )}
               </div>
@@ -296,7 +296,7 @@ export default function PathwayDetailPage() {
               {/* Content */}
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <h3 className="font-medium text-gray-900 truncate">
+                  <h3 className="font-medium text-foreground truncate">
                     {mod?.title || 'Unknown Module'}
                   </h3>
                   {pm.is_required && (
@@ -313,7 +313,7 @@ export default function PathwayDetailPage() {
                     </span>
                   )}
                 </div>
-                <div className="flex items-center gap-3 text-xs text-gray-400 mt-0.5">
+                <div className="flex items-center gap-3 text-xs text-muted-foreground mt-0.5">
                   {mod?.duration_minutes && <span>{mod.duration_minutes} min</span>}
                   {status === 'completed' && me?.completed_at && (
                     <span className="text-green-600">
@@ -355,8 +355,8 @@ export default function PathwayDetailPage() {
       </div>
 
       {modules.length === 0 && (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-12 text-center">
-          <p className="text-gray-500">No modules have been added to this pathway yet.</p>
+        <div className="bg-card rounded-xl shadow-sm border border-border p-12 text-center">
+          <p className="text-muted-foreground">No modules have been added to this pathway yet.</p>
         </div>
       )}
     </div>

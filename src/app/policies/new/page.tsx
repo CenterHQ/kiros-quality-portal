@@ -102,11 +102,11 @@ export default function NewPolicyPage() {
     <div className="max-w-4xl mx-auto">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <a href="/policies" className="text-sm text-gray-500 hover:text-gray-700 mb-1 inline-block">&larr; Back to Policies</a>
+          <a href="/policies" className="text-sm text-muted-foreground hover:text-foreground mb-1 inline-block">&larr; Back to Policies</a>
           <h1 className="text-2xl font-bold">Create New Policy</h1>
         </div>
         <div className="flex gap-2">
-          <button onClick={() => save('draft')} disabled={saving || !title.trim()} className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50 disabled:opacity-50">
+          <button onClick={() => save('draft')} disabled={saving || !title.trim()} className="px-4 py-2 border border-border text-foreground rounded-lg text-sm font-medium hover:bg-accent disabled:opacity-50">
             Save as Draft
           </button>
           <button onClick={() => save('published')} disabled={saving || !title.trim() || !content.trim()} className="px-4 py-2 bg-primary text-white rounded-lg text-sm font-medium hover:opacity-90 disabled:opacity-50">
@@ -116,48 +116,48 @@ export default function NewPolicyPage() {
       </div>
 
       {/* Policy details */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
-        <h2 className="font-semibold text-gray-900 mb-4">Policy Details</h2>
+      <div className="bg-card rounded-xl shadow-sm border border-border p-6 mb-6">
+        <h2 className="font-semibold text-foreground mb-4">Policy Details</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="md:col-span-2">
-            <label className="block text-sm font-medium text-gray-700 mb-1">Policy Title *</label>
-            <input type="text" value={title} onChange={e => setTitle(e.target.value)} placeholder="e.g., Sun Safety Policy" className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent" />
+            <label className="block text-sm font-medium text-foreground mb-1">Policy Title *</label>
+            <input type="text" value={title} onChange={e => setTitle(e.target.value)} placeholder="e.g., Sun Safety Policy" className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent" />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
-            <select value={categoryId || ''} onChange={e => setCategoryId(e.target.value ? Number(e.target.value) : null)} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm">
+            <label className="block text-sm font-medium text-foreground mb-1">Category</label>
+            <select value={categoryId || ''} onChange={e => setCategoryId(e.target.value ? Number(e.target.value) : null)} className="w-full px-3 py-2 border border-border rounded-lg text-sm">
               <option value="">Select category...</option>
               {categories.map(c => <option key={c.id} value={c.id}>{c.icon} {c.name}</option>)}
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Review Frequency</label>
-            <select value={reviewFrequency} onChange={e => setReviewFrequency(e.target.value as ReviewFrequency)} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm">
+            <label className="block text-sm font-medium text-foreground mb-1">Review Frequency</label>
+            <select value={reviewFrequency} onChange={e => setReviewFrequency(e.target.value as ReviewFrequency)} className="w-full px-3 py-2 border border-border rounded-lg text-sm">
               {Object.entries(REVIEW_FREQUENCY_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
             </select>
           </div>
           <div className="md:col-span-2">
-            <label className="block text-sm font-medium text-gray-700 mb-1">Summary</label>
-            <textarea value={summary} onChange={e => setSummary(e.target.value)} rows={2} placeholder="Brief summary of the policy purpose" className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent" />
+            <label className="block text-sm font-medium text-foreground mb-1">Summary</label>
+            <textarea value={summary} onChange={e => setSummary(e.target.value)} rows={2} placeholder="Brief summary of the policy purpose" className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent" />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Related Quality Areas</label>
+            <label className="block text-sm font-medium text-foreground mb-1">Related Quality Areas</label>
             <div className="flex flex-wrap gap-2">
               {[1, 2, 3, 4, 5, 6, 7].map(qa => (
-                <button key={qa} onClick={() => setRelatedQA(relatedQA.includes(qa) ? relatedQA.filter(q => q !== qa) : [...relatedQA, qa])} className={`px-3 py-1 rounded-full text-xs font-medium border transition ${relatedQA.includes(qa) ? 'text-white border-transparent' : 'text-gray-600 border-gray-300 bg-white hover:bg-gray-50'}`} style={relatedQA.includes(qa) ? { backgroundColor: QA_COLORS[qa] } : {}}>
+                <button key={qa} onClick={() => setRelatedQA(relatedQA.includes(qa) ? relatedQA.filter(q => q !== qa) : [...relatedQA, qa])} className={`px-3 py-1 rounded-full text-xs font-medium border transition ${relatedQA.includes(qa) ? 'text-white border-transparent' : 'text-muted-foreground border-border bg-card hover:bg-accent'}`} style={relatedQA.includes(qa) ? { backgroundColor: QA_COLORS[qa] } : {}}>
                   QA{qa}
                 </button>
               ))}
             </div>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Related Regulations</label>
-            <input type="text" value={relatedRegs} onChange={e => setRelatedRegs(e.target.value)} placeholder="e.g., Reg 168, Reg 170" className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" />
+            <label className="block text-sm font-medium text-foreground mb-1">Related Regulations</label>
+            <input type="text" value={relatedRegs} onChange={e => setRelatedRegs(e.target.value)} placeholder="e.g., Reg 168, Reg 170" className="w-full px-3 py-2 border border-border rounded-lg text-sm" />
           </div>
           <div>
             <label className="flex items-center gap-2 text-sm">
-              <input type="checkbox" checked={isFamilyFacing} onChange={e => setIsFamilyFacing(e.target.checked)} className="rounded border-gray-300 text-primary focus:ring-primary" />
-              <span className="text-gray-700">Family-facing policy (visible to families)</span>
+              <input type="checkbox" checked={isFamilyFacing} onChange={e => setIsFamilyFacing(e.target.checked)} className="rounded border-border text-primary focus:ring-primary" />
+              <span className="text-foreground">Family-facing policy (visible to families)</span>
             </label>
           </div>
         </div>
@@ -169,7 +169,7 @@ export default function NewPolicyPage() {
         <p className="text-xs text-blue-600 mb-3">Click a placeholder to insert it into the policy content. Values are auto-populated from your service details.</p>
         <div className="flex flex-wrap gap-2">
           {serviceDetails.map(sd => (
-            <button key={sd.key} onClick={() => insertPlaceholder(sd.key)} className="px-2 py-1 bg-white border border-blue-200 text-blue-700 rounded text-xs hover:bg-blue-100 transition" title={sd.value || 'Not set'}>
+            <button key={sd.key} onClick={() => insertPlaceholder(sd.key)} className="px-2 py-1 bg-card border border-blue-200 text-blue-700 rounded text-xs hover:bg-blue-100 transition" title={sd.value || 'Not set'}>
               {`{{${sd.key}}}`} <span className="text-blue-400 ml-1">{sd.label}</span>
             </button>
           ))}
@@ -177,9 +177,9 @@ export default function NewPolicyPage() {
       </div>
 
       {/* Content editor */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
-        <h2 className="font-semibold text-gray-900 mb-4">Policy Content</h2>
-        <textarea value={content} onChange={e => setContent(e.target.value)} rows={25} placeholder="Enter policy content here. Use {{service_name}}, {{nominated_supervisor}}, etc. for auto-populated service details..." className="w-full px-4 py-3 border border-gray-300 rounded-lg text-sm font-mono leading-relaxed focus:ring-2 focus:ring-primary focus:border-transparent" />
+      <div className="bg-card rounded-xl shadow-sm border border-border p-6 mb-6">
+        <h2 className="font-semibold text-foreground mb-4">Policy Content</h2>
+        <textarea value={content} onChange={e => setContent(e.target.value)} rows={25} placeholder="Enter policy content here. Use {{service_name}}, {{nominated_supervisor}}, etc. for auto-populated service details..." className="w-full px-4 py-3 border border-border rounded-lg text-sm font-mono leading-relaxed focus:ring-2 focus:ring-primary focus:border-transparent" />
       </div>
     </div>
   )

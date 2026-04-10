@@ -316,11 +316,11 @@ export default function CertificatesPage() {
     return (
       <div className="p-6 max-w-6xl mx-auto">
         <div className="animate-pulse space-y-6">
-          <div className="h-8 bg-gray-200 rounded w-64" />
-          <div className="h-10 bg-gray-200 rounded w-96" />
+          <div className="h-8 bg-muted rounded w-64" />
+          <div className="h-10 bg-muted rounded w-96" />
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {[...Array(6)].map((_, i) => (
-              <div key={i} className="h-48 bg-gray-200 rounded-xl" />
+              <div key={i} className="h-48 bg-muted rounded-xl" />
             ))}
           </div>
         </div>
@@ -332,8 +332,8 @@ export default function CertificatesPage() {
     <div className="p-6 max-w-6xl mx-auto space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Certificates & Evidence</h1>
-        <p className="text-gray-500 mt-1">Manage and track professional certificates for A&R evidence</p>
+        <h1 className="text-2xl font-bold text-foreground">Certificates & Evidence</h1>
+        <p className="text-muted-foreground mt-1">Manage and track professional certificates for A&R evidence</p>
       </div>
 
       {/* Error banner */}
@@ -355,7 +355,7 @@ export default function CertificatesPage() {
       )}
 
       {/* Tabs */}
-      <div className="border-b border-gray-200">
+      <div className="border-b border-border">
         <nav className="flex gap-1 -mb-px">
           {tabs.filter(t => t.show).map(tab => (
             <button
@@ -364,12 +364,12 @@ export default function CertificatesPage() {
               className={`px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${
                 activeTab === tab.key
                   ? 'border-primary text-primary'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border'
               }`}
             >
               {tab.label}
               {tab.key === 'my' && myCerts.length > 0 && (
-                <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600">
+                <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-muted text-muted-foreground">
                   {myCerts.length}
                 </span>
               )}
@@ -382,14 +382,14 @@ export default function CertificatesPage() {
       {activeTab === 'my' && (
         <div>
           {sortedMyCerts.length === 0 ? (
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-12 text-center">
-              <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-4">
-                <svg className="w-8 h-8 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <div className="bg-card rounded-xl shadow-sm border border-border p-12 text-center">
+              <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mx-auto mb-4">
+                <svg className="w-8 h-8 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                 </svg>
               </div>
-              <p className="text-gray-600 font-medium">No certificates yet</p>
-              <p className="text-sm text-gray-400 mt-1">Upload your first certificate or complete a training module to get started</p>
+              <p className="text-muted-foreground font-medium">No certificates yet</p>
+              <p className="text-sm text-muted-foreground mt-1">Upload your first certificate or complete a training module to get started</p>
               <button
                 onClick={() => setActiveTab('upload')}
                 className="mt-4 inline-flex items-center gap-2 px-4 py-2 rounded-lg text-white text-sm font-medium bg-primary"
@@ -403,10 +403,10 @@ export default function CertificatesPage() {
                 const status = computeStatus(cert)
                 const typeColor = CERT_TYPE_COLORS[cert.certificate_type]
                 return (
-                  <div key={cert.id} className="bg-white rounded-xl shadow-sm border border-gray-200 p-5 flex flex-col gap-3 hover:shadow-md transition-shadow">
+                  <div key={cert.id} className="bg-card rounded-xl shadow-sm border border-border p-5 flex flex-col gap-3 hover:shadow-md transition-shadow">
                     {/* Header */}
                     <div className="flex items-start justify-between gap-2">
-                      <h3 className="font-semibold text-gray-900 text-sm leading-tight">{cert.title}</h3>
+                      <h3 className="font-semibold text-foreground text-sm leading-tight">{cert.title}</h3>
                       <span className={`shrink-0 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${STATUS_BADGE_STYLES[status]}`}>
                         {STATUS_LABELS[status]}
                       </span>
@@ -414,22 +414,22 @@ export default function CertificatesPage() {
 
                     {/* Issuer */}
                     {cert.issuer && (
-                      <p className="text-sm text-gray-500">
-                        <span className="text-gray-400">Issued by:</span> {cert.issuer}
+                      <p className="text-sm text-muted-foreground">
+                        <span className="text-muted-foreground">Issued by:</span> {cert.issuer}
                       </p>
                     )}
 
                     {/* Dates */}
-                    <div className="flex gap-4 text-xs text-gray-500">
+                    <div className="flex gap-4 text-xs text-muted-foreground">
                       {cert.issue_date && (
                         <div>
-                          <span className="text-gray-400">Issued:</span>{' '}
+                          <span className="text-muted-foreground">Issued:</span>{' '}
                           {new Date(cert.issue_date).toLocaleDateString('en-AU', { day: '2-digit', month: 'short', year: 'numeric' })}
                         </div>
                       )}
                       {cert.expiry_date && (
                         <div>
-                          <span className="text-gray-400">Expires:</span>{' '}
+                          <span className="text-muted-foreground">Expires:</span>{' '}
                           <span className={status === 'expired' ? 'text-red-600 font-medium' : status === 'expiring_soon' ? 'text-amber-600 font-medium' : ''}>
                             {new Date(cert.expiry_date).toLocaleDateString('en-AU', { day: '2-digit', month: 'short', year: 'numeric' })}
                           </span>
@@ -457,7 +457,7 @@ export default function CertificatesPage() {
                     </div>
 
                     {/* Links */}
-                    <div className="flex items-center gap-3 mt-auto pt-2 border-t border-gray-100 text-xs">
+                    <div className="flex items-center gap-3 mt-auto pt-2 border-t border-border text-xs">
                       {cert.file_path && (
                         <button
                           onClick={async () => {
@@ -494,9 +494,9 @@ export default function CertificatesPage() {
       )}
 
       {activeTab === 'upload' && (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 max-w-2xl">
-          <h2 className="text-lg font-semibold text-gray-900 mb-1">Upload External Certificate</h2>
-          <p className="text-sm text-gray-500 mb-6">Add certificates from external training or qualifications</p>
+        <div className="bg-card rounded-xl shadow-sm border border-border p-6 max-w-2xl">
+          <h2 className="text-lg font-semibold text-foreground mb-1">Upload External Certificate</h2>
+          <p className="text-sm text-muted-foreground mb-6">Add certificates from external training or qualifications</p>
 
           {submitSuccess && (
             <div className="mb-6 bg-green-50 border border-green-200 rounded-lg p-4 flex items-center gap-3">
@@ -510,7 +510,7 @@ export default function CertificatesPage() {
           <form onSubmit={handleUpload} className="space-y-5">
             {/* Title */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-foreground mb-1">
                 Certificate Title <span className="text-red-500">*</span>
               </label>
               <input
@@ -519,17 +519,17 @@ export default function CertificatesPage() {
                 value={formTitle}
                 onChange={e => setFormTitle(e.target.value)}
                 placeholder="e.g., First Aid Certificate HLTAID012"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-colors"
+                className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-colors"
               />
             </div>
 
             {/* Type */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Certificate Type</label>
+              <label className="block text-sm font-medium text-foreground mb-1">Certificate Type</label>
               <select
                 value={formType}
                 onChange={e => setFormType(e.target.value as 'external' | 'qualification')}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-colors bg-white"
+                className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-colors bg-card"
               >
                 <option value="external">External Certificate</option>
                 <option value="qualification">Qualification</option>
@@ -538,42 +538,42 @@ export default function CertificatesPage() {
 
             {/* Issuer */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Issuing Organisation</label>
+              <label className="block text-sm font-medium text-foreground mb-1">Issuing Organisation</label>
               <input
                 type="text"
                 value={formIssuer}
                 onChange={e => setFormIssuer(e.target.value)}
                 placeholder="e.g., St John Ambulance"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-colors"
+                className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-colors"
               />
             </div>
 
             {/* Dates */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Issue Date</label>
+                <label className="block text-sm font-medium text-foreground mb-1">Issue Date</label>
                 <input
                   type="date"
                   value={formIssueDate}
                   onChange={e => setFormIssueDate(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-colors"
+                  className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-colors"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Expiry Date</label>
+                <label className="block text-sm font-medium text-foreground mb-1">Expiry Date</label>
                 <input
                   type="date"
                   value={formExpiryDate}
                   onChange={e => setFormExpiryDate(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-colors"
+                  className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-colors"
                 />
-                <p className="text-xs text-gray-400 mt-1">Leave blank if no expiry</p>
+                <p className="text-xs text-muted-foreground mt-1">Leave blank if no expiry</p>
               </div>
             </div>
 
             {/* QA Areas */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Related Quality Areas</label>
+              <label className="block text-sm font-medium text-foreground mb-2">Related Quality Areas</label>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 {[1, 2, 3, 4, 5, 6, 7].map(qa => (
                   <label
@@ -581,20 +581,20 @@ export default function CertificatesPage() {
                     className={`flex items-center gap-2.5 px-3 py-2 rounded-lg border cursor-pointer transition-colors text-sm ${
                       formQA.includes(qa)
                         ? 'border-primary bg-primary/5'
-                        : 'border-gray-200 hover:border-gray-300'
+                        : 'border-border hover:border-border'
                     }`}
                   >
                     <input
                       type="checkbox"
                       checked={formQA.includes(qa)}
                       onChange={() => toggleQA(qa)}
-                      className="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary/20"
+                      className="w-4 h-4 rounded border-border text-primary focus:ring-primary/20"
                     />
                     <span
                       className="w-2.5 h-2.5 rounded-full shrink-0"
                       style={{ backgroundColor: QA_COLORS[qa] }}
                     />
-                    <span className="text-gray-700">QA{qa}</span>
+                    <span className="text-foreground">QA{qa}</span>
                   </label>
                 ))}
               </div>
@@ -602,8 +602,8 @@ export default function CertificatesPage() {
 
             {/* File Upload */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Certificate File</label>
-              <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-primary/40 transition-colors">
+              <label className="block text-sm font-medium text-foreground mb-1">Certificate File</label>
+              <div className="border-2 border-dashed border-border rounded-lg p-6 text-center hover:border-primary/40 transition-colors">
                 <input
                   ref={fileInputRef}
                   type="file"
@@ -613,15 +613,15 @@ export default function CertificatesPage() {
                   id="cert-file"
                 />
                 <label htmlFor="cert-file" className="cursor-pointer">
-                  <svg className="w-8 h-8 text-gray-400 mx-auto mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <svg className="w-8 h-8 text-muted-foreground mx-auto mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
                   </svg>
                   {formFile ? (
                     <p className="text-sm text-primary font-medium">{formFile.name}</p>
                   ) : (
                     <>
-                      <p className="text-sm text-gray-600">Click to upload or drag and drop</p>
-                      <p className="text-xs text-gray-400 mt-1">PDF, JPG, PNG, DOC up to 10MB</p>
+                      <p className="text-sm text-muted-foreground">Click to upload or drag and drop</p>
+                      <p className="text-xs text-muted-foreground mt-1">PDF, JPG, PNG, DOC up to 10MB</p>
                     </>
                   )}
                 </label>
@@ -654,7 +654,7 @@ export default function CertificatesPage() {
                   setFormIssueDate(''); setFormExpiryDate(''); setFormQA([]); setFormFile(null)
                   if (fileInputRef.current) fileInputRef.current.value = ''
                 }}
-                className="px-4 py-2.5 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-100 transition-colors"
+                className="px-4 py-2.5 rounded-lg text-sm font-medium text-muted-foreground hover:bg-muted transition-colors"
               >
                 Clear
               </button>
@@ -666,14 +666,14 @@ export default function CertificatesPage() {
       {activeTab === 'all' && isPrivileged && (
         <div className="space-y-4">
           {/* Filters */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
+          <div className="bg-card rounded-xl shadow-sm border border-border p-4">
             <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-end">
               <div className="flex-1 min-w-[200px]">
-                <label className="block text-xs font-medium text-gray-500 mb-1">Filter by Staff</label>
+                <label className="block text-xs font-medium text-muted-foreground mb-1">Filter by Staff</label>
                 <select
                   value={filterStaff}
                   onChange={e => setFilterStaff(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none"
+                  className="w-full px-3 py-2 border border-border rounded-lg text-sm bg-card focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none"
                 >
                   <option value="">All Staff</option>
                   {allProfiles.map(p => (
@@ -682,11 +682,11 @@ export default function CertificatesPage() {
                 </select>
               </div>
               <div className="min-w-[180px]">
-                <label className="block text-xs font-medium text-gray-500 mb-1">Filter by Status</label>
+                <label className="block text-xs font-medium text-muted-foreground mb-1">Filter by Status</label>
                 <select
                   value={filterStatus}
                   onChange={e => setFilterStatus(e.target.value as LmsCertificateStatus | '')}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none"
+                  className="w-full px-3 py-2 border border-border rounded-lg text-sm bg-card focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none"
                 >
                   <option value="">All Statuses</option>
                   <option value="current">Current</option>
@@ -708,45 +708,45 @@ export default function CertificatesPage() {
           </div>
 
           {/* Table */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+          <div className="bg-card rounded-xl shadow-sm border border-border overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="bg-gray-50 border-b border-gray-200">
-                    <th className="text-left px-4 py-3 font-medium text-gray-600 whitespace-nowrap">Staff Name</th>
+                  <tr className="bg-muted border-b border-border">
+                    <th className="text-left px-4 py-3 font-medium text-muted-foreground whitespace-nowrap">Staff Name</th>
                     <th
-                      className="text-left px-4 py-3 font-medium text-gray-600 whitespace-nowrap cursor-pointer hover:text-gray-900 select-none"
+                      className="text-left px-4 py-3 font-medium text-muted-foreground whitespace-nowrap cursor-pointer hover:text-foreground select-none"
                       onClick={() => toggleSort('title')}
                     >
                       Certificate Title {sortColumn === 'title' ? (sortAsc ? '↑' : '↓') : ''}
                     </th>
-                    <th className="text-left px-4 py-3 font-medium text-gray-600 whitespace-nowrap">Type</th>
-                    <th className="text-left px-4 py-3 font-medium text-gray-600 whitespace-nowrap">Issuer</th>
+                    <th className="text-left px-4 py-3 font-medium text-muted-foreground whitespace-nowrap">Type</th>
+                    <th className="text-left px-4 py-3 font-medium text-muted-foreground whitespace-nowrap">Issuer</th>
                     <th
-                      className="text-left px-4 py-3 font-medium text-gray-600 whitespace-nowrap cursor-pointer hover:text-gray-900 select-none"
+                      className="text-left px-4 py-3 font-medium text-muted-foreground whitespace-nowrap cursor-pointer hover:text-foreground select-none"
                       onClick={() => toggleSort('issue_date')}
                     >
                       Issue Date {sortColumn === 'issue_date' ? (sortAsc ? '↑' : '↓') : ''}
                     </th>
                     <th
-                      className="text-left px-4 py-3 font-medium text-gray-600 whitespace-nowrap cursor-pointer hover:text-gray-900 select-none"
+                      className="text-left px-4 py-3 font-medium text-muted-foreground whitespace-nowrap cursor-pointer hover:text-foreground select-none"
                       onClick={() => toggleSort('expiry_date')}
                     >
                       Expiry Date {sortColumn === 'expiry_date' ? (sortAsc ? '↑' : '↓') : ''}
                     </th>
                     <th
-                      className="text-left px-4 py-3 font-medium text-gray-600 whitespace-nowrap cursor-pointer hover:text-gray-900 select-none"
+                      className="text-left px-4 py-3 font-medium text-muted-foreground whitespace-nowrap cursor-pointer hover:text-foreground select-none"
                       onClick={() => toggleSort('status')}
                     >
                       Status {sortColumn === 'status' ? (sortAsc ? '↑' : '↓') : ''}
                     </th>
-                    <th className="text-center px-4 py-3 font-medium text-gray-600 whitespace-nowrap">View</th>
+                    <th className="text-center px-4 py-3 font-medium text-muted-foreground whitespace-nowrap">View</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-100">
+                <tbody className="divide-y divide-border">
                   {filteredAllCerts.length === 0 ? (
                     <tr>
-                      <td colSpan={8} className="px-4 py-8 text-center text-gray-400">
+                      <td colSpan={8} className="px-4 py-8 text-center text-muted-foreground">
                         No certificates found matching your filters
                       </td>
                     </tr>
@@ -755,11 +755,11 @@ export default function CertificatesPage() {
                       const status = computeStatus(cert)
                       const typeColor = CERT_TYPE_COLORS[cert.certificate_type]
                       return (
-                        <tr key={cert.id} className="hover:bg-gray-50 transition-colors">
-                          <td className="px-4 py-3 font-medium text-gray-900 whitespace-nowrap">
+                        <tr key={cert.id} className="hover:bg-muted transition-colors">
+                          <td className="px-4 py-3 font-medium text-foreground whitespace-nowrap">
                             {cert.profiles?.full_name || 'Unknown'}
                           </td>
-                          <td className="px-4 py-3 text-gray-900">{cert.title}</td>
+                          <td className="px-4 py-3 text-foreground">{cert.title}</td>
                           <td className="px-4 py-3">
                             <span
                               className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium"
@@ -768,13 +768,13 @@ export default function CertificatesPage() {
                               {CERT_TYPE_LABELS[cert.certificate_type]}
                             </span>
                           </td>
-                          <td className="px-4 py-3 text-gray-600">{cert.issuer || '-'}</td>
-                          <td className="px-4 py-3 text-gray-600 whitespace-nowrap">
+                          <td className="px-4 py-3 text-muted-foreground">{cert.issuer || '-'}</td>
+                          <td className="px-4 py-3 text-muted-foreground whitespace-nowrap">
                             {cert.issue_date
                               ? new Date(cert.issue_date).toLocaleDateString('en-AU', { day: '2-digit', month: 'short', year: 'numeric' })
                               : '-'}
                           </td>
-                          <td className="px-4 py-3 text-gray-600 whitespace-nowrap">
+                          <td className="px-4 py-3 text-muted-foreground whitespace-nowrap">
                             {cert.expiry_date
                               ? new Date(cert.expiry_date).toLocaleDateString('en-AU', { day: '2-digit', month: 'short', year: 'numeric' })
                               : '-'}
@@ -807,7 +807,7 @@ export default function CertificatesPage() {
               </table>
             </div>
             {filteredAllCerts.length > 0 && (
-              <div className="px-4 py-3 border-t border-gray-200 bg-gray-50 text-xs text-gray-500">
+              <div className="px-4 py-3 border-t border-border bg-muted text-xs text-muted-foreground">
                 Showing {filteredAllCerts.length} certificate{filteredAllCerts.length !== 1 ? 's' : ''}
               </div>
             )}

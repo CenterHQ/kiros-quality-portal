@@ -114,20 +114,20 @@ function SignaturePad({
   if (existingSignature) {
     return (
       <div>
-        <p className="text-sm font-medium text-gray-700 mb-1">{label}</p>
-        <img src={existingSignature} alt="Signature" className="border border-gray-200 rounded bg-white h-20" />
+        <p className="text-sm font-medium text-foreground mb-1">{label}</p>
+        <img src={existingSignature} alt="Signature" className="border border-border rounded bg-card h-20" />
       </div>
     )
   }
 
   return (
     <div>
-      <p className="text-sm font-medium text-gray-700 mb-1">{label}</p>
+      <p className="text-sm font-medium text-foreground mb-1">{label}</p>
       <canvas
         ref={canvasRef}
         width={400}
         height={120}
-        className="border border-gray-300 rounded bg-white cursor-crosshair w-full max-w-[400px]"
+        className="border border-border rounded bg-card cursor-crosshair w-full max-w-[400px]"
         style={{ touchAction: 'none' }}
         onMouseDown={startDraw}
         onMouseMove={draw}
@@ -140,7 +140,7 @@ function SignaturePad({
       <div className="flex gap-2 mt-2">
         <button
           onClick={clearCanvas}
-          className="px-3 py-1 text-xs rounded border border-gray-300 text-gray-600 hover:bg-gray-50"
+          className="px-3 py-1 text-xs rounded border border-border text-muted-foreground hover:bg-muted"
         >
           Clear
         </button>
@@ -419,9 +419,9 @@ export default function PdpPage() {
     return (
       <div className="p-8">
         <div className="animate-pulse space-y-4">
-          <div className="h-8 bg-gray-200 rounded w-72" />
-          <div className="h-48 bg-gray-200 rounded-xl" />
-          <div className="h-48 bg-gray-200 rounded-xl" />
+          <div className="h-8 bg-muted rounded w-72" />
+          <div className="h-48 bg-muted rounded-xl" />
+          <div className="h-48 bg-muted rounded-xl" />
         </div>
       </div>
     )
@@ -436,12 +436,12 @@ export default function PdpPage() {
   return (
     <div className="p-6 md:p-8 max-w-5xl mx-auto">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">My Professional Development Plan</h1>
-        <p className="text-gray-500 mt-1">Manage your goals, track your progress, and participate in PDP reviews.</p>
+        <h1 className="text-2xl font-bold text-foreground">My Professional Development Plan</h1>
+        <p className="text-muted-foreground mt-1">Manage your goals, track your progress, and participate in PDP reviews.</p>
       </div>
 
       {/* Tabs */}
-      <div className="flex border-b border-gray-200 mb-6">
+      <div className="flex border-b border-border mb-6">
         {tabs.map((tab) => (
           <button
             key={tab.key}
@@ -449,7 +449,7 @@ export default function PdpPage() {
             className={`px-4 py-2.5 text-sm font-medium border-b-2 transition-colors -mb-px ${
               activeTab === tab.key
                 ? 'border-primary text-primary'
-                : 'border-transparent text-gray-500 hover:text-gray-700'
+                : 'border-transparent text-muted-foreground hover:text-foreground'
             }`}
           >
             {tab.label}
@@ -461,7 +461,7 @@ export default function PdpPage() {
       {activeTab === 'goals' && (
         <div>
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-gray-900">Goals</h2>
+            <h2 className="text-lg font-semibold text-foreground">Goals</h2>
             <button
               onClick={() => setShowAddGoal(!showAddGoal)}
               className="inline-flex items-center px-4 py-2 text-sm font-medium rounded-lg text-white bg-primary"
@@ -472,30 +472,30 @@ export default function PdpPage() {
 
           {/* Add Goal Form */}
           {showAddGoal && (
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5 mb-5">
-              <h3 className="font-semibold text-gray-900 mb-3">New Goal</h3>
+            <div className="bg-card rounded-xl shadow-sm border border-border p-5 mb-5">
+              <h3 className="font-semibold text-foreground mb-3">New Goal</h3>
               <div className="space-y-3">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Title *</label>
+                  <label className="block text-sm font-medium text-foreground mb-1">Title *</label>
                   <input
                     type="text"
                     value={goalForm.title}
                     onChange={(e) => setGoalForm({ ...goalForm, title: e.target.value })}
-                    className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                    className="w-full rounded-lg border border-border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                     placeholder="e.g. Improve documentation for QA1"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                  <label className="block text-sm font-medium text-foreground mb-1">Description</label>
                   <textarea
                     value={goalForm.description}
                     onChange={(e) => setGoalForm({ ...goalForm, description: e.target.value })}
                     rows={3}
-                    className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                    className="w-full rounded-lg border border-border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Related QA Areas</label>
+                  <label className="block text-sm font-medium text-foreground mb-1">Related QA Areas</label>
                   <div className="flex flex-wrap gap-2">
                     {[1, 2, 3, 4, 5, 6, 7].map((qa) => (
                       <button
@@ -515,46 +515,46 @@ export default function PdpPage() {
                   </div>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Target Date</label>
+                  <label className="block text-sm font-medium text-foreground mb-1">Target Date</label>
                   <input
                     type="date"
                     value={goalForm.target_date}
                     onChange={(e) => setGoalForm({ ...goalForm, target_date: e.target.value })}
-                    className="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                    className="rounded-lg border border-border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Link Modules</label>
-                  <div className="max-h-40 overflow-y-auto border border-gray-200 rounded-lg p-2 space-y-1">
+                  <label className="block text-sm font-medium text-foreground mb-1">Link Modules</label>
+                  <div className="max-h-40 overflow-y-auto border border-border rounded-lg p-2 space-y-1">
                     {allModules.map((m) => (
-                      <label key={m.id} className="flex items-center gap-2 text-sm cursor-pointer hover:bg-gray-50 px-1 py-0.5 rounded">
+                      <label key={m.id} className="flex items-center gap-2 text-sm cursor-pointer hover:bg-muted px-1 py-0.5 rounded">
                         <input
                           type="checkbox"
                           checked={goalForm.linked_module_ids.includes(m.id)}
                           onChange={() => toggleMulti(m.id, goalForm.linked_module_ids, (v) => setGoalForm({ ...goalForm, linked_module_ids: v }))}
-                          className="rounded border-gray-300"
+                          className="rounded border-border"
                         />
                         <span className="truncate">{m.title}</span>
                       </label>
                     ))}
-                    {allModules.length === 0 && <p className="text-xs text-gray-400">No modules available</p>}
+                    {allModules.length === 0 && <p className="text-xs text-muted-foreground">No modules available</p>}
                   </div>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Link Pathways</label>
-                  <div className="max-h-40 overflow-y-auto border border-gray-200 rounded-lg p-2 space-y-1">
+                  <label className="block text-sm font-medium text-foreground mb-1">Link Pathways</label>
+                  <div className="max-h-40 overflow-y-auto border border-border rounded-lg p-2 space-y-1">
                     {allPathways.map((p) => (
-                      <label key={p.id} className="flex items-center gap-2 text-sm cursor-pointer hover:bg-gray-50 px-1 py-0.5 rounded">
+                      <label key={p.id} className="flex items-center gap-2 text-sm cursor-pointer hover:bg-muted px-1 py-0.5 rounded">
                         <input
                           type="checkbox"
                           checked={goalForm.linked_pathway_ids.includes(p.id)}
                           onChange={() => toggleMulti(p.id, goalForm.linked_pathway_ids, (v) => setGoalForm({ ...goalForm, linked_pathway_ids: v }))}
-                          className="rounded border-gray-300"
+                          className="rounded border-border"
                         />
                         <span className="truncate">{p.title}</span>
                       </label>
                     ))}
-                    {allPathways.length === 0 && <p className="text-xs text-gray-400">No pathways available</p>}
+                    {allPathways.length === 0 && <p className="text-xs text-muted-foreground">No pathways available</p>}
                   </div>
                 </div>
                 <button
@@ -570,8 +570,8 @@ export default function PdpPage() {
 
           {/* Goals List */}
           {goals.length === 0 ? (
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-12 text-center">
-              <p className="text-gray-500">No goals yet. Add your first professional development goal to get started.</p>
+            <div className="bg-card rounded-xl shadow-sm border border-border p-12 text-center">
+              <p className="text-muted-foreground">No goals yet. Add your first professional development goal to get started.</p>
             </div>
           ) : (
             <div className="space-y-4">
@@ -581,7 +581,7 @@ export default function PdpPage() {
                 return (
                   <div
                     key={goal.id}
-                    className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden"
+                    className="bg-card rounded-xl shadow-sm border border-border overflow-hidden"
                     style={{ borderLeft: `4px solid ${GOAL_BORDER_COLORS[goal.status]}` }}
                   >
                     <div className="p-5">
@@ -592,31 +592,31 @@ export default function PdpPage() {
                             type="text"
                             value={editForm.title}
                             onChange={(e) => setEditForm({ ...editForm, title: e.target.value })}
-                            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                            className="w-full rounded-lg border border-border px-3 py-2 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                           />
                           <textarea
                             value={editForm.description}
                             onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
                             rows={2}
-                            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                            className="w-full rounded-lg border border-border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                             placeholder="Description"
                           />
                           <div className="flex gap-3 flex-wrap">
                             <div>
-                              <label className="block text-xs text-gray-500 mb-1">Target Date</label>
+                              <label className="block text-xs text-muted-foreground mb-1">Target Date</label>
                               <input
                                 type="date"
                                 value={editForm.target_date}
                                 onChange={(e) => setEditForm({ ...editForm, target_date: e.target.value })}
-                                className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                                className="rounded-lg border border-border px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
                               />
                             </div>
                             <div>
-                              <label className="block text-xs text-gray-500 mb-1">Status</label>
+                              <label className="block text-xs text-muted-foreground mb-1">Status</label>
                               <select
                                 value={editForm.status}
                                 onChange={(e) => setEditForm({ ...editForm, status: e.target.value as LmsPdpGoalStatus })}
-                                className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                                className="rounded-lg border border-border px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
                               >
                                 <option value="active">Active</option>
                                 <option value="completed">Completed</option>
@@ -625,12 +625,12 @@ export default function PdpPage() {
                             </div>
                           </div>
                           <div>
-                            <label className="block text-xs text-gray-500 mb-1">Evidence Notes</label>
+                            <label className="block text-xs text-muted-foreground mb-1">Evidence Notes</label>
                             <textarea
                               value={editForm.evidence_notes}
                               onChange={(e) => setEditForm({ ...editForm, evidence_notes: e.target.value })}
                               rows={3}
-                              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                              className="w-full rounded-lg border border-border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                               placeholder="Record evidence of progress..."
                             />
                           </div>
@@ -644,7 +644,7 @@ export default function PdpPage() {
                             </button>
                             <button
                               onClick={() => setEditingGoalId(null)}
-                              className="px-3 py-1.5 text-sm rounded-lg border border-gray-300 text-gray-600 hover:bg-gray-50"
+                              className="px-3 py-1.5 text-sm rounded-lg border border-border text-muted-foreground hover:bg-muted"
                             >
                               Cancel
                             </button>
@@ -656,7 +656,7 @@ export default function PdpPage() {
                           <div className="flex items-start justify-between gap-3">
                             <div className="flex-1">
                               <div className="flex items-center gap-2 flex-wrap mb-1">
-                                <h3 className="font-semibold text-gray-900">{goal.title}</h3>
+                                <h3 className="font-semibold text-foreground">{goal.title}</h3>
                                 <span
                                   className="text-xs font-medium px-2 py-0.5 rounded-full"
                                   style={{
@@ -667,11 +667,11 @@ export default function PdpPage() {
                                   {GOAL_STATUS_LABELS[goal.status]}
                                 </span>
                               </div>
-                              {goal.description && <p className="text-sm text-gray-500 mb-2">{goal.description}</p>}
+                              {goal.description && <p className="text-sm text-muted-foreground mb-2">{goal.description}</p>}
                             </div>
                             <button
                               onClick={() => startEditGoal(goal)}
-                              className="text-xs font-medium px-2 py-1 rounded hover:bg-gray-100 text-gray-500 flex-shrink-0"
+                              className="text-xs font-medium px-2 py-1 rounded hover:bg-muted text-muted-foreground flex-shrink-0"
                             >
                               Edit
                             </button>
@@ -689,7 +689,7 @@ export default function PdpPage() {
                               </span>
                             ))}
                             {goal.target_date && (
-                              <span className="text-xs text-gray-400">
+                              <span className="text-xs text-muted-foreground">
                                 Target: {new Date(goal.target_date).toLocaleDateString()}
                               </span>
                             )}
@@ -698,7 +698,7 @@ export default function PdpPage() {
                           {/* Linked modules */}
                           {goal.linked_module_ids?.length > 0 && (
                             <div className="mb-2">
-                              <p className="text-xs font-medium text-gray-500 mb-1">Linked Modules</p>
+                              <p className="text-xs font-medium text-muted-foreground mb-1">Linked Modules</p>
                               <div className="flex flex-wrap gap-1.5">
                                 {goal.linked_module_ids.map((mId) => {
                                   const status = getModuleStatus(mId)
@@ -727,7 +727,7 @@ export default function PdpPage() {
                           {/* Linked pathways */}
                           {goal.linked_pathway_ids?.length > 0 && (
                             <div className="mb-2">
-                              <p className="text-xs font-medium text-gray-500 mb-1">Linked Pathways</p>
+                              <p className="text-xs font-medium text-muted-foreground mb-1">Linked Pathways</p>
                               <div className="flex flex-wrap gap-1.5">
                                 {goal.linked_pathway_ids.map((pId) => {
                                   const status = getPathwayStatus(pId)
@@ -765,7 +765,7 @@ export default function PdpPage() {
                                 {expandedEvidenceId === goal.id ? 'Hide Evidence Notes' : 'Show Evidence Notes'}
                               </button>
                               {expandedEvidenceId === goal.id && (
-                                <p className="mt-1 text-sm text-gray-600 bg-gray-50 rounded p-3 whitespace-pre-wrap">
+                                <p className="mt-1 text-sm text-muted-foreground bg-muted rounded p-3 whitespace-pre-wrap">
                                   {goal.evidence_notes}
                                 </p>
                               )}
@@ -785,10 +785,10 @@ export default function PdpPage() {
       {/* ==================== MY REVIEWS TAB ==================== */}
       {activeTab === 'reviews' && (
         <div>
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">My Reviews</h2>
+          <h2 className="text-lg font-semibold text-foreground mb-4">My Reviews</h2>
           {reviews.length === 0 ? (
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-12 text-center">
-              <p className="text-gray-500">No reviews yet. Your supervisor will create your PDP review.</p>
+            <div className="bg-card rounded-xl shadow-sm border border-border p-12 text-center">
+              <p className="text-muted-foreground">No reviews yet. Your supervisor will create your PDP review.</p>
             </div>
           ) : (
             <div className="space-y-4">
@@ -800,13 +800,13 @@ export default function PdpPage() {
                 const isReviewed = review.status === 'reviewed'
 
                 return (
-                  <div key={review.id} className="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
+                  <div key={review.id} className="bg-card rounded-xl shadow-sm border border-border p-5">
                     <div className="flex items-start justify-between gap-3 mb-3">
                       <div>
-                        <h3 className="font-semibold text-gray-900">
+                        <h3 className="font-semibold text-foreground">
                           {review.review_period || 'Review'}
                         </h3>
-                        <p className="text-sm text-gray-400">
+                        <p className="text-sm text-muted-foreground">
                           Reviewer: {reviewerName}
                           {review.reviewed_at &&
                             ` | Reviewed: ${new Date(review.reviewed_at).toLocaleDateString()}`}
@@ -824,7 +824,7 @@ export default function PdpPage() {
                     {isDraft && (
                       <div className="space-y-3">
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">Goals Summary</label>
+                          <label className="block text-sm font-medium text-foreground mb-1">Goals Summary</label>
                           <textarea
                             value={draftReviewEdit?.id === review.id ? draftReviewEdit.goals_summary : review.goals_summary || ''}
                             onChange={(e) =>
@@ -835,7 +835,7 @@ export default function PdpPage() {
                                 setDraftReviewEdit({ id: review.id, goals_summary: review.goals_summary || '' })
                             }}
                             rows={3}
-                            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                            className="w-full rounded-lg border border-border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                             placeholder="Summarise your goals and progress for this review period..."
                           />
                         </div>
@@ -861,29 +861,29 @@ export default function PdpPage() {
                       <div className="space-y-3">
                         {review.goals_summary && (
                           <div>
-                            <p className="text-xs font-medium text-gray-500">Goals Summary</p>
-                            <p className="text-sm text-gray-700 whitespace-pre-wrap">{review.goals_summary}</p>
+                            <p className="text-xs font-medium text-muted-foreground">Goals Summary</p>
+                            <p className="text-sm text-foreground whitespace-pre-wrap">{review.goals_summary}</p>
                           </div>
                         )}
                         {review.strengths && (
                           <div>
-                            <p className="text-xs font-medium text-gray-500">Strengths</p>
-                            <p className="text-sm text-gray-700 whitespace-pre-wrap">{review.strengths}</p>
+                            <p className="text-xs font-medium text-muted-foreground">Strengths</p>
+                            <p className="text-sm text-foreground whitespace-pre-wrap">{review.strengths}</p>
                           </div>
                         )}
                         {review.areas_for_growth && (
                           <div>
-                            <p className="text-xs font-medium text-gray-500">Areas for Growth</p>
-                            <p className="text-sm text-gray-700 whitespace-pre-wrap">{review.areas_for_growth}</p>
+                            <p className="text-xs font-medium text-muted-foreground">Areas for Growth</p>
+                            <p className="text-sm text-foreground whitespace-pre-wrap">{review.areas_for_growth}</p>
                           </div>
                         )}
                         {review.agreed_actions && (
                           <div>
-                            <p className="text-xs font-medium text-gray-500">Agreed Actions</p>
-                            <p className="text-sm text-gray-700 whitespace-pre-wrap">{review.agreed_actions}</p>
+                            <p className="text-xs font-medium text-muted-foreground">Agreed Actions</p>
+                            <p className="text-sm text-foreground whitespace-pre-wrap">{review.agreed_actions}</p>
                           </div>
                         )}
-                        <div className="pt-2 border-t border-gray-100">
+                        <div className="pt-2 border-t border-border">
                           <SignaturePad
                             label="Staff Acknowledgement Signature"
                             existingSignature={review.staff_signature}
@@ -898,38 +898,38 @@ export default function PdpPage() {
                       <div className="space-y-3">
                         {review.goals_summary && (
                           <div>
-                            <p className="text-xs font-medium text-gray-500">Goals Summary</p>
-                            <p className="text-sm text-gray-700 whitespace-pre-wrap">{review.goals_summary}</p>
+                            <p className="text-xs font-medium text-muted-foreground">Goals Summary</p>
+                            <p className="text-sm text-foreground whitespace-pre-wrap">{review.goals_summary}</p>
                           </div>
                         )}
                         {review.strengths && (
                           <div>
-                            <p className="text-xs font-medium text-gray-500">Strengths</p>
-                            <p className="text-sm text-gray-700 whitespace-pre-wrap">{review.strengths}</p>
+                            <p className="text-xs font-medium text-muted-foreground">Strengths</p>
+                            <p className="text-sm text-foreground whitespace-pre-wrap">{review.strengths}</p>
                           </div>
                         )}
                         {review.areas_for_growth && (
                           <div>
-                            <p className="text-xs font-medium text-gray-500">Areas for Growth</p>
-                            <p className="text-sm text-gray-700 whitespace-pre-wrap">{review.areas_for_growth}</p>
+                            <p className="text-xs font-medium text-muted-foreground">Areas for Growth</p>
+                            <p className="text-sm text-foreground whitespace-pre-wrap">{review.areas_for_growth}</p>
                           </div>
                         )}
                         {review.agreed_actions && (
                           <div>
-                            <p className="text-xs font-medium text-gray-500">Agreed Actions</p>
-                            <p className="text-sm text-gray-700 whitespace-pre-wrap">{review.agreed_actions}</p>
+                            <p className="text-xs font-medium text-muted-foreground">Agreed Actions</p>
+                            <p className="text-sm text-foreground whitespace-pre-wrap">{review.agreed_actions}</p>
                           </div>
                         )}
                         {review.staff_signature && (
                           <div>
-                            <p className="text-xs font-medium text-gray-500">Staff Signature</p>
-                            <img src={review.staff_signature} alt="Staff signature" className="border border-gray-200 rounded bg-white h-16 mt-1" />
+                            <p className="text-xs font-medium text-muted-foreground">Staff Signature</p>
+                            <img src={review.staff_signature} alt="Staff signature" className="border border-border rounded bg-card h-16 mt-1" />
                           </div>
                         )}
                         {review.reviewer_signature && (
                           <div>
-                            <p className="text-xs font-medium text-gray-500">Reviewer Signature</p>
-                            <img src={review.reviewer_signature} alt="Reviewer signature" className="border border-gray-200 rounded bg-white h-16 mt-1" />
+                            <p className="text-xs font-medium text-muted-foreground">Reviewer Signature</p>
+                            <img src={review.reviewer_signature} alt="Reviewer signature" className="border border-border rounded bg-card h-16 mt-1" />
                           </div>
                         )}
                       </div>
@@ -946,7 +946,7 @@ export default function PdpPage() {
       {activeTab === 'staff' && isPrivileged && (
         <div>
           <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
-            <h2 className="text-lg font-semibold text-gray-900">Review Staff PDPs</h2>
+            <h2 className="text-lg font-semibold text-foreground">Review Staff PDPs</h2>
             <button
               onClick={() => setShowCreateReview(!showCreateReview)}
               className="inline-flex items-center px-4 py-2 text-sm font-medium rounded-lg text-white bg-primary"
@@ -957,15 +957,15 @@ export default function PdpPage() {
 
           {/* Create Review Form */}
           {showCreateReview && (
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5 mb-5">
-              <h3 className="font-semibold text-gray-900 mb-3">New PDP Review</h3>
+            <div className="bg-card rounded-xl shadow-sm border border-border p-5 mb-5">
+              <h3 className="font-semibold text-foreground mb-3">New PDP Review</h3>
               <div className="space-y-3">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Staff Member *</label>
+                  <label className="block text-sm font-medium text-foreground mb-1">Staff Member *</label>
                   <select
                     value={reviewForm.user_id}
                     onChange={(e) => setReviewForm({ ...reviewForm, user_id: e.target.value })}
-                    className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                    className="w-full rounded-lg border border-border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                   >
                     <option value="">Select staff member...</option>
                     {allStaff
@@ -978,49 +978,49 @@ export default function PdpPage() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Review Period *</label>
+                  <label className="block text-sm font-medium text-foreground mb-1">Review Period *</label>
                   <input
                     type="text"
                     value={reviewForm.review_period}
                     onChange={(e) => setReviewForm({ ...reviewForm, review_period: e.target.value })}
-                    className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                    className="w-full rounded-lg border border-border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                     placeholder="e.g. Q2 2026"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Goals Summary</label>
+                  <label className="block text-sm font-medium text-foreground mb-1">Goals Summary</label>
                   <textarea
                     value={reviewForm.goals_summary}
                     onChange={(e) => setReviewForm({ ...reviewForm, goals_summary: e.target.value })}
                     rows={2}
-                    className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                    className="w-full rounded-lg border border-border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Strengths</label>
+                  <label className="block text-sm font-medium text-foreground mb-1">Strengths</label>
                   <textarea
                     value={reviewForm.strengths}
                     onChange={(e) => setReviewForm({ ...reviewForm, strengths: e.target.value })}
                     rows={2}
-                    className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                    className="w-full rounded-lg border border-border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Areas for Growth</label>
+                  <label className="block text-sm font-medium text-foreground mb-1">Areas for Growth</label>
                   <textarea
                     value={reviewForm.areas_for_growth}
                     onChange={(e) => setReviewForm({ ...reviewForm, areas_for_growth: e.target.value })}
                     rows={2}
-                    className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                    className="w-full rounded-lg border border-border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Agreed Actions</label>
+                  <label className="block text-sm font-medium text-foreground mb-1">Agreed Actions</label>
                   <textarea
                     value={reviewForm.agreed_actions}
                     onChange={(e) => setReviewForm({ ...reviewForm, agreed_actions: e.target.value })}
                     rows={2}
-                    className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                    className="w-full rounded-lg border border-border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                   />
                 </div>
                 <button
@@ -1036,11 +1036,11 @@ export default function PdpPage() {
 
           {/* Staff selector */}
           <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700 mb-1">View Staff Member Goals</label>
+            <label className="block text-sm font-medium text-foreground mb-1">View Staff Member Goals</label>
             <select
               value={selectedStaffId}
               onChange={(e) => setSelectedStaffId(e.target.value)}
-              className="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+              className="rounded-lg border border-border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
             >
               <option value="">Select staff member...</option>
               {allStaff
@@ -1056,20 +1056,20 @@ export default function PdpPage() {
           {/* Staff goals */}
           {selectedStaffId && (
             <div className="space-y-3 mb-6">
-              <h3 className="text-sm font-semibold text-gray-700">
+              <h3 className="text-sm font-semibold text-foreground">
                 {allStaff.find((s) => s.id === selectedStaffId)?.full_name}&#39;s Goals
               </h3>
               {staffGoals.length === 0 ? (
-                <p className="text-sm text-gray-400">No goals found for this staff member.</p>
+                <p className="text-sm text-muted-foreground">No goals found for this staff member.</p>
               ) : (
                 staffGoals.map((goal) => (
                   <div
                     key={goal.id}
-                    className="bg-white rounded-xl shadow-sm border border-gray-200 p-4"
+                    className="bg-card rounded-xl shadow-sm border border-border p-4"
                     style={{ borderLeft: `4px solid ${GOAL_BORDER_COLORS[goal.status]}` }}
                   >
                     <div className="flex items-center gap-2 mb-1">
-                      <h4 className="font-medium text-gray-900 text-sm">{goal.title}</h4>
+                      <h4 className="font-medium text-foreground text-sm">{goal.title}</h4>
                       <span
                         className="text-xs font-medium px-2 py-0.5 rounded-full"
                         style={{
@@ -1080,7 +1080,7 @@ export default function PdpPage() {
                         {GOAL_STATUS_LABELS[goal.status]}
                       </span>
                     </div>
-                    {goal.description && <p className="text-xs text-gray-500">{goal.description}</p>}
+                    {goal.description && <p className="text-xs text-muted-foreground">{goal.description}</p>}
                     <div className="flex gap-2 mt-1 flex-wrap">
                       {(goal.related_qa || []).map((qa) => (
                         <span
@@ -1092,7 +1092,7 @@ export default function PdpPage() {
                         </span>
                       ))}
                       {goal.target_date && (
-                        <span className="text-xs text-gray-400">
+                        <span className="text-xs text-muted-foreground">
                           Target: {new Date(goal.target_date).toLocaleDateString()}
                         </span>
                       )}
@@ -1151,12 +1151,12 @@ function StaffReviewsList({
       })
   }, [staffId])
 
-  if (loading) return <p className="text-sm text-gray-400">Loading reviews...</p>
-  if (staffReviews.length === 0) return <p className="text-sm text-gray-400">No reviews found for this staff member.</p>
+  if (loading) return <p className="text-sm text-muted-foreground">Loading reviews...</p>
+  if (staffReviews.length === 0) return <p className="text-sm text-muted-foreground">No reviews found for this staff member.</p>
 
   return (
     <div className="space-y-3">
-      <h3 className="text-sm font-semibold text-gray-700">Reviews</h3>
+      <h3 className="text-sm font-semibold text-foreground">Reviews</h3>
       {staffReviews.map((review) => {
         const statusColor = REVIEW_STATUS_COLORS[review.status]
         const canSign =
@@ -1165,9 +1165,9 @@ function StaffReviewsList({
           !review.reviewer_signature
 
         return (
-          <div key={review.id} className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
+          <div key={review.id} className="bg-card rounded-xl shadow-sm border border-border p-4">
             <div className="flex items-center justify-between mb-2">
-              <h4 className="font-medium text-gray-900 text-sm">{review.review_period || 'Review'}</h4>
+              <h4 className="font-medium text-foreground text-sm">{review.review_period || 'Review'}</h4>
               <span
                 className="text-xs font-semibold px-2 py-0.5 rounded-full"
                 style={{ backgroundColor: statusColor.bg, color: statusColor.text }}
@@ -1177,42 +1177,42 @@ function StaffReviewsList({
             </div>
             {review.goals_summary && (
               <div className="mb-2">
-                <p className="text-xs font-medium text-gray-500">Goals Summary</p>
-                <p className="text-sm text-gray-700 whitespace-pre-wrap">{review.goals_summary}</p>
+                <p className="text-xs font-medium text-muted-foreground">Goals Summary</p>
+                <p className="text-sm text-foreground whitespace-pre-wrap">{review.goals_summary}</p>
               </div>
             )}
             {review.strengths && (
               <div className="mb-2">
-                <p className="text-xs font-medium text-gray-500">Strengths</p>
-                <p className="text-sm text-gray-700 whitespace-pre-wrap">{review.strengths}</p>
+                <p className="text-xs font-medium text-muted-foreground">Strengths</p>
+                <p className="text-sm text-foreground whitespace-pre-wrap">{review.strengths}</p>
               </div>
             )}
             {review.areas_for_growth && (
               <div className="mb-2">
-                <p className="text-xs font-medium text-gray-500">Areas for Growth</p>
-                <p className="text-sm text-gray-700 whitespace-pre-wrap">{review.areas_for_growth}</p>
+                <p className="text-xs font-medium text-muted-foreground">Areas for Growth</p>
+                <p className="text-sm text-foreground whitespace-pre-wrap">{review.areas_for_growth}</p>
               </div>
             )}
             {review.agreed_actions && (
               <div className="mb-2">
-                <p className="text-xs font-medium text-gray-500">Agreed Actions</p>
-                <p className="text-sm text-gray-700 whitespace-pre-wrap">{review.agreed_actions}</p>
+                <p className="text-xs font-medium text-muted-foreground">Agreed Actions</p>
+                <p className="text-sm text-foreground whitespace-pre-wrap">{review.agreed_actions}</p>
               </div>
             )}
             {review.reviewer_signature && (
               <div className="mb-2">
-                <p className="text-xs font-medium text-gray-500">Reviewer Signature</p>
-                <img src={review.reviewer_signature} alt="Reviewer signature" className="border border-gray-200 rounded bg-white h-16 mt-1" />
+                <p className="text-xs font-medium text-muted-foreground">Reviewer Signature</p>
+                <img src={review.reviewer_signature} alt="Reviewer signature" className="border border-border rounded bg-card h-16 mt-1" />
               </div>
             )}
             {review.staff_signature && (
               <div className="mb-2">
-                <p className="text-xs font-medium text-gray-500">Staff Signature</p>
-                <img src={review.staff_signature} alt="Staff signature" className="border border-gray-200 rounded bg-white h-16 mt-1" />
+                <p className="text-xs font-medium text-muted-foreground">Staff Signature</p>
+                <img src={review.staff_signature} alt="Staff signature" className="border border-border rounded bg-card h-16 mt-1" />
               </div>
             )}
             {canSign && (
-              <div className="pt-2 border-t border-gray-100">
+              <div className="pt-2 border-t border-border">
                 <SignaturePad
                   label="Sign as Reviewer"
                   onSave={(dataUrl) => onSignature(review.id, dataUrl)}

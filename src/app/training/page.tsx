@@ -107,8 +107,8 @@ export default function TrainingPage() {
   return (
     <div className="max-w-7xl mx-auto">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Training Modules</h1>
-        <p className="text-gray-500 text-sm mt-1">
+        <h1 className="text-2xl font-bold text-foreground">Training Modules</h1>
+        <p className="text-muted-foreground text-sm mt-1">
           Professional development and training programs for quality improvement
         </p>
       </div>
@@ -120,19 +120,19 @@ export default function TrainingPage() {
           const completedCount = modAssignments.filter(a => a.status === 'completed').length
 
           return (
-            <div key={mod.id} className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+            <div key={mod.id} className="bg-card rounded-xl shadow-sm border border-border overflow-hidden">
               {/* Module Header */}
-              <div className="px-6 py-4 border-b border-gray-100">
+              <div className="px-6 py-4 border-b border-border">
                 <div className="flex items-start justify-between">
                   <div className="flex items-start gap-3">
                     <div className="w-10 h-10 rounded-lg bg-primary flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
                       {idx + 1}
                     </div>
                     <div>
-                      <h3 className="font-semibold text-gray-900">{mod.title}</h3>
+                      <h3 className="font-semibold text-foreground">{mod.title}</h3>
                       <div className="flex items-center gap-2 mt-1">
                         {mod.duration_hours && (
-                          <span className="text-xs text-gray-400">
+                          <span className="text-xs text-muted-foreground">
                             {mod.duration_hours}h duration
                           </span>
                         )}
@@ -149,13 +149,13 @@ export default function TrainingPage() {
                     </div>
                   </div>
                   {modAssignments.length > 0 && (
-                    <span className="text-xs text-gray-400">
+                    <span className="text-xs text-muted-foreground">
                       {completedCount}/{modAssignments.length} completed
                     </span>
                   )}
                 </div>
                 {mod.description && (
-                  <p className="text-sm text-gray-600 mt-3">{mod.description}</p>
+                  <p className="text-sm text-muted-foreground mt-3">{mod.description}</p>
                 )}
               </div>
 
@@ -163,7 +163,7 @@ export default function TrainingPage() {
               <div className="px-6 py-3">
                 {modAssignments.length > 0 ? (
                   <div className="space-y-2">
-                    <p className="text-xs font-medium text-gray-400 uppercase tracking-wider">Assignments</p>
+                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Assignments</p>
                     {modAssignments.map(a => {
                       const profile = a.profiles as unknown as Profile
                       const isOwn = currentUser?.id === a.user_id
@@ -172,12 +172,12 @@ export default function TrainingPage() {
                       return (
                         <div key={a.id} className="flex items-center justify-between py-1.5">
                           <div className="flex items-center gap-2">
-                            <div className="w-6 h-6 rounded-full bg-gray-200 flex items-center justify-center text-xs font-medium text-gray-600">
+                            <div className="w-6 h-6 rounded-full bg-muted flex items-center justify-center text-xs font-medium text-muted-foreground">
                               {profile?.full_name?.[0] || '?'}
                             </div>
-                            <span className="text-sm text-gray-700">{profile?.full_name || 'Unknown'}</span>
+                            <span className="text-sm text-foreground">{profile?.full_name || 'Unknown'}</span>
                             {a.due_date && (
-                              <span className={`text-xs ${isOverdue ? 'text-red-500 font-medium' : 'text-gray-400'}`}>
+                              <span className={`text-xs ${isOverdue ? 'text-red-500 font-medium' : 'text-muted-foreground'}`}>
                                 Due {new Date(a.due_date).toLocaleDateString()}
                               </span>
                             )}
@@ -206,18 +206,18 @@ export default function TrainingPage() {
                     })}
                   </div>
                 ) : (
-                  <p className="text-xs text-gray-400 py-1">No assignments yet</p>
+                  <p className="text-xs text-muted-foreground py-1">No assignments yet</p>
                 )}
 
                 {/* Assign Button / Form */}
                 {isAdminOrManager && (
-                  <div className="mt-3 pt-3 border-t border-gray-100">
+                  <div className="mt-3 pt-3 border-t border-border">
                     {assigningModuleId === mod.id ? (
                       <div className="space-y-2">
                         <select
                           value={assignForm.user_id}
                           onChange={(e) => setAssignForm(f => ({ ...f, user_id: e.target.value }))}
-                          className="w-full px-3 py-1.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent outline-none"
+                          className="w-full px-3 py-1.5 border border-border rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent outline-none"
                         >
                           <option value="">Select user...</option>
                           {profiles.map(p => (
@@ -230,7 +230,7 @@ export default function TrainingPage() {
                           type="date"
                           value={assignForm.due_date}
                           onChange={(e) => setAssignForm(f => ({ ...f, due_date: e.target.value }))}
-                          className="w-full px-3 py-1.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent outline-none"
+                          className="w-full px-3 py-1.5 border border-border rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent outline-none"
                           placeholder="Due date (optional)"
                         />
                         <div className="flex gap-2">
@@ -242,7 +242,7 @@ export default function TrainingPage() {
                           </button>
                           <button
                             onClick={() => { setAssigningModuleId(null); setAssignForm({ user_id: '', due_date: '' }) }}
-                            className="px-3 py-1.5 bg-gray-100 text-gray-600 text-xs rounded-lg hover:bg-gray-200 transition font-medium"
+                            className="px-3 py-1.5 bg-muted text-muted-foreground text-xs rounded-lg hover:bg-accent transition font-medium"
                           >
                             Cancel
                           </button>
@@ -265,7 +265,7 @@ export default function TrainingPage() {
       </div>
 
       {modules.length === 0 && (
-        <div className="text-center py-12 text-gray-400">
+        <div className="text-center py-12 text-muted-foreground">
           <p className="text-lg font-medium">No training modules yet</p>
           <p className="text-sm mt-1">Training modules will appear here once created.</p>
         </div>

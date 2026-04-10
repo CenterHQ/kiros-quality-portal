@@ -21,11 +21,11 @@ export default function NotificationsPage() {
   }
 
   const Toggle = ({ label, checked, onChange }: { label: string; checked: boolean; onChange: (v: boolean) => void }) => (
-    <div className="flex items-center justify-between py-3 border-b border-gray-100">
-      <span className="text-sm text-gray-700">{label}</span>
+    <div className="flex items-center justify-between py-3 border-b border-border">
+      <span className="text-sm text-foreground">{label}</span>
       <button onClick={() => onChange(!checked)}
         className={`w-10 h-6 rounded-full transition relative ${checked ? 'bg-primary' : 'bg-gray-300'}`}>
-        <span className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-transform ${checked ? 'left-5' : 'left-1'}`} />
+        <span className={`absolute top-1 w-4 h-4 rounded-full bg-card transition-transform ${checked ? 'left-5' : 'left-1'}`} />
       </button>
     </div>
   )
@@ -33,7 +33,7 @@ export default function NotificationsPage() {
   return (
     <div className="max-w-2xl mx-auto">
       <h1 className="text-2xl font-bold mb-6">Notification Settings</h1>
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+      <div className="bg-card rounded-xl shadow-sm border border-border p-6">
         <Toggle label="Notify me when someone comments on my items" checked={settings.notify_comments} onChange={(v) => setSettings({...settings, notify_comments: v})} />
         <Toggle label="Notify me when an element or task status changes" checked={settings.notify_status_changes} onChange={(v) => setSettings({...settings, notify_status_changes: v})} />
         <Toggle label="Notify me when I am assigned a task or training" checked={settings.notify_assignments} onChange={(v) => setSettings({...settings, notify_assignments: v})} />

@@ -30,6 +30,7 @@ export default function DocumentsPage() {
   const [uploading, setUploading] = useState(false)
   const [dragActive, setDragActive] = useState(false)
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const supabase = createClient()
@@ -39,10 +40,17 @@ export default function DocumentsPage() {
   }, [])
 
   async function loadData() {
+    setError(null)
     setLoading(true)
-    const { data: docsRes } = await supabase.from('documents').select('*, profiles(full_name)').order('created_at', { ascending: false })
-    if (docsRes) setDocuments(docsRes)
-    setLoading(false)
+    try {
+      const { data: docsRes } = await supabase.from('documents').select('*, profiles(full_name)').order('created_at', { ascending: false })
+      if (docsRes) setDocuments(docsRes)
+    } catch (err) {
+      console.error('Failed to load documents:', err)
+      setError(err instanceof Error ? err.message : 'Failed to load data')
+    } finally {
+      setLoading(false)
+    }
   }
 
   const isAdminOrManager = currentUser?.role === 'admin' || currentUser?.role === 'manager'
@@ -139,6 +147,14 @@ export default function DocumentsPage() {
       </div>
     )
   }
+
+  if (error) return (
+    <div className="py-16 text-center animate-fade-in">
+      <p className="text-lg font-semibold text-foreground mb-2">Unable to load data</p>
+      <p className="text-sm text-muted-foreground mb-4">{error}</p>
+      <button onClick={() => loadData()} className="px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:opacity-90 transition">Retry</button>
+    </div>
+  )
 
   return (
     <div className="max-w-7xl mx-auto">

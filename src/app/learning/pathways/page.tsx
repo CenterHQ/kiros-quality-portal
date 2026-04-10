@@ -117,10 +117,10 @@ export default function PathwaysPage() {
     return (
       <div className="p-8">
         <div className="animate-pulse space-y-4">
-          <div className="h-8 bg-gray-200 rounded w-64" />
+          <div className="h-8 bg-muted rounded w-64" />
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="h-48 bg-gray-200 rounded-xl" />
+              <div key={i} className="h-48 bg-muted rounded-xl" />
             ))}
           </div>
         </div>
@@ -132,22 +132,22 @@ export default function PathwaysPage() {
     <div className="p-6 md:p-8 max-w-7xl mx-auto">
       {/* Header */}
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Learning Pathways</h1>
-        <p className="text-gray-500 mt-1">Browse and enroll in structured learning paths to build your skills.</p>
+        <h1 className="text-2xl font-bold text-foreground">Learning Pathways</h1>
+        <p className="text-muted-foreground mt-1">Browse and enroll in structured learning paths to build your skills.</p>
       </div>
 
       {/* Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
-          <p className="text-sm text-gray-500">Total Pathways</p>
-          <p className="text-2xl font-bold text-gray-900">{stats.total}</p>
+        <div className="bg-card rounded-xl shadow-sm border border-border p-4">
+          <p className="text-sm text-muted-foreground">Total Pathways</p>
+          <p className="text-2xl font-bold text-foreground">{stats.total}</p>
         </div>
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
-          <p className="text-sm text-gray-500">Enrolled</p>
+        <div className="bg-card rounded-xl shadow-sm border border-border p-4">
+          <p className="text-sm text-muted-foreground">Enrolled</p>
           <p className="text-2xl font-bold text-primary">{stats.enrolled}</p>
         </div>
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
-          <p className="text-sm text-gray-500">Completed</p>
+        <div className="bg-card rounded-xl shadow-sm border border-border p-4">
+          <p className="text-sm text-muted-foreground">Completed</p>
           <p className="text-2xl font-bold text-green-600">{stats.completed}</p>
         </div>
       </div>
@@ -157,7 +157,7 @@ export default function PathwaysPage() {
         <select
           value={filterTier}
           onChange={(e) => setFilterTier(e.target.value as LmsModuleTier | 'all')}
-          className="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+          className="rounded-lg border border-border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
         >
           <option value="all">All Tiers</option>
           <option value="mandatory">Mandatory Compliance</option>
@@ -167,7 +167,7 @@ export default function PathwaysPage() {
         <select
           value={filterQA}
           onChange={(e) => setFilterQA(Number(e.target.value))}
-          className="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+          className="rounded-lg border border-border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
         >
           <option value={0}>All QA Areas</option>
           {[1, 2, 3, 4, 5, 6, 7].map((qa) => (
@@ -178,8 +178,8 @@ export default function PathwaysPage() {
 
       {/* Pathway Grid */}
       {filtered.length === 0 ? (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-12 text-center">
-          <p className="text-gray-500">No pathways match your filters.</p>
+        <div className="bg-card rounded-xl shadow-sm border border-border p-12 text-center">
+          <p className="text-muted-foreground">No pathways match your filters.</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
@@ -192,7 +192,7 @@ export default function PathwaysPage() {
             return (
               <div
                 key={pathway.id}
-                className="bg-white rounded-xl shadow-sm border border-gray-200 flex flex-col overflow-hidden hover:shadow-md transition-shadow"
+                className="bg-card rounded-xl shadow-sm border border-border flex flex-col overflow-hidden hover:shadow-md transition-shadow"
               >
                 <div className="p-5 flex-1 flex flex-col">
                   {/* Tier + QA badges */}
@@ -217,13 +217,13 @@ export default function PathwaysPage() {
                   </div>
 
                   {/* Title + description */}
-                  <h3 className="font-semibold text-gray-900 mb-1">{pathway.title}</h3>
-                  <p className="text-sm text-gray-500 mb-3 line-clamp-2 flex-1">
+                  <h3 className="font-semibold text-foreground mb-1">{pathway.title}</h3>
+                  <p className="text-sm text-muted-foreground mb-3 line-clamp-2 flex-1">
                     {pathway.description || 'No description provided.'}
                   </p>
 
                   {/* Meta */}
-                  <div className="flex items-center gap-4 text-xs text-gray-400 mb-3">
+                  <div className="flex items-center gap-4 text-xs text-muted-foreground mb-3">
                     <span>{pathway.module_count} module{pathway.module_count !== 1 ? 's' : ''}</span>
                     {pathway.estimated_hours && (
                       <span>{pathway.estimated_hours}h estimated</span>
@@ -234,14 +234,14 @@ export default function PathwaysPage() {
                   {enrollment && (
                     <div className="mb-3">
                       <div className="flex justify-between text-xs mb-1">
-                        <span className="text-gray-500">
+                        <span className="text-muted-foreground">
                           {progress.completed} of {progress.total} modules
                         </span>
                         <span className="font-medium text-primary">
                           {progressPercent}%
                         </span>
                       </div>
-                      <div className="w-full bg-gray-100 rounded-full h-2">
+                      <div className="w-full bg-muted rounded-full h-2">
                         <div
                           className="h-2 rounded-full transition-all"
                           style={{

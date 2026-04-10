@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase/client'
 import type { Profile, Room, RosterShift, StaffQualification, LeaveRequest, ProgrammingTime, RatioStatus } from '@/lib/types'
 import { AGE_GROUP_LABELS, SHIFT_TYPE_LABELS, QUALIFICATION_LABELS } from '@/lib/types'
 import { useProfile } from '@/lib/ProfileContext'
+import { useToast } from '@/components/ui/toast'
 import { PageHeader } from '@/components/ui/page-header'
 import { Card, CardHeader, CardContent, CardTitle } from '@/components/ui/card'
 
@@ -26,6 +27,7 @@ type Tab = 'roster' | 'compliance' | 'leave' | 'programming' | 'staff'
 export default function RosteringPage() {
   const supabase = createClient()
   const user = useProfile()
+  const { toast } = useToast()
   const [profiles, setProfiles] = useState<Profile[]>([])
   const [rooms, setRooms] = useState<Room[]>([])
   const [shifts, setShifts] = useState<RosterShift[]>([])
@@ -197,7 +199,7 @@ export default function RosteringPage() {
       }
     }
     if (breaches.length > 0) {
-      alert(`Cannot publish — ratio breaches detected:\n\n${breaches.join('\n')}`)
+      toast({ type: 'warning', message: `Cannot publish — ratio breaches detected: ${breaches.join(', ')}` })
       return
     }
     await supabase.from('roster_shifts')

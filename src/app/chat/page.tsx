@@ -92,7 +92,7 @@ export default function ChatPage() {
     const channel = supabase
       .channel(`chat-${conversationId}`)
       .on('postgres_changes', {
-        event: 'INSERT',
+        event: '*',
         schema: 'public',
         table: 'chat_messages',
         filter: `conversation_id=eq.${conversationId}`,
@@ -642,7 +642,7 @@ export default function ChatPage() {
 
                       {/* Document cards */}
                       {msg.documents && msg.documents.length > 0 && msg.documents.map((doc, di) => (
-                        <div key={di} className="border border-purple-200 rounded-xl overflow-hidden bg-white">
+                        <div key={di} className="border border-purple-200 rounded-xl overflow-hidden bg-card">
                           <div className="px-4 py-3 bg-purple-50 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                             <div className="flex items-center gap-2 min-w-0">
                               <svg className="w-5 h-5 text-purple-600 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -655,12 +655,12 @@ export default function ChatPage() {
                             </div>
                             <div className="flex flex-wrap items-center gap-1 flex-shrink-0">
                               <button onClick={() => setExpandedDoc(expandedDoc === `${msg.id}-${di}` ? null : `${msg.id}-${di}`)}
-                                className="px-2.5 py-1.5 text-xs font-medium text-purple-700 bg-white border border-purple-200 rounded-lg hover:bg-purple-100 transition-colors">
+                                className="px-2.5 py-1.5 text-xs font-medium text-purple-700 bg-card border border-purple-200 rounded-lg hover:bg-purple-100 transition-colors">
                                 {expandedDoc === `${msg.id}-${di}` ? 'Collapse' : 'Preview'}
                               </button>
                               {(['pdf', 'docx', 'xlsx', 'html', 'md'] as const).map(fmt => (
                                 <button key={fmt} onClick={() => handleExportDocument(doc, fmt)}
-                                  className="px-2.5 py-1.5 text-xs font-medium text-purple-700 bg-white border border-purple-200 rounded-lg hover:bg-purple-100 transition-colors uppercase">
+                                  className="px-2.5 py-1.5 text-xs font-medium text-purple-700 bg-card border border-purple-200 rounded-lg hover:bg-purple-100 transition-colors uppercase">
                                   {fmt}
                                 </button>
                               ))}

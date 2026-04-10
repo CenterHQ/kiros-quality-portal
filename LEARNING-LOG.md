@@ -67,6 +67,10 @@
 - **Verify against the plan, not the agent output** — when an agent says "done", cross-reference every line of the plan file before marking complete. Agents optimise for what's in their prompt, not what's in the plan.
 - **Structural changes need dedicated agents** — token replacements (colour swaps) and structural changes (new components, layout refactors) should never be mixed in the same agent prompt. Token agents skip structural work.
 - **Final audit is mandatory** — before declaring any phase complete, read the plan file and check off each item explicitly.
+- **Token replacement requires multiple passes** — agents miss files on first pass. After each round, grep to count remaining instances and run another pass on missed files. Never declare "zero remaining" without a grep to prove it.
+- **bg-white needs grep verification** — 19 files were missed on the first token replacement pass. Always run `grep -r "bg-white" src/ --include="*.tsx" | grep -v "bg-white/" | wc -l` after each cleanup round.
+- **Error handling is not optional** — every page that fetches data must have: error state, try/catch, error UI with retry button. Add this at the same time as the page, not as a later fix.
+- **alert() is never acceptable** — always use toast notifications. Check for alert() in every PR.
 
 ## Security Rules
 
