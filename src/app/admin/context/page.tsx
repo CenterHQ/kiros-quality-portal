@@ -479,12 +479,12 @@ export default function ContextManagementPage() {
                       </div>
                       <div className="flex items-center gap-1.5 flex-shrink-0">
                         {item.related_qa?.map(qa => (
-                          <span key={qa} className="text-[10px] px-1.5 py-0.5 rounded text-white" style={{ backgroundColor: QA_COLORS[qa] }}>
+                          <span key={qa} className="text-xs px-1.5 py-0.5 rounded text-white" style={{ backgroundColor: QA_COLORS[qa] }}>
                             QA{qa}
                           </span>
                         ))}
                         {!item.is_active && (
-                          <span className="text-[10px] px-1.5 py-0.5 rounded bg-muted text-muted-foreground">Inactive</span>
+                          <span className="text-xs px-1.5 py-0.5 rounded bg-muted text-muted-foreground">Inactive</span>
                         )}
                       </div>
                     </div>
@@ -533,7 +533,7 @@ export default function ContextManagementPage() {
                           >
                             Delete
                           </button>
-                          <span className="text-[10px] text-gray-300 ml-auto">
+                          <span className="text-xs text-gray-300 ml-auto">
                             {item.ai_generated ? 'AI Generated' : 'Manual'} &middot; {new Date(item.created_at).toLocaleDateString('en-AU')}
                           </span>
                         </div>

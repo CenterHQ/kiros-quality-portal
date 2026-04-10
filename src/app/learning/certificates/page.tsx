@@ -363,7 +363,7 @@ export default function CertificatesPage() {
               onClick={() => setActiveTab(tab.key)}
               className={`px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${
                 activeTab === tab.key
-                  ? 'border-[#470DA8] text-[#470DA8]'
+                  ? 'border-primary text-primary'
                   : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
               }`}
             >
@@ -392,8 +392,7 @@ export default function CertificatesPage() {
               <p className="text-sm text-gray-400 mt-1">Upload your first certificate or complete a training module to get started</p>
               <button
                 onClick={() => setActiveTab('upload')}
-                className="mt-4 inline-flex items-center gap-2 px-4 py-2 rounded-lg text-white text-sm font-medium"
-                style={{ backgroundColor: '#470DA8' }}
+                className="mt-4 inline-flex items-center gap-2 px-4 py-2 rounded-lg text-white text-sm font-medium bg-primary"
               >
                 Upload Certificate
               </button>
@@ -465,7 +464,7 @@ export default function CertificatesPage() {
                             const { data } = await supabase.storage.from('documents').createSignedUrl(cert.file_path!, 3600)
                             if (data?.signedUrl) window.open(data.signedUrl, '_blank')
                           }}
-                          className="text-[#470DA8] hover:text-[#350A7E] font-medium flex items-center gap-1"
+                          className="text-primary hover:text-primary/90 font-medium flex items-center gap-1"
                         >
                           <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -477,7 +476,7 @@ export default function CertificatesPage() {
                       {cert.lms_modules && (
                         <Link
                           href={`/learning/modules/${cert.module_id}`}
-                          className="text-[#6B3FCE] hover:text-[#470DA8] font-medium flex items-center gap-1"
+                          className="text-kiros-purple-light hover:text-primary font-medium flex items-center gap-1"
                         >
                           <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
@@ -520,7 +519,7 @@ export default function CertificatesPage() {
                 value={formTitle}
                 onChange={e => setFormTitle(e.target.value)}
                 placeholder="e.g., First Aid Certificate HLTAID012"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#470DA8]/20 focus:border-[#470DA8] outline-none transition-colors"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-colors"
               />
             </div>
 
@@ -530,7 +529,7 @@ export default function CertificatesPage() {
               <select
                 value={formType}
                 onChange={e => setFormType(e.target.value as 'external' | 'qualification')}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#470DA8]/20 focus:border-[#470DA8] outline-none transition-colors bg-white"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-colors bg-white"
               >
                 <option value="external">External Certificate</option>
                 <option value="qualification">Qualification</option>
@@ -545,7 +544,7 @@ export default function CertificatesPage() {
                 value={formIssuer}
                 onChange={e => setFormIssuer(e.target.value)}
                 placeholder="e.g., St John Ambulance"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#470DA8]/20 focus:border-[#470DA8] outline-none transition-colors"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-colors"
               />
             </div>
 
@@ -557,7 +556,7 @@ export default function CertificatesPage() {
                   type="date"
                   value={formIssueDate}
                   onChange={e => setFormIssueDate(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#470DA8]/20 focus:border-[#470DA8] outline-none transition-colors"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-colors"
                 />
               </div>
               <div>
@@ -566,7 +565,7 @@ export default function CertificatesPage() {
                   type="date"
                   value={formExpiryDate}
                   onChange={e => setFormExpiryDate(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#470DA8]/20 focus:border-[#470DA8] outline-none transition-colors"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-colors"
                 />
                 <p className="text-xs text-gray-400 mt-1">Leave blank if no expiry</p>
               </div>
@@ -581,7 +580,7 @@ export default function CertificatesPage() {
                     key={qa}
                     className={`flex items-center gap-2.5 px-3 py-2 rounded-lg border cursor-pointer transition-colors text-sm ${
                       formQA.includes(qa)
-                        ? 'border-[#470DA8] bg-[#470DA8]/5'
+                        ? 'border-primary bg-primary/5'
                         : 'border-gray-200 hover:border-gray-300'
                     }`}
                   >
@@ -589,7 +588,7 @@ export default function CertificatesPage() {
                       type="checkbox"
                       checked={formQA.includes(qa)}
                       onChange={() => toggleQA(qa)}
-                      className="w-4 h-4 rounded border-gray-300 text-[#470DA8] focus:ring-[#470DA8]/20"
+                      className="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary/20"
                     />
                     <span
                       className="w-2.5 h-2.5 rounded-full shrink-0"
@@ -604,7 +603,7 @@ export default function CertificatesPage() {
             {/* File Upload */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Certificate File</label>
-              <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-[#470DA8]/40 transition-colors">
+              <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-primary/40 transition-colors">
                 <input
                   ref={fileInputRef}
                   type="file"
@@ -618,7 +617,7 @@ export default function CertificatesPage() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
                   </svg>
                   {formFile ? (
-                    <p className="text-sm text-[#470DA8] font-medium">{formFile.name}</p>
+                    <p className="text-sm text-primary font-medium">{formFile.name}</p>
                   ) : (
                     <>
                       <p className="text-sm text-gray-600">Click to upload or drag and drop</p>
@@ -634,8 +633,7 @@ export default function CertificatesPage() {
               <button
                 type="submit"
                 disabled={submitting || !formTitle.trim()}
-                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-white text-sm font-medium transition-colors disabled:opacity-50"
-                style={{ backgroundColor: '#470DA8' }}
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-white text-sm font-medium transition-colors disabled:opacity-50 bg-primary"
               >
                 {submitting ? (
                   <>
@@ -675,7 +673,7 @@ export default function CertificatesPage() {
                 <select
                   value={filterStaff}
                   onChange={e => setFilterStaff(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-[#470DA8]/20 focus:border-[#470DA8] outline-none"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none"
                 >
                   <option value="">All Staff</option>
                   {allProfiles.map(p => (
@@ -688,7 +686,7 @@ export default function CertificatesPage() {
                 <select
                   value={filterStatus}
                   onChange={e => setFilterStatus(e.target.value as LmsCertificateStatus | '')}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-[#470DA8]/20 focus:border-[#470DA8] outline-none"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none"
                 >
                   <option value="">All Statuses</option>
                   <option value="current">Current</option>
@@ -699,8 +697,7 @@ export default function CertificatesPage() {
               <button
                 onClick={exportAllCSV}
                 disabled={exportingAll || filteredAllCerts.length === 0}
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-white text-sm font-medium transition-colors disabled:opacity-50 shrink-0"
-                style={{ backgroundColor: '#470DA8' }}
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-white text-sm font-medium transition-colors disabled:opacity-50 shrink-0 bg-primary"
               >
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -794,7 +791,7 @@ export default function CertificatesPage() {
                                   const { data } = await supabase.storage.from('documents').createSignedUrl(cert.file_path!, 3600)
                                   if (data?.signedUrl) window.open(data.signedUrl, '_blank')
                                 }}
-                                className="text-[#470DA8] hover:text-[#350A7E] font-medium text-xs"
+                                className="text-primary hover:text-primary/90 font-medium text-xs"
                               >
                                 View
                               </button>

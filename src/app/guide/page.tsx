@@ -518,8 +518,8 @@ export default function GuidePage() {
               <div className="bg-muted rounded p-3">
                 <div className="text-xs text-muted-foreground mb-2">Progress Over Time</div>
                 <div className="h-16 flex items-end">
-                  <svg viewBox="0 0 100 40" className="w-full h-full">
-                    <polyline points="0,35 20,30 40,25 60,18 80,12 100,8" fill="none" stroke="#470DA8" strokeWidth="2" />
+                  <svg viewBox="0 0 100 40" className="w-full h-full text-primary">
+                    <polyline points="0,35 20,30 40,25 60,18 80,12 100,8" fill="none" stroke="currentColor" strokeWidth="2" />
                   </svg>
                 </div>
               </div>

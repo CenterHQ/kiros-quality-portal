@@ -30,14 +30,14 @@ export default function CentreContextPanel({
   if (!loading && items.length === 0) return null
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border-l-4" style={{ borderLeftColor: '#470DA8' }}>
+    <div className="bg-white rounded-xl shadow-sm border-l-4 border-l-primary">
       {/* Header */}
       <button
         onClick={() => setCollapsed(!collapsed)}
         className="w-full flex items-center justify-between px-4 py-3 text-left hover:bg-gray-50 rounded-t-xl transition-colors"
       >
         <div className="flex items-center gap-2">
-          <div className="w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-bold" style={{ backgroundColor: '#470DA8' }}>
+          <div className="w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-bold bg-primary">
             K
           </div>
           <span className="text-sm font-semibold text-gray-800">{title}</span>

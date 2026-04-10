@@ -41,9 +41,9 @@ export default function OwnaHealthPage() {
           <p className="text-gray-500 text-sm mt-1">Incidents, illness, and medication from OWNA</p>
         </div>
         <div className="flex items-center gap-2">
-          <input type="date" value={dateRange.from} onChange={e => setDateRange({ ...dateRange, from: e.target.value })} className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#470DA8]" />
+          <input type="date" value={dateRange.from} onChange={e => setDateRange({ ...dateRange, from: e.target.value })} className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary" />
           <span className="text-gray-400 text-sm">to</span>
-          <input type="date" value={dateRange.to} onChange={e => setDateRange({ ...dateRange, to: e.target.value })} className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#470DA8]" />
+          <input type="date" value={dateRange.to} onChange={e => setDateRange({ ...dateRange, to: e.target.value })} className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary" />
           <button onClick={() => setDateRange({ from: daysAgo(7), to: todayStr() })} className="px-3 py-1.5 border border-gray-300 rounded-lg text-xs hover:bg-gray-50">7d</button>
           <button onClick={() => setDateRange({ from: daysAgo(30), to: todayStr() })} className="px-3 py-1.5 border border-gray-300 rounded-lg text-xs hover:bg-gray-50">30d</button>
           <button onClick={() => setDateRange({ from: daysAgo(90), to: todayStr() })} className="px-3 py-1.5 border border-gray-300 rounded-lg text-xs hover:bg-gray-50">90d</button>
@@ -77,7 +77,7 @@ export default function OwnaHealthPage() {
           { id: 'illness', label: `Illness (${illnessLogs.length})` },
           { id: 'medication', label: `Medication (${medicationLogs.length})` },
         ].map(t => (
-          <button key={t.id} onClick={() => setTab(t.id as any)} className={`px-4 py-1.5 rounded-md text-sm font-medium transition ${tab === t.id ? 'bg-white shadow-sm text-[#470DA8]' : 'text-gray-500 hover:text-gray-700'}`}>{t.label}</button>
+          <button key={t.id} onClick={() => setTab(t.id as any)} className={`px-4 py-1.5 rounded-md text-sm font-medium transition ${tab === t.id ? 'bg-white shadow-sm text-primary' : 'text-gray-500 hover:text-gray-700'}`}>{t.label}</button>
         ))}
       </div>
 

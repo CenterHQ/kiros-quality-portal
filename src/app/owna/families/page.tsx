@@ -47,9 +47,9 @@ export default function OwnaFamiliesPage() {
           <p className="text-gray-500 text-sm mt-1">Family accounts, invoices, and transactions from OWNA</p>
         </div>
         <div className="flex items-center gap-2">
-          <input type="date" value={dateRange.from} onChange={e => setDateRange({ ...dateRange, from: e.target.value })} className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#470DA8]" />
+          <input type="date" value={dateRange.from} onChange={e => setDateRange({ ...dateRange, from: e.target.value })} className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary" />
           <span className="text-gray-400 text-sm">to</span>
-          <input type="date" value={dateRange.to} onChange={e => setDateRange({ ...dateRange, to: e.target.value })} className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#470DA8]" />
+          <input type="date" value={dateRange.to} onChange={e => setDateRange({ ...dateRange, to: e.target.value })} className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary" />
         </div>
       </div>
 
@@ -57,7 +57,7 @@ export default function OwnaFamiliesPage() {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
           <p className="text-xs text-gray-500 mb-1">Active Families</p>
-          <p className="text-2xl font-bold text-[#470DA8]">{activeFamilies.length}</p>
+          <p className="text-2xl font-bold text-primary">{activeFamilies.length}</p>
           <p className="text-xs text-gray-400">{families.length} total</p>
         </div>
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
@@ -81,13 +81,13 @@ export default function OwnaFamiliesPage() {
           { id: 'invoices', label: `Invoices (${invoices.length})` },
           { id: 'transactions', label: `Transactions (${transactions.length})` },
         ].map(t => (
-          <button key={t.id} onClick={() => setTab(t.id as any)} className={`px-4 py-1.5 rounded-md text-sm font-medium transition ${tab === t.id ? 'bg-white shadow-sm text-[#470DA8]' : 'text-gray-500 hover:text-gray-700'}`}>{t.label}</button>
+          <button key={t.id} onClick={() => setTab(t.id as any)} className={`px-4 py-1.5 rounded-md text-sm font-medium transition ${tab === t.id ? 'bg-white shadow-sm text-primary' : 'text-gray-500 hover:text-gray-700'}`}>{t.label}</button>
         ))}
       </div>
 
       {tab === 'families' && (
         <>
-          <input type="text" value={search} onChange={e => setSearch(e.target.value)} placeholder="Search families..." className="px-3 py-2 border border-gray-300 rounded-lg text-sm mb-4 w-64 focus:ring-2 focus:ring-[#470DA8]" />
+          <input type="text" value={search} onChange={e => setSearch(e.target.value)} placeholder="Search families..." className="px-3 py-2 border border-gray-300 rounded-lg text-sm mb-4 w-64 focus:ring-2 focus:ring-primary" />
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
             <table className="w-full text-sm">
               <thead>

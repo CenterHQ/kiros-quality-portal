@@ -320,12 +320,12 @@ export default function TaskBoardPage() {
                                                   <div className="flex-1 min-w-0">
                                                     <div className="flex items-center gap-2 mb-1">
                                                       <span className="text-xs font-medium text-foreground">{(c.profiles as any)?.full_name || 'Unknown'}</span>
-                                                      <span className="text-[10px] text-muted-foreground">{new Date(c.created_at).toLocaleDateString()} {new Date(c.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                                                      <span className="text-xs text-muted-foreground">{new Date(c.created_at).toLocaleDateString()} {new Date(c.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                                                     </div>
                                                     <p className="text-xs text-muted-foreground whitespace-pre-line">{c.content}</p>
                                                   </div>
                                                   {user && c.user_id === user.id && (
-                                                    <button onClick={() => deleteComment(c.id)} className="opacity-0 group-hover/comment:opacity-100 text-muted-foreground hover:text-red-500 transition text-[10px] ml-2 shrink-0">
+                                                    <button onClick={() => deleteComment(c.id)} className="opacity-0 group-hover/comment:opacity-100 text-muted-foreground hover:text-red-500 transition text-xs ml-2 shrink-0">
                                                       &#10005;
                                                     </button>
                                                   )}
@@ -485,12 +485,12 @@ export default function TaskBoardPage() {
                               <div className="flex-1 min-w-0">
                                 <div className="flex items-center gap-2 mb-1">
                                   <span className="text-xs font-medium text-foreground">{(c.profiles as any)?.full_name || 'Unknown'}</span>
-                                  <span className="text-[10px] text-muted-foreground">{new Date(c.created_at).toLocaleDateString()} {new Date(c.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                                  <span className="text-xs text-muted-foreground">{new Date(c.created_at).toLocaleDateString()} {new Date(c.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                                 </div>
                                 <p className="text-xs text-muted-foreground whitespace-pre-line">{c.content}</p>
                               </div>
                               {user && c.user_id === user.id && (
-                                <button onClick={() => deleteComment(c.id)} className="opacity-0 group-hover/comment:opacity-100 text-muted-foreground hover:text-red-500 transition text-[10px] ml-2 shrink-0">
+                                <button onClick={() => deleteComment(c.id)} className="opacity-0 group-hover/comment:opacity-100 text-muted-foreground hover:text-red-500 transition text-xs ml-2 shrink-0">
                                   &#10005;
                                 </button>
                               )}

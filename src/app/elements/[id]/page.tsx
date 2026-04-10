@@ -231,14 +231,14 @@ export default function ElementDetailPage() {
   const totalActionCount = elementActions.length
   const actionProgress = totalActionCount > 0 ? Math.round((completedActionCount / totalActionCount) * 100) : 0
 
-  if (!element) return <div className="flex items-center justify-center h-64"><p className="text-gray-500">Loading...</p></div>
+  if (!element) return <div className="flex items-center justify-center h-64"><p className="text-muted-foreground">Loading...</p></div>
 
   const qaColor = QA_COLORS[element.qa_number] || '#666'
 
   return (
     <div className="max-w-5xl mx-auto">
       {/* Header */}
-      <button onClick={() => router.back()} className="text-sm text-gray-500 hover:text-gray-700 mb-4 inline-block">&larr; Back to Elements</button>
+      <button onClick={() => router.back()} className="text-sm text-muted-foreground hover:text-gray-700 mb-4 inline-block">&larr; Back to Elements</button>
 
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden mb-6">
         <div className="flex items-center gap-4 p-6 border-b border-gray-200">
@@ -247,16 +247,16 @@ export default function ElementDetailPage() {
           </div>
           <div className="flex-1">
             <h1 className="text-xl font-bold text-gray-900">{element.element_code} — {element.element_name}</h1>
-            <p className="text-sm text-gray-500">{element.standard_number}: {element.standard_name}</p>
+            <p className="text-sm text-muted-foreground">{element.standard_number}: {element.standard_name}</p>
           </div>
         </div>
 
         {/* Status & Rating Controls */}
         <div className="p-6 grid grid-cols-1 md:grid-cols-3 gap-4 border-b border-gray-200 bg-gray-50">
           <div>
-            <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">Current Rating</label>
+            <label className="block text-xs font-semibold text-muted-foreground uppercase mb-1">Current Rating</label>
             <select value={element.current_rating} onChange={(e) => updateField('current_rating', e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#470DA8] outline-none">
+              className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:ring-2 focus:ring-primary outline-none">
               <option value="not_met">Not Met</option>
               <option value="met">Met</option>
               <option value="working_towards">Working Towards</option>
@@ -265,9 +265,9 @@ export default function ElementDetailPage() {
             </select>
           </div>
           <div>
-            <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">Uplift Status</label>
+            <label className="block text-xs font-semibold text-muted-foreground uppercase mb-1">Uplift Status</label>
             <select value={element.status} onChange={(e) => updateField('status', e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#470DA8] outline-none">
+              className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:ring-2 focus:ring-primary outline-none">
               <option value="not_started">Not Started</option>
               <option value="in_progress">In Progress</option>
               <option value="action_taken">Action Taken</option>
@@ -276,9 +276,9 @@ export default function ElementDetailPage() {
             </select>
           </div>
           <div>
-            <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">Due Date</label>
+            <label className="block text-xs font-semibold text-muted-foreground uppercase mb-1">Due Date</label>
             <input type="date" value={element.due_date || ''} onChange={(e) => updateField('due_date', e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#470DA8] outline-none" />
+              className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:ring-2 focus:ring-primary outline-none" />
           </div>
         </div>
 
@@ -343,22 +343,22 @@ export default function ElementDetailPage() {
         </div>
         <div className="p-6 space-y-4">
           <div>
-            <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">Actions Taken</label>
+            <label className="block text-xs font-semibold text-muted-foreground uppercase mb-1">Actions Taken</label>
             <textarea
               value={element.actions_taken || ''}
               onChange={(e) => setElement(prev => prev ? { ...prev, actions_taken: e.target.value } : null)}
               onBlur={(e) => updateField('actions_taken', e.target.value)}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#470DA8] outline-none resize-y min-h-[100px]"
+              className="w-full px-4 py-3 border border-border rounded-lg text-sm focus:ring-2 focus:ring-primary outline-none resize-y min-h-[100px]"
               placeholder="Document actions taken to address this element..."
             />
           </div>
           <div>
-            <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">Notes</label>
+            <label className="block text-xs font-semibold text-muted-foreground uppercase mb-1">Notes</label>
             <textarea
               value={element.notes || ''}
               onChange={(e) => setElement(prev => prev ? { ...prev, notes: e.target.value } : null)}
               onBlur={(e) => updateField('notes', e.target.value)}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#470DA8] outline-none resize-y min-h-[100px]"
+              className="w-full px-4 py-3 border border-border rounded-lg text-sm focus:ring-2 focus:ring-primary outline-none resize-y min-h-[100px]"
               placeholder="Additional notes..."
             />
           </div>
@@ -370,11 +370,11 @@ export default function ElementDetailPage() {
         <div className="px-6 py-4 border-b border-gray-200">
           <div className="flex items-center justify-between">
             <h2 className="font-semibold text-gray-900">Actions Checklist</h2>
-            <span className="text-sm text-gray-500">{completedActionCount}/{totalActionCount} complete</span>
+            <span className="text-sm text-muted-foreground">{completedActionCount}/{totalActionCount} complete</span>
           </div>
           {/* Progress bar */}
           <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
-            <div className="h-2 rounded-full bg-[#470DA8] transition-all" style={{ width: `${actionProgress}%` }} />
+            <div className="h-2 rounded-full bg-primary transition-all" style={{ width: `${actionProgress}%` }} />
           </div>
         </div>
         <div className="divide-y divide-gray-100">
@@ -384,7 +384,7 @@ export default function ElementDetailPage() {
                 {/* Checkbox */}
                 <button onClick={() => toggleActionStatus(action)}
                   className={`w-5 h-5 rounded border-2 flex items-center justify-center flex-shrink-0 mt-0.5 transition ${
-                    action.status === 'completed' ? 'bg-green-500 border-green-500 text-white' : 'border-gray-300 hover:border-[#470DA8]'
+                    action.status === 'completed' ? 'bg-green-500 border-green-500 text-white' : 'border-border hover:border-primary'
                   }`}>
                   {action.status === 'completed' && <span className="text-xs">&#10003;</span>}
                 </button>
@@ -415,7 +415,7 @@ export default function ElementDetailPage() {
                       {/* Steps */}
                       {action.steps && action.steps.length > 0 && (
                         <div>
-                          <p className="text-xs font-semibold text-gray-500 uppercase mb-1">Steps</p>
+                          <p className="text-xs font-semibold text-muted-foreground uppercase mb-1">Steps</p>
                           <ol className="list-decimal list-inside space-y-1">
                             {action.steps.map((step: string, i: number) => (
                               <li key={i} className="text-sm text-gray-600">{step}</li>
@@ -426,21 +426,21 @@ export default function ElementDetailPage() {
                       {/* Prerequisites */}
                       {action.prerequisites && (
                         <div>
-                          <p className="text-xs font-semibold text-gray-500 uppercase mb-1">Prerequisites</p>
+                          <p className="text-xs font-semibold text-muted-foreground uppercase mb-1">Prerequisites</p>
                           <p className="text-sm text-gray-600">{action.prerequisites}</p>
                         </div>
                       )}
                       {/* Evidence Required */}
                       {action.evidence_required && (
                         <div>
-                          <p className="text-xs font-semibold text-gray-500 uppercase mb-1">Evidence Required</p>
+                          <p className="text-xs font-semibold text-muted-foreground uppercase mb-1">Evidence Required</p>
                           <p className="text-sm text-gray-600">{action.evidence_required}</p>
                         </div>
                       )}
                       {/* Evidence Files */}
                       {action.evidence_files && action.evidence_files.length > 0 && (
                         <div>
-                          <p className="text-xs font-semibold text-gray-500 uppercase mb-1">Evidence Files</p>
+                          <p className="text-xs font-semibold text-muted-foreground uppercase mb-1">Evidence Files</p>
                           <ul className="space-y-1">
                             {action.evidence_files.map((file: string, i: number) => (
                               <li key={i} className="text-sm text-blue-600 underline">{file}</li>
@@ -451,9 +451,9 @@ export default function ElementDetailPage() {
                       {/* Status, Assigned, Due Date */}
                       <div className="flex gap-3 flex-wrap">
                         <div>
-                          <label className="block text-xs text-gray-500 mb-0.5">Status</label>
+                          <label className="block text-xs text-muted-foreground mb-0.5">Status</label>
                           <select value={action.status} onChange={e => updateAction(action.id, 'status', e.target.value)}
-                            className="px-2 py-1 border border-gray-300 rounded text-xs focus:ring-2 focus:ring-[#470DA8] outline-none">
+                            className="px-2 py-1 border border-border rounded text-xs focus:ring-2 focus:ring-primary outline-none">
                             <option value="not_started">Not Started</option>
                             <option value="in_progress">In Progress</option>
                             <option value="blocked">Blocked</option>
@@ -461,17 +461,17 @@ export default function ElementDetailPage() {
                           </select>
                         </div>
                         <div>
-                          <label className="block text-xs text-gray-500 mb-0.5">Assigned To</label>
+                          <label className="block text-xs text-muted-foreground mb-0.5">Assigned To</label>
                           <select value={action.assigned_to || ''} onChange={e => updateAction(action.id, 'assigned_to', e.target.value || null)}
-                            className="px-2 py-1 border border-gray-300 rounded text-xs focus:ring-2 focus:ring-[#470DA8] outline-none">
+                            className="px-2 py-1 border border-border rounded text-xs focus:ring-2 focus:ring-primary outline-none">
                             <option value="">Unassigned</option>
                             {allProfiles.map(p => <option key={p.id} value={p.id}>{p.full_name}</option>)}
                           </select>
                         </div>
                         <div>
-                          <label className="block text-xs text-gray-500 mb-0.5">Due Date</label>
+                          <label className="block text-xs text-muted-foreground mb-0.5">Due Date</label>
                           <input type="date" value={action.due_date || ''} onChange={e => updateAction(action.id, 'due_date', e.target.value || null)}
-                            className="px-2 py-1 border border-gray-300 rounded text-xs focus:ring-2 focus:ring-[#470DA8] outline-none" />
+                            className="px-2 py-1 border border-border rounded text-xs focus:ring-2 focus:ring-primary outline-none" />
                         </div>
                       </div>
                     </div>
@@ -481,7 +481,7 @@ export default function ElementDetailPage() {
                 {action.due_date && (
                   <span className={`text-xs px-2 py-0.5 rounded-full flex-shrink-0 ${
                     action.due_date < new Date().toISOString().split('T')[0] && action.status !== 'completed'
-                      ? 'bg-red-100 text-red-600' : 'bg-gray-100 text-gray-500'
+                      ? 'bg-red-100 text-red-600' : 'bg-gray-100 text-muted-foreground'
                   }`}>{action.due_date}</span>
                 )}
               </div>
@@ -495,65 +495,65 @@ export default function ElementDetailPage() {
         <div className="px-6 py-4 border-t border-gray-200 bg-gray-50">
           {!showNewActionForm ? (
             <button onClick={() => setShowNewActionForm(true)}
-              className="text-sm text-[#470DA8] font-medium hover:underline">
+              className="text-sm text-primary font-medium hover:underline">
               + Add Action
             </button>
           ) : (
             <div className="space-y-3">
               <div>
-                <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">Title *</label>
+                <label className="block text-xs font-semibold text-muted-foreground uppercase mb-1">Title *</label>
                 <input type="text" value={newAction.title} onChange={e => setNewAction(prev => ({ ...prev, title: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#470DA8] outline-none"
+                  className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:ring-2 focus:ring-primary outline-none"
                   placeholder="Action title..." />
               </div>
               <div>
-                <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">Description</label>
+                <label className="block text-xs font-semibold text-muted-foreground uppercase mb-1">Description</label>
                 <textarea value={newAction.description} onChange={e => setNewAction(prev => ({ ...prev, description: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#470DA8] outline-none resize-y min-h-[60px]"
+                  className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:ring-2 focus:ring-primary outline-none resize-y min-h-[60px]"
                   placeholder="Describe this action..." />
               </div>
               <div>
-                <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">Steps (one per line)</label>
+                <label className="block text-xs font-semibold text-muted-foreground uppercase mb-1">Steps (one per line)</label>
                 <textarea value={newAction.steps} onChange={e => setNewAction(prev => ({ ...prev, steps: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#470DA8] outline-none resize-y min-h-[60px]"
+                  className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:ring-2 focus:ring-primary outline-none resize-y min-h-[60px]"
                   placeholder="Step 1&#10;Step 2&#10;Step 3" />
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">Prerequisites</label>
+                  <label className="block text-xs font-semibold text-muted-foreground uppercase mb-1">Prerequisites</label>
                   <input type="text" value={newAction.prerequisites} onChange={e => setNewAction(prev => ({ ...prev, prerequisites: e.target.value }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#470DA8] outline-none"
+                    className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:ring-2 focus:ring-primary outline-none"
                     placeholder="What needs to happen first..." />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">Evidence Required</label>
+                  <label className="block text-xs font-semibold text-muted-foreground uppercase mb-1">Evidence Required</label>
                   <input type="text" value={newAction.evidence_required} onChange={e => setNewAction(prev => ({ ...prev, evidence_required: e.target.value }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#470DA8] outline-none"
+                    className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:ring-2 focus:ring-primary outline-none"
                     placeholder="What evidence is needed..." />
                 </div>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">Assigned To</label>
+                  <label className="block text-xs font-semibold text-muted-foreground uppercase mb-1">Assigned To</label>
                   <select value={newAction.assigned_to} onChange={e => setNewAction(prev => ({ ...prev, assigned_to: e.target.value }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#470DA8] outline-none">
+                    className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:ring-2 focus:ring-primary outline-none">
                     <option value="">Unassigned</option>
                     {allProfiles.map(p => <option key={p.id} value={p.id}>{p.full_name}</option>)}
                   </select>
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">Due Date</label>
+                  <label className="block text-xs font-semibold text-muted-foreground uppercase mb-1">Due Date</label>
                   <input type="date" value={newAction.due_date} onChange={e => setNewAction(prev => ({ ...prev, due_date: e.target.value }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#470DA8] outline-none" />
+                    className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:ring-2 focus:ring-primary outline-none" />
                 </div>
               </div>
               <div className="flex gap-2">
                 <button onClick={addAction} disabled={!newAction.title.trim()}
-                  className="px-4 py-2 bg-[#470DA8] text-white rounded-lg text-sm font-medium hover:opacity-90 transition disabled:opacity-50">
+                  className="px-4 py-2 bg-primary text-white rounded-lg text-sm font-medium hover:opacity-90 transition disabled:opacity-50">
                   Add Action
                 </button>
                 <button onClick={() => { setShowNewActionForm(false); setNewAction({ title: '', description: '', steps: '', prerequisites: '', evidence_required: '', assigned_to: '', due_date: '' }) }}
-                  className="px-4 py-2 border border-gray-300 rounded-lg text-sm text-gray-600 hover:bg-gray-50 transition">
+                  className="px-4 py-2 border border-border rounded-lg text-sm text-gray-600 hover:bg-gray-50 transition">
                   Cancel
                 </button>
               </div>
@@ -572,7 +572,7 @@ export default function ElementDetailPage() {
             <div className="space-y-4 mb-6">
               {comments.map(c => (
                 <div key={c.id} className="flex gap-3">
-                  <div className="w-8 h-8 rounded-full bg-[#470DA8] text-white flex items-center justify-center text-xs font-bold flex-shrink-0">
+                  <div className="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center text-xs font-bold flex-shrink-0">
                     {c.profiles?.full_name?.charAt(0) || '?'}
                   </div>
                   <div className="flex-1">
@@ -592,14 +592,14 @@ export default function ElementDetailPage() {
             <textarea
               value={newComment}
               onChange={(e) => setNewComment(e.target.value)}
-              className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#470DA8] outline-none resize-none"
+              className="flex-1 px-4 py-2 border border-border rounded-lg text-sm focus:ring-2 focus:ring-primary outline-none resize-none"
               placeholder="Add a comment..."
               rows={2}
             />
             <button
               onClick={addComment}
               disabled={!newComment.trim()}
-              className="px-4 py-2 bg-[#470DA8] text-white rounded-lg text-sm font-medium hover:opacity-90 transition disabled:opacity-50 self-end"
+              className="px-4 py-2 bg-primary text-white rounded-lg text-sm font-medium hover:opacity-90 transition disabled:opacity-50 self-end"
             >Send</button>
           </div>
         </div>

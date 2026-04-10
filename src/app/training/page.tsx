@@ -98,7 +98,7 @@ export default function TrainingPage() {
     return (
       <div className="max-w-7xl mx-auto">
         <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#470DA8]" />
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
         </div>
       </div>
     )
@@ -125,7 +125,7 @@ export default function TrainingPage() {
               <div className="px-6 py-4 border-b border-gray-100">
                 <div className="flex items-start justify-between">
                   <div className="flex items-start gap-3">
-                    <div className="w-10 h-10 rounded-lg bg-[#470DA8] flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
+                    <div className="w-10 h-10 rounded-lg bg-primary flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
                       {idx + 1}
                     </div>
                     <div>
@@ -217,7 +217,7 @@ export default function TrainingPage() {
                         <select
                           value={assignForm.user_id}
                           onChange={(e) => setAssignForm(f => ({ ...f, user_id: e.target.value }))}
-                          className="w-full px-3 py-1.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#470DA8] focus:border-transparent outline-none"
+                          className="w-full px-3 py-1.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent outline-none"
                         >
                           <option value="">Select user...</option>
                           {profiles.map(p => (
@@ -230,13 +230,13 @@ export default function TrainingPage() {
                           type="date"
                           value={assignForm.due_date}
                           onChange={(e) => setAssignForm(f => ({ ...f, due_date: e.target.value }))}
-                          className="w-full px-3 py-1.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#470DA8] focus:border-transparent outline-none"
+                          className="w-full px-3 py-1.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent outline-none"
                           placeholder="Due date (optional)"
                         />
                         <div className="flex gap-2">
                           <button
                             onClick={() => handleAssign(mod.id)}
-                            className="px-3 py-1.5 bg-[#470DA8] text-white text-xs rounded-lg hover:bg-[#350A7E] transition font-medium"
+                            className="px-3 py-1.5 bg-primary text-white text-xs rounded-lg hover:bg-primary/90 transition font-medium"
                           >
                             Assign
                           </button>
@@ -251,7 +251,7 @@ export default function TrainingPage() {
                     ) : (
                       <button
                         onClick={() => setAssigningModuleId(mod.id)}
-                        className="text-xs text-[#470DA8] hover:text-[#350A7E] font-medium transition"
+                        className="text-xs text-primary hover:text-primary/90 font-medium transition"
                       >
                         + Assign to User
                       </button>

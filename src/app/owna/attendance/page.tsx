@@ -88,8 +88,8 @@ export default function OwnaAttendancePage() {
         <div className="flex items-center gap-3">
           <button onClick={loadLatestData} className="px-3 py-1.5 border border-blue-300 text-blue-600 rounded-lg text-xs hover:bg-blue-50">Load Latest Data</button>
           <button onClick={() => setSelectedDate(daysAgo(1))} className="px-3 py-1.5 border border-gray-300 rounded-lg text-xs hover:bg-gray-50">Yesterday</button>
-          <input type="date" value={selectedDate} onChange={e => setSelectedDate(e.target.value)} className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#470DA8]" />
-          <button onClick={() => setSelectedDate(todayStr())} className="px-3 py-1.5 bg-[#470DA8] text-white rounded-lg text-xs font-medium hover:opacity-90">Today</button>
+          <input type="date" value={selectedDate} onChange={e => setSelectedDate(e.target.value)} className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary" />
+          <button onClick={() => setSelectedDate(todayStr())} className="px-3 py-1.5 bg-primary text-white rounded-lg text-xs font-medium hover:opacity-90">Today</button>
         </div>
       </div>
 
@@ -123,7 +123,7 @@ export default function OwnaAttendancePage() {
           <h2 className="font-semibold text-gray-900 text-sm mb-3">Room Breakdown</h2>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
             {roomStats.map(rs => (
-              <div key={rs.room} onClick={() => setRoomFilter(roomFilter === rs.room ? '' : rs.room)} className={`p-3 rounded-lg border cursor-pointer transition ${roomFilter === rs.room ? 'border-[#470DA8] bg-purple-50' : 'border-gray-200 hover:bg-gray-50'}`}>
+              <div key={rs.room} onClick={() => setRoomFilter(roomFilter === rs.room ? '' : rs.room)} className={`p-3 rounded-lg border cursor-pointer transition ${roomFilter === rs.room ? 'border-primary bg-purple-50' : 'border-gray-200 hover:bg-gray-50'}`}>
                 <p className="font-medium text-sm text-gray-900 truncate">{rs.room}</p>
                 <div className="flex items-center gap-3 mt-1 text-xs">
                   <span className="text-green-600">{rs.present} present</span>
@@ -147,7 +147,7 @@ export default function OwnaAttendancePage() {
           <div className="py-12 text-center text-gray-400">
             <p className="text-4xl mb-3">📋</p>
             <p className="text-sm mb-3">{noDataMessage || `No attendance records for ${new Date(selectedDate).toLocaleDateString()}`}</p>
-            <button onClick={loadLatestData} className="px-4 py-2 bg-[#470DA8] text-white rounded-lg text-sm font-medium hover:opacity-90">Load Latest Data</button>
+            <button onClick={loadLatestData} className="px-4 py-2 bg-primary text-white rounded-lg text-sm font-medium hover:opacity-90">Load Latest Data</button>
           </div>
         ) : (
           <table className="w-full text-sm">

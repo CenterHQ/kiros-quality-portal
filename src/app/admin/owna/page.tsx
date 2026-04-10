@@ -452,7 +452,7 @@ export default function OwnaApiTestingPage() {
                   >
                     <span>{g.icon}</span>
                     <span>{g.name}</span>
-                    <span className="text-[10px] text-muted-foreground ml-auto">{g.endpoints.length}</span>
+                    <span className="text-xs text-muted-foreground ml-auto">{g.endpoints.length}</span>
                   </button>
                   {selectedGroup === gi && (
                     <div className="bg-muted">
@@ -553,7 +553,7 @@ export default function OwnaApiTestingPage() {
                       {responseStatus}
                     </span>
                   )}
-                  {response && <span className="text-[10px] text-muted-foreground">{responseLines} lines</span>}
+                  {response && <span className="text-xs text-muted-foreground">{responseLines} lines</span>}
                 </div>
                 {response && (
                   <button onClick={() => navigator.clipboard.writeText(response)} className="px-3 py-1 border border-border rounded text-xs text-gray-600 hover:bg-muted">
@@ -584,7 +584,7 @@ export default function OwnaApiTestingPage() {
                     <span className="text-muted-foreground w-16">{h.time}</span>
                     <span className={`px-1 py-0.5 rounded text-[9px] font-bold ${METHOD_COLORS[h.method]}`}>{h.method}</span>
                     <span className="text-gray-600 font-mono truncate flex-1">{h.url}</span>
-                    <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${h.status >= 200 && h.status < 300 ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-600'}`}>{h.status}</span>
+                    <span className={`px-1.5 py-0.5 rounded text-xs font-medium ${h.status >= 200 && h.status < 300 ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-600'}`}>{h.status}</span>
                   </div>
                 ))}
               </div>

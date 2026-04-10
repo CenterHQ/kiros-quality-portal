@@ -146,8 +146,8 @@ export default function RegisterDetailPage() {
 
   const renderCellInput = (col: RegisterColumnDef, value: unknown, onChange: (val: unknown) => void, compact = false) => {
     const cls = compact
-      ? 'w-full px-2 py-1 border border-gray-300 rounded text-xs focus:ring-1 focus:ring-[#470DA8] focus:border-transparent'
-      : 'w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#470DA8] focus:border-transparent'
+      ? 'w-full px-2 py-1 border border-gray-300 rounded text-xs focus:ring-1 focus:ring-primary focus:border-transparent'
+      : 'w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent'
 
     switch (col.type) {
       case 'text':
@@ -168,7 +168,7 @@ export default function RegisterDetailPage() {
           </select>
         )
       case 'checkbox':
-        return <input type="checkbox" checked={!!value} onChange={e => onChange(e.target.checked)} className="rounded border-gray-300 text-[#470DA8] focus:ring-[#470DA8]" />
+        return <input type="checkbox" checked={!!value} onChange={e => onChange(e.target.checked)} className="rounded border-gray-300 text-primary focus:ring-primary" />
       case 'textarea':
         return <textarea value={String(value || '')} onChange={e => onChange(e.target.value)} rows={compact ? 1 : 2} className={cls} />
       default:
@@ -182,8 +182,8 @@ export default function RegisterDetailPage() {
       case 'checkbox': return <span className={value ? 'text-green-500' : 'text-gray-300'}>{value ? '&#10003;' : '&#10007;'}</span>
       case 'date': return <span>{new Date(String(value)).toLocaleDateString()}</span>
       case 'currency': return <span>${Number(value).toFixed(2)}</span>
-      case 'url': return <a href={String(value)} target="_blank" rel="noopener noreferrer" className="text-[#470DA8] hover:underline truncate block max-w-[200px]">{String(value)}</a>
-      case 'email': return <a href={`mailto:${value}`} className="text-[#470DA8] hover:underline">{String(value)}</a>
+      case 'url': return <a href={String(value)} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline truncate block max-w-[200px]">{String(value)}</a>
+      case 'email': return <a href={`mailto:${value}`} className="text-primary hover:underline">{String(value)}</a>
       default: return <span className="truncate block max-w-[200px]">{String(value)}</span>
     }
   }
@@ -203,13 +203,13 @@ export default function RegisterDetailPage() {
         </div>
         <div className="flex gap-2">
           <button onClick={exportCSV} className="px-3 py-2 border border-gray-300 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50">Export CSV</button>
-          <button onClick={initNewRow} className="px-4 py-2 bg-[#470DA8] text-white rounded-lg text-sm font-medium hover:opacity-90">+ Add Entry</button>
+          <button onClick={initNewRow} className="px-4 py-2 bg-primary text-white rounded-lg text-sm font-medium hover:opacity-90">+ Add Entry</button>
         </div>
       </div>
 
       {/* Search and stats */}
       <div className="flex items-center justify-between mb-4">
-        <input type="text" value={searchTerm} onChange={e => { setSearchTerm(e.target.value); setPage(0) }} placeholder="Search entries..." className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#470DA8] focus:border-transparent w-64" />
+        <input type="text" value={searchTerm} onChange={e => { setSearchTerm(e.target.value); setPage(0) }} placeholder="Search entries..." className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent w-64" />
         <span className="text-xs text-gray-400">{processedEntries.length} entries</span>
       </div>
 
@@ -221,11 +221,11 @@ export default function RegisterDetailPage() {
               <tr className="bg-gray-50 border-b border-gray-200">
                 <th className="text-left py-3 px-3 font-medium text-gray-600 text-xs w-10">#</th>
                 {columns.map(col => (
-                  <th key={col.id} className="text-left py-3 px-3 font-medium text-gray-600 text-xs cursor-pointer hover:text-[#470DA8] select-none" onClick={() => toggleSort(col.id)}>
+                  <th key={col.id} className="text-left py-3 px-3 font-medium text-gray-600 text-xs cursor-pointer hover:text-primary select-none" onClick={() => toggleSort(col.id)}>
                     <div className="flex items-center gap-1">
                       {col.name}
                       {col.required && <span className="text-red-400">*</span>}
-                      {sortCol === col.id && <span className="text-[#470DA8]">{sortDir === 'asc' ? '&#9650;' : '&#9660;'}</span>}
+                      {sortCol === col.id && <span className="text-primary">{sortDir === 'asc' ? '&#9650;' : '&#9660;'}</span>}
                     </div>
                   </th>
                 ))}
@@ -244,7 +244,7 @@ export default function RegisterDetailPage() {
                   ))}
                   <td className="py-2 px-3 text-right">
                     <div className="flex gap-1 justify-end">
-                      <button onClick={addRow} className="px-2 py-1 bg-[#470DA8] text-white rounded text-xs hover:opacity-90">Save</button>
+                      <button onClick={addRow} className="px-2 py-1 bg-primary text-white rounded text-xs hover:opacity-90">Save</button>
                       <button onClick={() => setShowAddRow(false)} className="px-2 py-1 border border-gray-300 text-gray-500 rounded text-xs hover:bg-gray-50">Cancel</button>
                     </div>
                   </td>
@@ -280,9 +280,9 @@ export default function RegisterDetailPage() {
                       </div>
                     ) : (
                       <div className="flex gap-1 justify-end opacity-0 group-hover:opacity-100 hover:opacity-100" style={{ opacity: 1 }}>
-                        <button onClick={() => startEdit(entry)} className="px-2 py-1 border border-gray-300 text-gray-500 rounded text-[10px] hover:bg-gray-50">Edit</button>
+                        <button onClick={() => startEdit(entry)} className="px-2 py-1 border border-gray-300 text-gray-500 rounded text-xs hover:bg-gray-50">Edit</button>
                         {isPrivileged && (
-                          <button onClick={() => deleteRow(entry.id)} className="px-2 py-1 border border-red-200 text-red-400 rounded text-[10px] hover:bg-red-50">Del</button>
+                          <button onClick={() => deleteRow(entry.id)} className="px-2 py-1 border border-red-200 text-red-400 rounded text-xs hover:bg-red-50">Del</button>
                         )}
                       </div>
                     )}
@@ -302,7 +302,7 @@ export default function RegisterDetailPage() {
             <div className="flex gap-1">
               <button onClick={() => setPage(p => Math.max(0, p - 1))} disabled={page === 0} className="px-3 py-1 border border-gray-300 rounded text-xs hover:bg-white disabled:opacity-50">Prev</button>
               {Array.from({ length: totalPages }, (_, i) => (
-                <button key={i} onClick={() => setPage(i)} className={`px-3 py-1 border rounded text-xs ${page === i ? 'bg-[#470DA8] text-white border-[#470DA8]' : 'border-gray-300 hover:bg-white'}`}>{i + 1}</button>
+                <button key={i} onClick={() => setPage(i)} className={`px-3 py-1 border rounded text-xs ${page === i ? 'bg-primary text-white border-primary' : 'border-gray-300 hover:bg-white'}`}>{i + 1}</button>
               ))}
               <button onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))} disabled={page === totalPages - 1} className="px-3 py-1 border border-gray-300 rounded text-xs hover:bg-white disabled:opacity-50">Next</button>
             </div>

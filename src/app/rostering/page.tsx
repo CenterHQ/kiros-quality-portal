@@ -287,7 +287,7 @@ export default function RosteringPage() {
                                 <div className="flex items-center justify-between">
                                   <span className="font-medium truncate" style={{ color: room.color }}>{(shift.profiles as any)?.full_name || 'Unassigned'}</span>
                                   {isPrivileged && (
-                                    <button onClick={() => deleteShift(shift.id)} className="opacity-0 group-hover:opacity-100 text-red-400 hover:text-red-600 text-[10px] transition">&#10005;</button>
+                                    <button onClick={() => deleteShift(shift.id)} className="opacity-0 group-hover:opacity-100 text-red-400 hover:text-red-600 text-xs transition">&#10005;</button>
                                   )}
                                 </div>
                                 <span className="text-muted-foreground">{shift.start_time?.slice(0, 5)}-{shift.end_time?.slice(0, 5)}</span>
@@ -299,7 +299,7 @@ export default function RosteringPage() {
                             ))}
                           </div>
                           {isPrivileged && (
-                            <button onClick={() => { setSelectedDay(date); setNewShift({ ...newShift, room_id: String(room.id) }); setShowAddShift(true) }} className="mt-2 w-full px-2 py-1 border border-dashed border-border text-muted-foreground rounded text-[10px] hover:border-primary hover:text-primary transition">
+                            <button onClick={() => { setSelectedDay(date); setNewShift({ ...newShift, room_id: String(room.id) }); setShowAddShift(true) }} className="mt-2 w-full px-2 py-1 border border-dashed border-border text-muted-foreground rounded text-xs hover:border-primary hover:text-primary transition">
                               + Add Shift
                             </button>
                           )}
@@ -590,7 +590,7 @@ export default function RosteringPage() {
                   ) : (
                     <div className="flex flex-wrap gap-2">
                       {pQuals.map(q => (
-                        <span key={q.id} className={`px-2 py-1 rounded-full text-[10px] font-medium ${
+                        <span key={q.id} className={`px-2 py-1 rounded-full text-xs font-medium ${
                           q.status === 'current' ? 'bg-green-50 text-green-700 border border-green-200' :
                           q.status === 'expiring_soon' ? 'bg-yellow-50 text-yellow-700 border border-yellow-200' :
                           q.status === 'expired' ? 'bg-red-50 text-red-700 border border-red-200' :

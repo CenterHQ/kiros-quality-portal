@@ -91,7 +91,7 @@ export default function OwnaEnrolmentsPage() {
           { id: 'waitlist', label: `Waitlist (${waitlist.length})` },
           { id: 'submissions', label: `Submissions (${submissions.length})` },
         ].map(t => (
-          <button key={t.id} onClick={() => setTab(t.id as any)} className={`px-4 py-1.5 rounded-md text-sm font-medium transition ${tab === t.id ? 'bg-white shadow-sm text-[#470DA8]' : 'text-gray-500 hover:text-gray-700'}`}>{t.label}</button>
+          <button key={t.id} onClick={() => setTab(t.id as any)} className={`px-4 py-1.5 rounded-md text-sm font-medium transition ${tab === t.id ? 'bg-white shadow-sm text-primary' : 'text-gray-500 hover:text-gray-700'}`}>{t.label}</button>
         ))}
       </div>
 

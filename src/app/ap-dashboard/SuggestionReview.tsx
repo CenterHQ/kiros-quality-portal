@@ -48,13 +48,13 @@ export default function SuggestionReview({ suggestions: initialSuggestions }: Su
                 <div className="flex items-center gap-2 mb-1">
                   <span className="text-sm font-medium text-gray-800">{suggestion.title}</span>
                   {suggestion.action_type && (
-                    <span className="text-[10px] px-1.5 py-0.5 bg-purple-100 text-purple-700 rounded">
+                    <span className="text-xs px-1.5 py-0.5 bg-purple-100 text-purple-700 rounded">
                       {suggestion.action_type.replace('_', ' ')}
                     </span>
                   )}
                 </div>
                 <p className="text-xs text-gray-600 leading-relaxed">{suggestion.content}</p>
-                <div className="flex items-center gap-3 mt-2 text-[10px] text-gray-400">
+                <div className="flex items-center gap-3 mt-2 text-xs text-gray-400">
                   <span>From: {suggestedByName} ({ROLE_LABELS[suggestedByRole] || suggestedByRole})</span>
                   <span>{new Date(suggestion.created_at).toLocaleDateString('en-AU')}</span>
                   {suggestion.related_qa && suggestion.related_qa.length > 0 && (

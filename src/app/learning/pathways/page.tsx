@@ -144,7 +144,7 @@ export default function PathwaysPage() {
         </div>
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
           <p className="text-sm text-gray-500">Enrolled</p>
-          <p className="text-2xl font-bold" style={{ color: '#470DA8' }}>{stats.enrolled}</p>
+          <p className="text-2xl font-bold text-primary">{stats.enrolled}</p>
         </div>
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
           <p className="text-sm text-gray-500">Completed</p>
@@ -157,7 +157,7 @@ export default function PathwaysPage() {
         <select
           value={filterTier}
           onChange={(e) => setFilterTier(e.target.value as LmsModuleTier | 'all')}
-          className="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#470DA8] focus:border-transparent"
+          className="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
         >
           <option value="all">All Tiers</option>
           <option value="mandatory">Mandatory Compliance</option>
@@ -167,7 +167,7 @@ export default function PathwaysPage() {
         <select
           value={filterQA}
           onChange={(e) => setFilterQA(Number(e.target.value))}
-          className="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#470DA8] focus:border-transparent"
+          className="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
         >
           <option value={0}>All QA Areas</option>
           {[1, 2, 3, 4, 5, 6, 7].map((qa) => (
@@ -237,7 +237,7 @@ export default function PathwaysPage() {
                         <span className="text-gray-500">
                           {progress.completed} of {progress.total} modules
                         </span>
-                        <span className="font-medium" style={{ color: '#470DA8' }}>
+                        <span className="font-medium text-primary">
                           {progressPercent}%
                         </span>
                       </div>
@@ -246,7 +246,7 @@ export default function PathwaysPage() {
                           className="h-2 rounded-full transition-all"
                           style={{
                             width: `${progressPercent}%`,
-                            backgroundColor: progressPercent === 100 ? '#22c55e' : '#470DA8',
+                            backgroundColor: progressPercent === 100 ? '#22c55e' : 'hsl(var(--primary))',
                           }}
                         />
                       </div>
@@ -258,7 +258,7 @@ export default function PathwaysPage() {
                     <Link
                       href={`/learning/pathways/${pathway.id}`}
                       className="inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-lg text-white transition-colors"
-                      style={{ backgroundColor: enrollment.status === 'completed' ? '#22c55e' : '#470DA8' }}
+                      style={{ backgroundColor: enrollment.status === 'completed' ? '#22c55e' : 'hsl(var(--primary))' }}
                     >
                       {enrollment.status === 'completed' ? 'View Completed' : 'Continue'}
                     </Link>
@@ -266,8 +266,7 @@ export default function PathwaysPage() {
                     <button
                       onClick={() => handleEnroll(pathway.id)}
                       disabled={enrollingId === pathway.id}
-                      className="inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-lg border-2 transition-colors disabled:opacity-50"
-                      style={{ borderColor: '#470DA8', color: '#470DA8' }}
+                      className="inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-lg border-2 transition-colors disabled:opacity-50 border-primary text-primary"
                     >
                       {enrollingId === pathway.id ? 'Enrolling...' : 'Enroll'}
                     </button>

@@ -60,8 +60,8 @@ export default function OwnaStaffPage() {
           <p className="text-gray-500 text-sm mt-1">Staff profiles and on-duty status from OWNA</p>
         </div>
         <div className="flex items-center gap-3">
-          <input type="date" value={selectedDate} onChange={e => setSelectedDate(e.target.value)} className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#470DA8]" />
-          <button onClick={() => setSelectedDate(todayStr())} className="px-3 py-1.5 bg-[#470DA8] text-white rounded-lg text-xs font-medium hover:opacity-90">Today</button>
+          <input type="date" value={selectedDate} onChange={e => setSelectedDate(e.target.value)} className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary" />
+          <button onClick={() => setSelectedDate(todayStr())} className="px-3 py-1.5 bg-primary text-white rounded-lg text-xs font-medium hover:opacity-90">Today</button>
         </div>
       </div>
 
@@ -69,7 +69,7 @@ export default function OwnaStaffPage() {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
           <p className="text-xs text-gray-500 mb-1">Total Active Staff</p>
-          <p className="text-2xl font-bold text-[#470DA8]">{staff.length}</p>
+          <p className="text-2xl font-bold text-primary">{staff.length}</p>
         </div>
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
           <p className="text-xs text-gray-500 mb-1">On Duty</p>
@@ -83,7 +83,7 @@ export default function OwnaStaffPage() {
           <p className="text-xs text-gray-500 mb-1">Staff Types</p>
           <div className="flex flex-wrap gap-1 mt-1">
             {Array.from(new Set(staff.map((s: any) => s.staffType).filter(Boolean))).map((t: any) => (
-              <span key={t} className="px-1.5 py-0.5 bg-gray-100 text-gray-600 rounded text-[10px]">{t} ({staff.filter((s: any) => s.staffType === t).length})</span>
+              <span key={t} className="px-1.5 py-0.5 bg-gray-100 text-gray-600 rounded text-xs">{t} ({staff.filter((s: any) => s.staffType === t).length})</span>
             ))}
           </div>
         </div>
@@ -136,7 +136,7 @@ export default function OwnaStaffPage() {
                     {s.picture ? (
                       <img src={s.picture} alt="" className="w-8 h-8 rounded-full object-cover" />
                     ) : (
-                      <div className="w-8 h-8 rounded-full bg-[#470DA8]/10 flex items-center justify-center text-xs font-medium text-[#470DA8]">
+                      <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-xs font-medium text-primary">
                         {(s.firstname || '?')[0]}{(s.surname || '?')[0]}
                       </div>
                     )}

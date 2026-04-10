@@ -141,10 +141,10 @@ export default function ChatAssistant() {
     <>
       {/* Status indicator — visible when processing or new message, even with panel closed */}
       {!isOpen && (loading || hasNewMessage) && (
-        <div className={`fixed bottom-[88px] right-6 z-50 rounded-full px-3 py-1.5 text-[11px] font-medium shadow-lg whitespace-nowrap transition-all ${
+        <div className={`fixed bottom-[88px] right-6 z-50 rounded-full px-3 py-1.5 text-xs font-medium shadow-lg whitespace-nowrap transition-all ${
           hasNewMessage
             ? 'bg-green-500 text-white animate-bounce'
-            : 'bg-white text-purple-700 border border-purple-200'
+            : 'bg-card text-primary border border-primary/20'
         }`}>
           {hasNewMessage ? '\u2713 New response ready' : (
             <span className="flex items-center gap-1.5">
@@ -158,8 +158,7 @@ export default function ChatAssistant() {
       {/* Floating button */}
       <button
         onClick={() => { setIsOpen(!isOpen); if (!isOpen) setHasNewMessage(false) }}
-        className={`fixed bottom-6 right-6 w-14 h-14 rounded-full shadow-lg flex items-center justify-center text-white z-50 hover:scale-105 transition-transform ${hasNewMessage && !isOpen ? 'animate-pulse ring-4 ring-purple-300/50' : ''}`}
-        style={{ backgroundColor: '#470DA8' }}
+        className={`fixed bottom-6 right-6 w-14 h-14 rounded-full shadow-lg flex items-center justify-center text-primary-foreground z-50 hover:scale-105 transition-transform bg-primary ${hasNewMessage && !isOpen ? 'animate-pulse ring-4 ring-purple-300/50' : ''}`}
         aria-label={isOpen ? 'Close chat assistant' : 'Open chat assistant'}
         title="Kiros AI Assistant"
       >
@@ -176,14 +175,14 @@ export default function ChatAssistant() {
 
       {/* Mini chat panel */}
       {isOpen && (
-        <div className="fixed bottom-24 right-6 w-[420px] h-[550px] bg-white rounded-2xl shadow-2xl border border-gray-200 flex flex-col z-50 overflow-hidden max-sm:w-[calc(100vw-16px)] max-sm:h-[calc(100vh-100px)] max-sm:right-2 max-sm:bottom-[76px]">
+        <div className="fixed bottom-24 right-6 w-[420px] h-[550px] bg-card rounded-2xl shadow-2xl border border-border flex flex-col z-50 overflow-hidden max-sm:w-[calc(100vw-16px)] max-sm:h-[calc(100vh-100px)] max-sm:right-2 max-sm:bottom-[76px]">
           {/* Header */}
-          <div className="px-4 py-2.5 border-b border-gray-100 flex items-center justify-between" style={{ backgroundColor: '#470DA8' }}>
+          <div className="px-4 py-2.5 border-b border-border bg-primary text-primary-foreground flex items-center justify-between">
             <div className="flex items-center gap-2">
               <div className="w-7 h-7 rounded-full bg-white/20 flex items-center justify-center text-white text-xs font-bold">K</div>
               <div>
                 <div className="text-white text-sm font-semibold">Kiros AI</div>
-                <div className="text-white/60 text-[10px]">{roleLabel}</div>
+                <div className="text-white/60 text-xs">{roleLabel}</div>
               </div>
             </div>
             <div className="flex items-center gap-1">
@@ -214,14 +213,14 @@ export default function ChatAssistant() {
           <div className="flex-1 overflow-y-auto px-4 py-3 space-y-3">
             {messages.length === 0 && (
               <div className="flex flex-col items-center justify-center h-full text-center px-2">
-                <div className="w-10 h-10 rounded-full flex items-center justify-center text-white text-sm font-bold mb-3" style={{ backgroundColor: '#470DA8' }}>K</div>
-                <div className="text-sm font-medium text-gray-700 mb-1">Kiros AI</div>
-                <div className="text-xs text-gray-400 mb-4">Ask about operations, policies, QIP, or generate documents.</div>
+                <div className="w-10 h-10 rounded-full flex items-center justify-center text-primary-foreground text-sm font-bold mb-3 bg-primary">K</div>
+                <div className="text-sm font-medium text-foreground mb-1">Kiros AI</div>
+                <div className="text-xs text-muted-foreground mb-4">Ask about operations, policies, QIP, or generate documents.</div>
                 <div className="space-y-1.5 w-full">
-                  <button onClick={() => setInput('What are our QIP goals?')} className="w-full text-left px-3 py-2 rounded-lg bg-gray-50 text-xs text-gray-600 hover:bg-gray-100 transition-colors">
+                  <button onClick={() => setInput('What are our QIP goals?')} className="w-full text-left px-3 py-2 rounded-lg bg-muted text-xs text-muted-foreground hover:bg-accent transition-colors">
                     What are our QIP goals?
                   </button>
-                  <button onClick={() => setInput('What items are overdue?')} className="w-full text-left px-3 py-2 rounded-lg bg-gray-50 text-xs text-gray-600 hover:bg-gray-100 transition-colors">
+                  <button onClick={() => setInput('What items are overdue?')} className="w-full text-left px-3 py-2 rounded-lg bg-muted text-xs text-muted-foreground hover:bg-accent transition-colors">
                     What items are overdue?
                   </button>
                   <a href="/chat" className="block text-center text-xs font-semibold mt-3 px-3 py-2 rounded-lg bg-purple-50 text-purple-700 hover:bg-purple-100 transition-colors border border-purple-200">
@@ -235,9 +234,9 @@ export default function ChatAssistant() {
               <div key={msg.id} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                 <div className={`max-w-[85%] rounded-2xl px-3 py-2 text-sm ${
                   msg.role === 'user'
-                    ? 'text-white rounded-br-md'
-                    : 'bg-gray-50 text-gray-800 rounded-bl-md'
-                }`} style={msg.role === 'user' ? { backgroundColor: '#470DA8' } : undefined}>
+                    ? 'bg-primary text-primary-foreground rounded-br-md'
+                    : 'bg-muted text-foreground rounded-bl-md'
+                }`}>
                   {msg.role === 'assistant' ? (
                     <div className="prose prose-sm max-w-none [&_p]:text-sm [&_p]:leading-relaxed [&_p]:my-1 [&_li]:text-sm [&_h1]:text-sm [&_h1]:font-bold [&_h2]:text-sm [&_h2]:font-semibold [&_h3]:text-xs [&_table]:text-[11px] [&_code]:text-xs [&_code]:bg-gray-100 [&_code]:px-1 [&_code]:rounded [&_blockquote]:text-xs [&_blockquote]:border-l-purple-300">
                       <ReactMarkdown remarkPlugins={[remarkGfm]}>{msg.content}</ReactMarkdown>
@@ -252,21 +251,21 @@ export default function ChatAssistant() {
             {/* Streaming response */}
             {streamingMessage?.isStreaming && streamingMessage.text && (
               <div className="flex justify-start">
-                <div className="max-w-[85%] rounded-2xl rounded-bl-md bg-gray-50 text-gray-800 px-3 py-2 text-sm space-y-2">
+                <div className="max-w-[85%] rounded-2xl rounded-bl-md bg-muted text-foreground px-3 py-2 text-sm space-y-2">
                   <div className="prose prose-sm max-w-none [&_p]:text-sm [&_p]:leading-relaxed [&_p]:my-1 [&_li]:text-sm [&_h1]:text-sm [&_h1]:font-bold [&_h2]:text-sm [&_h2]:font-semibold [&_h3]:text-xs [&_table]:text-[11px] [&_code]:text-xs [&_code]:bg-gray-100 [&_code]:px-1 [&_code]:rounded [&_blockquote]:text-xs [&_blockquote]:border-l-purple-300">
                     <ReactMarkdown remarkPlugins={[remarkGfm]}>{streamingMessage.text}</ReactMarkdown>
                   </div>
                   {activeTools.length > 0 && (
                     <div className="flex flex-wrap gap-1">
                       {activeTools.map(tool => (
-                        <span key={tool} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-purple-50 border border-purple-200 text-[10px] text-purple-600">
+                        <span key={tool} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-purple-50 border border-purple-200 text-xs text-purple-600">
                           <span className="w-1 h-1 rounded-full bg-purple-500 animate-pulse" />
                           {TOOL_LABELS[tool] || tool}
                         </span>
                       ))}
                     </div>
                   )}
-                  <button onClick={abortStream} className="text-[10px] text-gray-400 hover:text-red-500">Stop</button>
+                  <button onClick={abortStream} className="text-xs text-muted-foreground hover:text-red-500">Stop</button>
                 </div>
               </div>
             )}
@@ -274,19 +273,19 @@ export default function ChatAssistant() {
             {/* Loading indicator — before first tokens arrive */}
             {loading && (!streamingMessage?.text) && (
               <div className="flex justify-start">
-                <div className="bg-gray-50 rounded-2xl rounded-bl-md px-3 py-2.5 space-y-1.5">
+                <div className="bg-muted rounded-2xl rounded-bl-md px-3 py-2.5 space-y-1.5">
                   <div className="flex items-center gap-2">
                     <div className="flex gap-1">
                       <div className="w-1.5 h-1.5 rounded-full bg-purple-400 animate-bounce" style={{ animationDelay: '0ms' }} />
                       <div className="w-1.5 h-1.5 rounded-full bg-purple-400 animate-bounce" style={{ animationDelay: '150ms' }} />
                       <div className="w-1.5 h-1.5 rounded-full bg-purple-400 animate-bounce" style={{ animationDelay: '300ms' }} />
                     </div>
-                    <span className="text-[10px] text-gray-400">Thinking...</span>
+                    <span className="text-xs text-muted-foreground">Thinking...</span>
                   </div>
                   {activeTools.length > 0 && (
                     <div className="flex flex-wrap gap-1">
                       {activeTools.map(tool => (
-                        <span key={tool} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-purple-50 border border-purple-200 text-[10px] text-purple-600">
+                        <span key={tool} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-purple-50 border border-purple-200 text-xs text-purple-600">
                           <span className="w-1 h-1 rounded-full bg-purple-500 animate-pulse" />
                           {TOOL_LABELS[tool] || tool}
                         </span>
@@ -301,7 +300,7 @@ export default function ChatAssistant() {
           </div>
 
           {/* Input */}
-          <div className="px-3 py-2.5 border-t border-gray-100">
+          <div className="px-3 py-2.5 border-t border-border">
             <div className="flex items-end gap-2">
               <textarea
                 ref={inputRef}
@@ -309,15 +308,14 @@ export default function ChatAssistant() {
                 onChange={e => setInput(e.target.value)}
                 onKeyDown={handleKeyDown}
                 placeholder="Ask anything..."
-                className="flex-1 resize-none rounded-xl border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-300 focus:border-transparent max-h-20 bg-gray-50"
+                className="flex-1 resize-none rounded-xl border border-border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-transparent max-h-20 bg-muted text-foreground"
                 rows={1}
                 disabled={loading}
               />
               <button
                 onClick={sendMessage}
                 disabled={!input.trim() || loading}
-                className="p-2 rounded-xl text-white disabled:opacity-30 transition-opacity flex-shrink-0"
-                style={{ backgroundColor: '#470DA8' }}
+                className="p-2 rounded-xl text-primary-foreground bg-primary disabled:opacity-30 transition-opacity flex-shrink-0"
               >
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 12h14M12 5l7 7-7 7" />
@@ -329,7 +327,7 @@ export default function ChatAssistant() {
                   className={`p-2 rounded-xl transition-all flex-shrink-0 ${
                     isRecording
                       ? 'bg-red-500 text-white animate-pulse'
-                      : 'text-gray-400 hover:text-purple-600 hover:bg-purple-50'
+                      : 'text-muted-foreground hover:text-primary hover:bg-primary/10'
                   }`}
                   aria-label={isRecording ? 'Stop recording' : 'Voice input'}
                   disabled={loading}

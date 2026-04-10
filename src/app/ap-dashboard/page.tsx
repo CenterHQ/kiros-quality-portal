@@ -100,12 +100,12 @@ export default async function APDashboardPage() {
                 <div className="flex items-center gap-3 mt-1">
                   <div className="flex gap-1">
                     {goal.related_qa?.map((qa: number) => (
-                      <span key={qa} className="text-[10px] px-1.5 py-0.5 rounded text-white font-medium" style={{ backgroundColor: QA_COLORS[qa] || '#999' }}>
+                      <span key={qa} className="text-xs px-1.5 py-0.5 rounded text-white font-medium" style={{ backgroundColor: QA_COLORS[qa] || '#999' }}>
                         QA{qa}
                       </span>
                     ))}
                   </div>
-                  <span className="text-[10px] text-muted-foreground">
+                  <span className="text-xs text-muted-foreground">
                     {goal.elementsMet}/{goal.elementsTotal} elements
                   </span>
                 </div>
@@ -149,7 +149,7 @@ export default async function APDashboardPage() {
               <div key={s.id} className="flex items-center justify-between text-sm py-1 border-b border-gray-50">
                 <div>
                   <span className="text-foreground">{s.name}</span>
-                  <span className="text-[10px] text-muted-foreground ml-2">{ROLE_LABELS[s.role] || s.role}</span>
+                  <span className="text-xs text-muted-foreground ml-2">{ROLE_LABELS[s.role] || s.role}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <span className={`text-xs px-1.5 py-0.5 rounded ${s.isFullyCompliant ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
@@ -220,7 +220,7 @@ export default async function APDashboardPage() {
                 <div className="h-full rounded-full" style={{ width: `${qa.total > 0 ? (qa.met / qa.total * 100) : 0}%`, backgroundColor: QA_COLORS[qa.qa] }} />
               </div>
               {qa.goals > 0 && (
-                <div className="mt-2 text-[10px] text-muted-foreground">QIP progress: {qa.avgProgress}%</div>
+                <div className="mt-2 text-xs text-muted-foreground">QIP progress: {qa.avgProgress}%</div>
               )}
             </a>
           ))}

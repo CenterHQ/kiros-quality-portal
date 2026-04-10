@@ -690,7 +690,7 @@ export default function SharePointAdminPage() {
                                 value={selectedDocTypes[file.id] || ''}
                                 onChange={e => setSelectedDocTypes(prev => ({ ...prev, [file.id]: e.target.value as DocumentType }))}
                                 className="text-sm border border-border rounded-md px-2 py-1 focus:outline-none focus:ring-2 focus:ring-opacity-50"
-                                style={{ focusRingColor: '#470DA8' } as React.CSSProperties}
+                                
                               >
                                 <option value="">Select type...</option>
                                 {DOC_TYPE_OPTIONS.map(opt => (
@@ -784,8 +784,7 @@ export default function SharePointAdminPage() {
                               <button
                                 onClick={() => handleProcessDocument(doc.id)}
                                 disabled={isProcessing}
-                                className="inline-flex items-center gap-1 px-3 py-1.5 rounded-md text-xs font-medium text-white transition-colors disabled:opacity-50"
-                                style={{ backgroundColor: '#6B3FCE' }}
+                                className="inline-flex items-center gap-1 px-3 py-1.5 rounded-md text-xs font-medium text-white transition-colors disabled:opacity-50 bg-kiros-purple-light"
                                 title="Process with AI"
                               >
                                 {isProcessing ? <Spinner className="h-3 w-3" /> : (
@@ -1020,8 +1019,7 @@ export default function SharePointAdminPage() {
                               <button
                                 onClick={() => handleContextualiseModule(mod.id)}
                                 disabled={isContextualising || contextItems.length === 0}
-                                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium border transition-colors disabled:opacity-40"
-                                style={{ borderColor: '#6B3FCE', color: '#6B3FCE' }}
+                                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium border transition-colors disabled:opacity-40 border-kiros-purple-light text-kiros-purple-light"
                               >
                                 {isContextualising ? <Spinner className="h-3 w-3" /> : (
                                   <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

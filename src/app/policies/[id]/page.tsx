@@ -193,7 +193,7 @@ export default function PolicyDetailPage() {
             </div>
             {policy.related_qa?.length > 0 && (
               <div className="flex gap-1 mt-2">
-                {policy.related_qa.map(qa => <span key={qa} className="px-1.5 py-0.5 rounded text-[10px] font-medium text-white" style={{ backgroundColor: QA_COLORS[qa] }}>QA{qa}</span>)}
+                {policy.related_qa.map(qa => <span key={qa} className="px-1.5 py-0.5 rounded text-xs font-medium text-white" style={{ backgroundColor: QA_COLORS[qa] }}>QA{qa}</span>)}
               </div>
             )}
           </div>
@@ -204,7 +204,7 @@ export default function PolicyDetailPage() {
               <button onClick={() => setShowVersionHistory(!showVersionHistory)} className="px-3 py-1.5 border border-gray-300 text-gray-700 rounded-lg text-xs font-medium hover:bg-gray-50">
                 {showVersionHistory ? 'Hide' : 'Show'} History
               </button>
-              {policy.status === 'draft' && <button onClick={() => updateStatus('published')} className="px-3 py-1.5 bg-[#470DA8] text-white rounded-lg text-xs font-medium hover:opacity-90">Publish</button>}
+              {policy.status === 'draft' && <button onClick={() => updateStatus('published')} className="px-3 py-1.5 bg-primary text-white rounded-lg text-xs font-medium hover:opacity-90">Publish</button>}
               {policy.status !== 'archived' && <button onClick={() => updateStatus('archived')} className="px-3 py-1.5 border border-red-200 text-red-500 rounded-lg text-xs font-medium hover:bg-red-50">Archive</button>}
             </div>
           )}
@@ -218,7 +218,7 @@ export default function PolicyDetailPage() {
           <h2 className="font-semibold text-gray-900 mb-4">Version History</h2>
           <div className="space-y-3">
             {versions.map(v => (
-              <div key={v.id} className={`p-3 rounded-lg border cursor-pointer transition ${selectedVersion?.id === v.id ? 'border-[#470DA8] bg-purple-50' : 'border-gray-200 hover:bg-gray-50'}`} onClick={() => setSelectedVersion(selectedVersion?.id === v.id ? null : v)}>
+              <div key={v.id} className={`p-3 rounded-lg border cursor-pointer transition ${selectedVersion?.id === v.id ? 'border-primary bg-purple-50' : 'border-gray-200 hover:bg-gray-50'}`} onClick={() => setSelectedVersion(selectedVersion?.id === v.id ? null : v)}>
                 <div className="flex items-center justify-between">
                   <div>
                     <span className="font-medium text-sm">Version {v.version}</span>
@@ -243,14 +243,14 @@ export default function PolicyDetailPage() {
       {editing ? (
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
           <h2 className="font-semibold text-gray-900 mb-4">Edit Policy Content</h2>
-          <textarea value={editContent} onChange={e => setEditContent(e.target.value)} rows={20} className="w-full px-4 py-3 border border-gray-300 rounded-lg text-sm font-mono leading-relaxed focus:ring-2 focus:ring-[#470DA8] focus:border-transparent mb-4" />
+          <textarea value={editContent} onChange={e => setEditContent(e.target.value)} rows={20} className="w-full px-4 py-3 border border-gray-300 rounded-lg text-sm font-mono leading-relaxed focus:ring-2 focus:ring-primary focus:border-transparent mb-4" />
           <div className="mb-4">
             <label className="block text-sm font-medium text-gray-700 mb-1">Change Summary *</label>
-            <input type="text" value={changeSummary} onChange={e => setChangeSummary(e.target.value)} placeholder="Briefly describe what changed and why" className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#470DA8]" />
+            <input type="text" value={changeSummary} onChange={e => setChangeSummary(e.target.value)} placeholder="Briefly describe what changed and why" className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary" />
           </div>
           <div className="flex justify-end gap-2">
             <button onClick={() => { setEditing(false); setEditContent(policy.content) }} className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50">Cancel</button>
-            <button onClick={saveNewVersion} disabled={saving || !changeSummary.trim()} className="px-4 py-2 bg-[#470DA8] text-white rounded-lg text-sm font-medium hover:opacity-90 disabled:opacity-50">
+            <button onClick={saveNewVersion} disabled={saving || !changeSummary.trim()} className="px-4 py-2 bg-primary text-white rounded-lg text-sm font-medium hover:opacity-90 disabled:opacity-50">
               {saving ? 'Saving...' : 'Save New Version'}
             </button>
           </div>
@@ -287,7 +287,7 @@ export default function PolicyDetailPage() {
                 </div>
                 <p className="text-xs text-gray-400 mt-1">Draw your signature above</p>
               </div>
-              <button onClick={acknowledge} disabled={!signed} className="px-4 py-2 bg-[#470DA8] text-white rounded-lg text-sm font-medium hover:opacity-90 disabled:opacity-50">
+              <button onClick={acknowledge} disabled={!signed} className="px-4 py-2 bg-primary text-white rounded-lg text-sm font-medium hover:opacity-90 disabled:opacity-50">
                 Acknowledge Policy
               </button>
             </div>

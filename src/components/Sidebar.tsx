@@ -225,7 +225,7 @@ export default function Sidebar({ profile }: { profile: Profile }) {
                   onClick={() => toggleGroup(group.label)}
                   className="flex items-center justify-between w-full px-3 pt-4 pb-1 group"
                 >
-                  <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
+                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                     {group.label}
                   </p>
                   <ChevronDown

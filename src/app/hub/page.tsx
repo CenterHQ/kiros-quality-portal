@@ -38,13 +38,13 @@ export default async function CentreHubPage() {
     <div className="max-w-5xl mx-auto space-y-6">
       {/* Philosophy Banner */}
       {philosophy && philosophy.length > 0 && (
-        <div className="rounded-2xl p-6 text-white" style={{ background: 'linear-gradient(135deg, #470DA8 0%, #6B3FCE 50%, #9B59B6 100%)' }}>
+        <div className="rounded-2xl p-6 text-white bg-gradient-to-br from-primary via-kiros-purple-light to-kiros-purple-light/70">
           <div className="text-xs uppercase tracking-wider opacity-80 mb-3">K.I.R.O.S Philosophy</div>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
             {philosophy.map((p, i) => (
               <div key={i} className="bg-white/15 rounded-xl p-3 backdrop-blur-sm">
                 <div className="text-sm font-bold mb-1">{p.title.split(' ')[0]}</div>
-                <div className="text-[11px] opacity-90 leading-relaxed line-clamp-3">{p.content.substring(0, 100)}...</div>
+                <div className="text-xs opacity-90 leading-relaxed line-clamp-3">{p.content.substring(0, 100)}...</div>
               </div>
             ))}
           </div>
@@ -83,7 +83,7 @@ export default async function CentreHubPage() {
         {/* QIP Goals */}
         <div className="lg:col-span-2 bg-card rounded-xl shadow-sm p-5 border border-border">
           <div className="flex items-center gap-2 mb-4">
-            <div className="w-5 h-5 rounded-full flex items-center justify-center text-white text-[10px] font-bold" style={{ backgroundColor: 'hsl(var(--primary))' }}>K</div>
+            <div className="w-5 h-5 rounded-full flex items-center justify-center text-white text-xs font-bold" style={{ backgroundColor: 'hsl(var(--primary))' }}>K</div>
             <h2 className="text-base font-semibold text-foreground">QIP Goals</h2>
           </div>
           <div className="space-y-3">
@@ -105,7 +105,7 @@ export default async function CentreHubPage() {
                     <div className="flex-1 h-1.5 bg-muted rounded-full overflow-hidden">
                       <div className="h-full rounded-full" style={{ width: `${pct}%`, backgroundColor: 'hsl(var(--primary))' }} />
                     </div>
-                    <span className="text-[10px] text-muted-foreground w-6 text-right">{pct}%</span>
+                    <span className="text-xs text-muted-foreground w-6 text-right">{pct}%</span>
                   </div>
                 </div>
               )
@@ -156,7 +156,7 @@ export default async function CentreHubPage() {
                   <span className="font-medium text-foreground">{(act.profiles as Record<string, string> | null)?.full_name || 'System'}</span>
                   {' '}{act.action as string}
                 </div>
-                <div className="text-[10px] text-muted-foreground">{new Date(act.created_at as string).toLocaleString('en-AU', { dateStyle: 'medium', timeStyle: 'short' })}</div>
+                <div className="text-xs text-muted-foreground">{new Date(act.created_at as string).toLocaleString('en-AU', { dateStyle: 'medium', timeStyle: 'short' })}</div>
               </div>
             </div>
           ))}

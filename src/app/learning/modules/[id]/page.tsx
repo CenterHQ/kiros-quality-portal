@@ -43,7 +43,7 @@ interface ActionStepState {
 function LoadingSpinner() {
   return (
     <div className="flex items-center justify-center min-h-[60vh]">
-      <div className="animate-spin rounded-full h-12 w-12 border-4 border-gray-200 border-t-[#470DA8]" />
+      <div className="animate-spin rounded-full h-12 w-12 border-4 border-gray-200 border-t-primary" />
     </div>
   )
 }
@@ -582,7 +582,7 @@ export default function ModulePlayerPage() {
           </svg>
           <h2 className="text-lg font-semibold text-red-800 mb-2">Error</h2>
           <p className="text-red-600 mb-4">{error || 'Module not found.'}</p>
-          <Link href="/learning" className="text-[#470DA8] hover:underline font-medium">
+          <Link href="/learning" className="text-primary hover:underline font-medium">
             Back to Library
           </Link>
         </div>
@@ -597,7 +597,7 @@ export default function ModulePlayerPage() {
         <div className="flex items-center justify-between px-4 py-2">
           <Link
             href="/learning"
-            className="flex items-center gap-2 text-sm text-gray-600 hover:text-[#470DA8] transition-colors"
+            className="flex items-center gap-2 text-sm text-gray-600 hover:text-primary transition-colors"
           >
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -618,15 +618,15 @@ export default function ModulePlayerPage() {
 
           <div className="hidden sm:flex items-center gap-3 text-sm text-gray-500">
             <span>{completedCount} / {sections.length} sections</span>
-            <span className="font-medium" style={{ color: '#470DA8' }}>{progressPercent}%</span>
+            <span className="font-medium text-primary">{progressPercent}%</span>
           </div>
         </div>
 
         {/* Progress bar */}
         <div className="h-1 bg-gray-100">
           <div
-            className="h-full transition-all duration-500 ease-out rounded-r"
-            style={{ width: `${progressPercent}%`, backgroundColor: '#470DA8' }}
+            className="h-full transition-all duration-500 ease-out rounded-r bg-primary"
+            style={{ width: `${progressPercent}%` }}
           />
         </div>
       </div>
@@ -715,7 +715,7 @@ export default function ModulePlayerPage() {
                   className={`
                     w-full flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-left text-sm transition-colors
                     ${isCurrent
-                      ? 'bg-[#470DA8]/10 text-[#470DA8] font-medium'
+                      ? 'bg-primary/10 text-primary font-medium'
                       : 'text-gray-700 hover:bg-gray-50'
                     }
                   `}
@@ -729,8 +729,8 @@ export default function ModulePlayerPage() {
                         </svg>
                       </span>
                     ) : isCurrent ? (
-                      <span className="flex items-center justify-center w-5 h-5 rounded-full border-2 border-[#470DA8]">
-                        <span className="w-2 h-2 rounded-full bg-[#470DA8]" />
+                      <span className="flex items-center justify-center w-5 h-5 rounded-full border-2 border-primary">
+                        <span className="w-2 h-2 rounded-full bg-primary" />
                       </span>
                     ) : (
                       <span className="flex items-center justify-center w-5 h-5 rounded-full border-2 border-gray-300">
@@ -803,7 +803,7 @@ export default function ModulePlayerPage() {
 
                 {/* Complete Module Button */}
                 {allSectionsCompleted && !moduleCompleted && (
-                  <div className="bg-[#470DA8]/5 border border-[#470DA8]/20 rounded-xl p-6 mb-6 text-center">
+                  <div className="bg-primary/5 border border-primary/20 rounded-xl p-6 mb-6 text-center">
                     <h3 className="text-lg font-semibold text-gray-900 mb-2">All sections completed!</h3>
                     <p className="text-gray-600 text-sm mb-4">
                       You have completed all sections in this module. Click below to finalize.
@@ -811,8 +811,7 @@ export default function ModulePlayerPage() {
                     <button
                       onClick={handleCompleteModule}
                       disabled={saving}
-                      className="px-6 py-3 rounded-lg text-white font-semibold transition-colors disabled:opacity-50"
-                      style={{ backgroundColor: '#470DA8' }}
+                      className="px-6 py-3 rounded-lg text-white font-semibold transition-colors disabled:opacity-50 bg-primary"
                     >
                       {saving ? 'Completing...' : 'Complete Module'}
                     </button>
@@ -839,8 +838,7 @@ export default function ModulePlayerPage() {
                   <button
                     onClick={() => navigateSection(currentSectionIndex + 1)}
                     disabled={currentSectionIndex === sections.length - 1}
-                    className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-white disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-                    style={{ backgroundColor: '#470DA8' }}
+                    className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-white disabled:opacity-30 disabled:cursor-not-allowed transition-colors bg-primary"
                   >
                     Next
                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -853,7 +851,7 @@ export default function ModulePlayerPage() {
                 {centreContent.length > 0 && (
                   <div className="mt-8 border-t border-gray-200 pt-6">
                     <div className="flex items-center gap-2 mb-4">
-                      <div className="w-8 h-8 rounded-lg bg-gradient-to-r from-[#470DA8] to-[#6B3FCE] flex items-center justify-center text-white text-sm">K</div>
+                      <div className="w-8 h-8 rounded-lg bg-gradient-to-r from-primary to-kiros-purple-light flex items-center justify-center text-white text-sm">K</div>
                       <h3 className="text-lg font-semibold text-gray-900">At Kiros Early Education</h3>
                     </div>
                     <div className="space-y-4">
@@ -877,7 +875,7 @@ export default function ModulePlayerPage() {
             ) : (
               <div className="text-center py-16 text-gray-500">
                 <p>This module has no sections yet.</p>
-                <Link href="/learning" className="text-[#470DA8] hover:underline mt-2 inline-block">
+                <Link href="/learning" className="text-primary hover:underline mt-2 inline-block">
                   Back to Library
                 </Link>
               </div>
@@ -1019,8 +1017,7 @@ function ContentSection({
           <button
             onClick={onMarkComplete}
             disabled={saving}
-            className="px-5 py-2.5 rounded-lg text-white font-medium text-sm transition-colors disabled:opacity-50"
-            style={{ backgroundColor: '#470DA8' }}
+            className="px-5 py-2.5 rounded-lg text-white font-medium text-sm transition-colors disabled:opacity-50 bg-primary"
           >
             {saving ? 'Saving...' : 'Mark as Read'}
           </button>
@@ -1081,8 +1078,7 @@ function VideoSection({
           <button
             onClick={onMarkComplete}
             disabled={saving}
-            className="px-5 py-2.5 rounded-lg text-white font-medium text-sm transition-colors disabled:opacity-50"
-            style={{ backgroundColor: '#470DA8' }}
+            className="px-5 py-2.5 rounded-lg text-white font-medium text-sm transition-colors disabled:opacity-50 bg-primary"
           >
             {saving ? 'Saving...' : 'Mark as Watched'}
           </button>
@@ -1185,7 +1181,7 @@ function QuizSection({
                       indicator = 'text-red-600'
                     }
                   } else if (isSelected) {
-                    optionClasses = 'border-[#470DA8] bg-[#470DA8]/5'
+                    optionClasses = 'border-primary bg-primary/5'
                   }
 
                   return (
@@ -1201,7 +1197,7 @@ function QuizSection({
                         checked={isSelected}
                         onChange={() => !submitted && onAnswerChange(q.id, optIdx)}
                         disabled={submitted}
-                        className="mt-0.5 accent-[#470DA8]"
+                        className="mt-0.5 accent-primary"
                       />
                       <div className="flex-1">
                         <span className={`text-sm ${indicator || 'text-gray-700'}`}>{opt.text}</span>
@@ -1228,8 +1224,7 @@ function QuizSection({
           <button
             onClick={onSubmit}
             disabled={!allAnswered || saving}
-            className="px-5 py-2.5 rounded-lg text-white font-medium text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            style={{ backgroundColor: '#470DA8' }}
+            className="px-5 py-2.5 rounded-lg text-white font-medium text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed bg-primary"
           >
             {saving ? 'Submitting...' : 'Submit Quiz'}
           </button>
@@ -1261,8 +1256,8 @@ function ReflectionSection({
   return (
     <div>
       {section.content && (
-        <div className="bg-[#470DA8]/5 rounded-lg p-5 mb-6 border-l-4 border-[#470DA8]">
-          <h4 className="text-sm font-semibold text-[#470DA8] mb-2">Reflection Prompt</h4>
+        <div className="bg-primary/5 rounded-lg p-5 mb-6 border-l-4 border-primary">
+          <h4 className="text-sm font-semibold text-primary mb-2">Reflection Prompt</h4>
           <p className="text-gray-700 whitespace-pre-wrap">{section.content}</p>
         </div>
       )}
@@ -1272,7 +1267,7 @@ function ReflectionSection({
         onChange={(e) => onChange(e.target.value)}
         rows={6}
         placeholder="Write your reflection here..."
-        className="w-full border border-gray-300 rounded-lg px-4 py-3 text-gray-700 text-sm leading-relaxed resize-y focus:outline-none focus:ring-2 focus:ring-[#470DA8]/30 focus:border-[#470DA8]"
+        className="w-full border border-gray-300 rounded-lg px-4 py-3 text-gray-700 text-sm leading-relaxed resize-y focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
       />
 
       <div className="mt-6 pt-6 border-t border-gray-100 flex items-center gap-3">
@@ -1280,8 +1275,7 @@ function ReflectionSection({
         <button
           onClick={onSave}
           disabled={!text.trim() || saving}
-          className="px-5 py-2.5 rounded-lg text-white font-medium text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-          style={{ backgroundColor: '#470DA8' }}
+          className="px-5 py-2.5 rounded-lg text-white font-medium text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed bg-primary"
         >
           {saving ? 'Saving...' : completed ? 'Update Reflection' : 'Save Reflection'}
         </button>
@@ -1332,7 +1326,7 @@ function ActionStepSection({
               if (!completed) onComplete()
             }}
             disabled={completed || saving}
-            className="mt-0.5 w-5 h-5 accent-[#470DA8] rounded"
+            className="mt-0.5 w-5 h-5 accent-primary rounded"
           />
           <span className={`text-sm font-medium ${completed ? 'text-green-700' : 'text-gray-700'}`}>
             I have completed this action step
@@ -1347,7 +1341,7 @@ function ActionStepSection({
               onChange={(e) => onNotesChange(e.target.value)}
               rows={3}
               placeholder="Any notes about how you completed this action..."
-              className="w-full border border-gray-300 rounded-lg px-4 py-3 text-gray-700 text-sm resize-y focus:outline-none focus:ring-2 focus:ring-[#470DA8]/30 focus:border-[#470DA8]"
+              className="w-full border border-gray-300 rounded-lg px-4 py-3 text-gray-700 text-sm resize-y focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
             />
           </div>
         )}

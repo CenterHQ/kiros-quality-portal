@@ -363,7 +363,7 @@ function InstanceRow({ instance: i, onSkip, isPrivileged }: { instance: Checklis
                 <div className="h-1.5 bg-muted rounded-full overflow-hidden">
                   <div className="h-full bg-primary rounded-full transition-all" style={{ width: `${progress}%` }} />
                 </div>
-                <p className="text-[10px] text-muted-foreground mt-0.5 text-right">{progress}%</p>
+                <p className="text-xs text-muted-foreground mt-0.5 text-right">{progress}%</p>
               </div>
               <a href={`/checklists/${i.id}`} className="px-3 py-1.5 bg-primary text-white rounded-lg text-xs font-medium hover:opacity-90">
                 {i.status === 'in_progress' ? 'Continue' : 'Start'}

@@ -148,9 +148,9 @@ export default function ChecklistCompletionPage() {
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <a href="/checklists" className="text-sm text-gray-500 hover:text-gray-700 mb-1 inline-block">&larr; Back to Checklists</a>
+          <a href="/checklists" className="text-sm text-muted-foreground hover:text-gray-700 mb-1 inline-block">&larr; Back to Checklists</a>
           <h1 className="text-2xl font-bold">{instance.name}</h1>
-          <div className="flex items-center gap-3 text-sm text-gray-500 mt-1">
+          <div className="flex items-center gap-3 text-sm text-muted-foreground mt-1">
             <span>Due: {new Date(instance.due_date).toLocaleDateString()}</span>
             {instance.status === 'completed' && <span className="text-green-600">Completed {new Date(instance.completed_at!).toLocaleDateString()}</span>}
           </div>
@@ -162,10 +162,10 @@ export default function ChecklistCompletionPage() {
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 mb-6">
           <div className="flex items-center justify-between mb-2">
             <span className="text-sm font-medium text-gray-700">Progress</span>
-            <span className="text-sm text-gray-500">{answeredItems.length}/{applicableItems.length} items ({progress}%)</span>
+            <span className="text-sm text-muted-foreground">{answeredItems.length}/{applicableItems.length} items ({progress}%)</span>
           </div>
           <div className="h-3 bg-gray-100 rounded-full overflow-hidden">
-            <div className="h-full bg-[#470DA8] rounded-full transition-all" style={{ width: `${progress}%` }} />
+            <div className="h-full bg-primary rounded-full transition-all" style={{ width: `${progress}%` }} />
           </div>
           {failedItems.length > 0 && (
             <p className="text-xs text-red-500 mt-2">{failedItems.length} item(s) marked as failed — smart tickets will be created on submission</p>
@@ -213,26 +213,26 @@ export default function ChecklistCompletionPage() {
                     )}
 
                     {item.type === 'text' && (
-                      <textarea value={String(value || '')} onChange={e => updateResponse(item.id, e.target.value)} disabled={isReadOnly} rows={2} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#470DA8] focus:border-transparent disabled:bg-gray-50" placeholder="Enter text..." />
+                      <textarea value={String(value || '')} onChange={e => updateResponse(item.id, e.target.value)} disabled={isReadOnly} rows={2} className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent disabled:bg-gray-50" placeholder="Enter text..." />
                     )}
 
                     {item.type === 'number' && (
-                      <input type="number" value={value !== undefined && value !== null ? String(value) : ''} onChange={e => updateResponse(item.id, e.target.value ? Number(e.target.value) : '')} disabled={isReadOnly} className="w-full max-w-xs px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#470DA8] focus:border-transparent disabled:bg-gray-50" placeholder="Enter number..." />
+                      <input type="number" value={value !== undefined && value !== null ? String(value) : ''} onChange={e => updateResponse(item.id, e.target.value ? Number(e.target.value) : '')} disabled={isReadOnly} className="w-full max-w-xs px-3 py-2 border border-border rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent disabled:bg-gray-50" placeholder="Enter number..." />
                     )}
 
                     {item.type === 'dropdown' && (
-                      <select value={String(value || '')} onChange={e => updateResponse(item.id, e.target.value)} disabled={isReadOnly} className="w-full max-w-sm px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#470DA8] focus:border-transparent disabled:bg-gray-50">
+                      <select value={String(value || '')} onChange={e => updateResponse(item.id, e.target.value)} disabled={isReadOnly} className="w-full max-w-sm px-3 py-2 border border-border rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent disabled:bg-gray-50">
                         <option value="">Select...</option>
                         {(item.options || []).map(opt => <option key={opt} value={opt}>{opt}</option>)}
                       </select>
                     )}
 
                     {item.type === 'date' && (
-                      <input type="date" value={String(value || '')} onChange={e => updateResponse(item.id, e.target.value)} disabled={isReadOnly} className="w-full max-w-xs px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#470DA8] focus:border-transparent disabled:bg-gray-50" />
+                      <input type="date" value={String(value || '')} onChange={e => updateResponse(item.id, e.target.value)} disabled={isReadOnly} className="w-full max-w-xs px-3 py-2 border border-border rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent disabled:bg-gray-50" />
                     )}
 
                     {item.type === 'time' && (
-                      <input type="time" value={String(value || '')} onChange={e => updateResponse(item.id, e.target.value)} disabled={isReadOnly} className="w-full max-w-xs px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#470DA8] focus:border-transparent disabled:bg-gray-50" />
+                      <input type="time" value={String(value || '')} onChange={e => updateResponse(item.id, e.target.value)} disabled={isReadOnly} className="w-full max-w-xs px-3 py-2 border border-border rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent disabled:bg-gray-50" />
                     )}
 
                     {item.type === 'photo' && (
@@ -273,7 +273,7 @@ export default function ChecklistCompletionPage() {
                     </div>
                   )}
                   {isReadOnly && response?.notes && (
-                    <p className="text-xs text-gray-500 mt-2 italic">Notes: {response.notes}</p>
+                    <p className="text-xs text-muted-foreground mt-2 italic">Notes: {response.notes}</p>
                   )}
                 </div>
                 <div className="shrink-0 pt-1">
@@ -289,18 +289,18 @@ export default function ChecklistCompletionPage() {
       {/* Overall notes */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 mt-6">
         <label className="block text-sm font-medium text-gray-700 mb-2">Overall Notes</label>
-        <textarea value={notes} onChange={e => setNotes(e.target.value)} disabled={isReadOnly} rows={3} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#470DA8] focus:border-transparent disabled:bg-gray-50" placeholder="Any additional observations or notes..." />
+        <textarea value={notes} onChange={e => setNotes(e.target.value)} disabled={isReadOnly} rows={3} className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent disabled:bg-gray-50" placeholder="Any additional observations or notes..." />
       </div>
 
       {/* Actions */}
       {!isReadOnly && (
         <div className="flex items-center justify-between mt-6 mb-12 bg-white rounded-xl shadow-sm border border-gray-200 p-4">
-          <button onClick={saveProgress} disabled={saving} className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50 disabled:opacity-50">
+          <button onClick={saveProgress} disabled={saving} className="px-4 py-2 border border-border text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50 disabled:opacity-50">
             {saving ? 'Saving...' : 'Save Progress'}
           </button>
           <div className="flex items-center gap-3">
             <span className="text-sm text-gray-400">{answeredItems.length}/{applicableItems.length} completed</span>
-            <button onClick={submitChecklist} disabled={submitting} className="px-6 py-2 bg-[#470DA8] text-white rounded-lg text-sm font-medium hover:opacity-90 disabled:opacity-50">
+            <button onClick={submitChecklist} disabled={submitting} className="px-6 py-2 bg-primary text-white rounded-lg text-sm font-medium hover:opacity-90 disabled:opacity-50">
               {submitting ? 'Submitting...' : 'Submit Checklist'}
             </button>
           </div>
@@ -332,7 +332,7 @@ function PhotoUpload({ itemId, disabled, onUpload }: { itemId: string; disabled:
   return (
     <div>
       <input ref={fileRef} type="file" accept="image/*" capture="environment" onChange={handleUpload} className="hidden" />
-      <button onClick={() => fileRef.current?.click()} disabled={disabled || uploading} className="px-4 py-2 border border-dashed border-gray-300 text-gray-500 rounded-lg text-sm hover:border-[#470DA8] hover:text-[#470DA8] transition disabled:opacity-50">
+      <button onClick={() => fileRef.current?.click()} disabled={disabled || uploading} className="px-4 py-2 border border-dashed border-border text-muted-foreground rounded-lg text-sm hover:border-primary hover:text-primary transition disabled:opacity-50">
         {uploading ? 'Uploading...' : '📷 Take Photo / Upload'}
       </button>
     </div>
@@ -406,7 +406,7 @@ function SignaturePad({ itemId, disabled, value, onChange }: { itemId: string; d
 
   return (
     <div>
-      <div className="border border-gray-300 rounded-lg overflow-hidden inline-block bg-white">
+      <div className="border border-border rounded-lg overflow-hidden inline-block bg-white">
         <canvas
           ref={canvasRef}
           width={400}

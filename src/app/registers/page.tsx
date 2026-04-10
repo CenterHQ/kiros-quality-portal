@@ -266,7 +266,7 @@ export default function RegistersPage() {
                       {reg.description && <p className="text-xs text-muted-foreground mt-0.5">{reg.description}</p>}
                     </div>
                   </div>
-                  {reg.is_system_template && <span className="px-1.5 py-0.5 bg-blue-50 text-blue-600 rounded text-[10px] font-medium">Template</span>}
+                  {reg.is_system_template && <span className="px-1.5 py-0.5 bg-blue-50 text-blue-600 rounded text-xs font-medium">Template</span>}
                 </div>
 
                 <div className="flex items-center gap-3 text-xs text-muted-foreground mb-4">
@@ -276,9 +276,9 @@ export default function RegistersPage() {
 
                 <div className="flex flex-wrap gap-1 mb-4">
                   {reg.columns.slice(0, 5).map((col: RegisterColumnDef) => (
-                    <span key={col.id} className="px-2 py-0.5 bg-muted text-muted-foreground rounded text-[10px]">{col.name}</span>
+                    <span key={col.id} className="px-2 py-0.5 bg-muted text-muted-foreground rounded text-xs">{col.name}</span>
                   ))}
-                  {reg.columns.length > 5 && <span className="px-2 py-0.5 bg-gray-100 text-gray-400 rounded text-[10px]">+{reg.columns.length - 5} more</span>}
+                  {reg.columns.length > 5 && <span className="px-2 py-0.5 bg-gray-100 text-gray-400 rounded text-xs">+{reg.columns.length - 5} more</span>}
                 </div>
 
                 <div className="flex gap-2">

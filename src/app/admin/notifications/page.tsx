@@ -24,7 +24,7 @@ export default function NotificationsPage() {
     <div className="flex items-center justify-between py-3 border-b border-gray-100">
       <span className="text-sm text-gray-700">{label}</span>
       <button onClick={() => onChange(!checked)}
-        className={`w-10 h-6 rounded-full transition relative ${checked ? 'bg-[#470DA8]' : 'bg-gray-300'}`}>
+        className={`w-10 h-6 rounded-full transition relative ${checked ? 'bg-primary' : 'bg-gray-300'}`}>
         <span className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-transform ${checked ? 'left-5' : 'left-1'}`} />
       </button>
     </div>
@@ -38,7 +38,7 @@ export default function NotificationsPage() {
         <Toggle label="Notify me when an element or task status changes" checked={settings.notify_status_changes} onChange={(v) => setSettings({...settings, notify_status_changes: v})} />
         <Toggle label="Notify me when I am assigned a task or training" checked={settings.notify_assignments} onChange={(v) => setSettings({...settings, notify_assignments: v})} />
         <div className="mt-4 flex items-center gap-3">
-          <button onClick={save} className="px-4 py-2 bg-[#470DA8] text-white rounded-lg text-sm font-medium hover:opacity-90">Save Settings</button>
+          <button onClick={save} className="px-4 py-2 bg-primary text-white rounded-lg text-sm font-medium hover:opacity-90">Save Settings</button>
           {saved && <span className="text-sm text-green-600">Saved!</span>}
         </div>
       </div>

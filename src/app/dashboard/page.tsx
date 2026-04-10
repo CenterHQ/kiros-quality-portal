@@ -130,7 +130,7 @@ export default async function DashboardPage() {
               <div>
                 <div className="text-sm font-medium text-primary">{philosophyItems[Math.floor(Math.random() * philosophyItems.length)]?.title}</div>
                 <div className="text-xs text-muted-foreground mt-1">{philosophyItems[Math.floor(Math.random() * philosophyItems.length)]?.content?.substring(0, 150)}...</div>
-                <div className="text-[10px] text-muted-foreground/60 mt-2">K.I.R.O.S Philosophy</div>
+                <div className="text-xs text-muted-foreground/60 mt-2">K.I.R.O.S Philosophy</div>
               </div>
             </div>
           </CardContent>

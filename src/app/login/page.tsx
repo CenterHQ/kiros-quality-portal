@@ -32,7 +32,7 @@ export default function LoginPage() {
         <div className="bg-white rounded-xl shadow-lg overflow-hidden">
           <div className="bg-white p-8 text-center border-b border-gray-100">
             <img src="/logo.jpg" alt="Kiro's Early Education Centre" className="h-14 mx-auto mb-3" />
-            <div className="inline-block bg-gradient-to-r from-[#470DA8] to-[#6B3FCE] text-white text-sm font-medium px-4 py-1 rounded-full">
+            <div className="inline-block bg-gradient-to-r from-primary to-kiros-purple-light text-white text-sm font-medium px-4 py-1 rounded-full">
               Quality Uplift Portal
             </div>
           </div>
@@ -48,7 +48,7 @@ export default function LoginPage() {
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#470DA8] focus:border-transparent outline-none"
+                className="w-full px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none"
                 placeholder="you@kiros.com.au"
                 required
               />
@@ -59,14 +59,14 @@ export default function LoginPage() {
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#470DA8] focus:border-transparent outline-none"
+                className="w-full px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none"
                 required
               />
             </div>
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-gradient-to-r from-[#350A7E] to-[#6B3FCE] text-white py-2 px-4 rounded-lg font-medium hover:opacity-90 transition disabled:opacity-50"
+              className="w-full bg-gradient-to-r from-primary to-kiros-purple-light text-white py-2 px-4 rounded-lg font-medium hover:opacity-90 transition disabled:opacity-50"
             >
               {loading ? 'Signing in...' : 'Sign In'}
             </button>

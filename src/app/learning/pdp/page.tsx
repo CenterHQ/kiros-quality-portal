@@ -147,8 +147,7 @@ function SignaturePad({
         <button
           onClick={saveSignature}
           disabled={!hasDrawn}
-          className="px-3 py-1 text-xs rounded text-white disabled:opacity-50"
-          style={{ backgroundColor: '#470DA8' }}
+          className="px-3 py-1 text-xs rounded text-white disabled:opacity-50 bg-primary"
         >
           Save Signature
         </button>
@@ -449,7 +448,7 @@ export default function PdpPage() {
             onClick={() => setActiveTab(tab.key)}
             className={`px-4 py-2.5 text-sm font-medium border-b-2 transition-colors -mb-px ${
               activeTab === tab.key
-                ? 'border-[#470DA8] text-[#470DA8]'
+                ? 'border-primary text-primary'
                 : 'border-transparent text-gray-500 hover:text-gray-700'
             }`}
           >
@@ -465,8 +464,7 @@ export default function PdpPage() {
             <h2 className="text-lg font-semibold text-gray-900">Goals</h2>
             <button
               onClick={() => setShowAddGoal(!showAddGoal)}
-              className="inline-flex items-center px-4 py-2 text-sm font-medium rounded-lg text-white"
-              style={{ backgroundColor: '#470DA8' }}
+              className="inline-flex items-center px-4 py-2 text-sm font-medium rounded-lg text-white bg-primary"
             >
               {showAddGoal ? 'Cancel' : '+ Add Goal'}
             </button>
@@ -483,7 +481,7 @@ export default function PdpPage() {
                     type="text"
                     value={goalForm.title}
                     onChange={(e) => setGoalForm({ ...goalForm, title: e.target.value })}
-                    className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#470DA8] focus:border-transparent"
+                    className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                     placeholder="e.g. Improve documentation for QA1"
                   />
                 </div>
@@ -493,7 +491,7 @@ export default function PdpPage() {
                     value={goalForm.description}
                     onChange={(e) => setGoalForm({ ...goalForm, description: e.target.value })}
                     rows={3}
-                    className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#470DA8] focus:border-transparent"
+                    className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                   />
                 </div>
                 <div>
@@ -522,7 +520,7 @@ export default function PdpPage() {
                     type="date"
                     value={goalForm.target_date}
                     onChange={(e) => setGoalForm({ ...goalForm, target_date: e.target.value })}
-                    className="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#470DA8] focus:border-transparent"
+                    className="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                   />
                 </div>
                 <div>
@@ -562,8 +560,7 @@ export default function PdpPage() {
                 <button
                   onClick={handleAddGoal}
                   disabled={saving || !goalForm.title.trim()}
-                  className="px-4 py-2 text-sm font-medium rounded-lg text-white disabled:opacity-50"
-                  style={{ backgroundColor: '#470DA8' }}
+                  className="px-4 py-2 text-sm font-medium rounded-lg text-white disabled:opacity-50 bg-primary"
                 >
                   {saving ? 'Saving...' : 'Create Goal'}
                 </button>
@@ -595,13 +592,13 @@ export default function PdpPage() {
                             type="text"
                             value={editForm.title}
                             onChange={(e) => setEditForm({ ...editForm, title: e.target.value })}
-                            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-[#470DA8] focus:border-transparent"
+                            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                           />
                           <textarea
                             value={editForm.description}
                             onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
                             rows={2}
-                            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#470DA8] focus:border-transparent"
+                            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                             placeholder="Description"
                           />
                           <div className="flex gap-3 flex-wrap">
@@ -611,7 +608,7 @@ export default function PdpPage() {
                                 type="date"
                                 value={editForm.target_date}
                                 onChange={(e) => setEditForm({ ...editForm, target_date: e.target.value })}
-                                className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#470DA8]"
+                                className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
                               />
                             </div>
                             <div>
@@ -619,7 +616,7 @@ export default function PdpPage() {
                               <select
                                 value={editForm.status}
                                 onChange={(e) => setEditForm({ ...editForm, status: e.target.value as LmsPdpGoalStatus })}
-                                className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#470DA8]"
+                                className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
                               >
                                 <option value="active">Active</option>
                                 <option value="completed">Completed</option>
@@ -633,7 +630,7 @@ export default function PdpPage() {
                               value={editForm.evidence_notes}
                               onChange={(e) => setEditForm({ ...editForm, evidence_notes: e.target.value })}
                               rows={3}
-                              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#470DA8] focus:border-transparent"
+                              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                               placeholder="Record evidence of progress..."
                             />
                           </div>
@@ -641,8 +638,7 @@ export default function PdpPage() {
                             <button
                               onClick={() => handleSaveGoalEdit(goal.id)}
                               disabled={saving}
-                              className="px-3 py-1.5 text-sm font-medium rounded-lg text-white disabled:opacity-50"
-                              style={{ backgroundColor: '#470DA8' }}
+                              className="px-3 py-1.5 text-sm font-medium rounded-lg text-white disabled:opacity-50 bg-primary"
                             >
                               {saving ? 'Saving...' : 'Save'}
                             </button>
@@ -764,8 +760,7 @@ export default function PdpPage() {
                                 onClick={() =>
                                   setExpandedEvidenceId(expandedEvidenceId === goal.id ? null : goal.id)
                                 }
-                                className="text-xs font-medium hover:underline"
-                                style={{ color: '#470DA8' }}
+                                className="text-xs font-medium hover:underline text-primary"
                               >
                                 {expandedEvidenceId === goal.id ? 'Hide Evidence Notes' : 'Show Evidence Notes'}
                               </button>
@@ -840,7 +835,7 @@ export default function PdpPage() {
                                 setDraftReviewEdit({ id: review.id, goals_summary: review.goals_summary || '' })
                             }}
                             rows={3}
-                            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#470DA8] focus:border-transparent"
+                            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                             placeholder="Summarise your goals and progress for this review period..."
                           />
                         </div>
@@ -854,8 +849,7 @@ export default function PdpPage() {
                             )
                           }
                           disabled={saving}
-                          className="px-4 py-2 text-sm font-medium rounded-lg text-white disabled:opacity-50"
-                          style={{ backgroundColor: '#470DA8' }}
+                          className="px-4 py-2 text-sm font-medium rounded-lg text-white disabled:opacity-50 bg-primary"
                         >
                           {saving ? 'Submitting...' : 'Submit for Review'}
                         </button>
@@ -955,8 +949,7 @@ export default function PdpPage() {
             <h2 className="text-lg font-semibold text-gray-900">Review Staff PDPs</h2>
             <button
               onClick={() => setShowCreateReview(!showCreateReview)}
-              className="inline-flex items-center px-4 py-2 text-sm font-medium rounded-lg text-white"
-              style={{ backgroundColor: '#470DA8' }}
+              className="inline-flex items-center px-4 py-2 text-sm font-medium rounded-lg text-white bg-primary"
             >
               {showCreateReview ? 'Cancel' : '+ Create Review'}
             </button>
@@ -972,7 +965,7 @@ export default function PdpPage() {
                   <select
                     value={reviewForm.user_id}
                     onChange={(e) => setReviewForm({ ...reviewForm, user_id: e.target.value })}
-                    className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#470DA8] focus:border-transparent"
+                    className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                   >
                     <option value="">Select staff member...</option>
                     {allStaff
@@ -990,7 +983,7 @@ export default function PdpPage() {
                     type="text"
                     value={reviewForm.review_period}
                     onChange={(e) => setReviewForm({ ...reviewForm, review_period: e.target.value })}
-                    className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#470DA8] focus:border-transparent"
+                    className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                     placeholder="e.g. Q2 2026"
                   />
                 </div>
@@ -1000,7 +993,7 @@ export default function PdpPage() {
                     value={reviewForm.goals_summary}
                     onChange={(e) => setReviewForm({ ...reviewForm, goals_summary: e.target.value })}
                     rows={2}
-                    className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#470DA8] focus:border-transparent"
+                    className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                   />
                 </div>
                 <div>
@@ -1009,7 +1002,7 @@ export default function PdpPage() {
                     value={reviewForm.strengths}
                     onChange={(e) => setReviewForm({ ...reviewForm, strengths: e.target.value })}
                     rows={2}
-                    className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#470DA8] focus:border-transparent"
+                    className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                   />
                 </div>
                 <div>
@@ -1018,7 +1011,7 @@ export default function PdpPage() {
                     value={reviewForm.areas_for_growth}
                     onChange={(e) => setReviewForm({ ...reviewForm, areas_for_growth: e.target.value })}
                     rows={2}
-                    className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#470DA8] focus:border-transparent"
+                    className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                   />
                 </div>
                 <div>
@@ -1027,14 +1020,13 @@ export default function PdpPage() {
                     value={reviewForm.agreed_actions}
                     onChange={(e) => setReviewForm({ ...reviewForm, agreed_actions: e.target.value })}
                     rows={2}
-                    className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#470DA8] focus:border-transparent"
+                    className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                   />
                 </div>
                 <button
                   onClick={handleCreateReview}
                   disabled={saving || !reviewForm.user_id || !reviewForm.review_period}
-                  className="px-4 py-2 text-sm font-medium rounded-lg text-white disabled:opacity-50"
-                  style={{ backgroundColor: '#470DA8' }}
+                  className="px-4 py-2 text-sm font-medium rounded-lg text-white disabled:opacity-50 bg-primary"
                 >
                   {saving ? 'Creating...' : 'Create Review'}
                 </button>
@@ -1048,7 +1040,7 @@ export default function PdpPage() {
             <select
               value={selectedStaffId}
               onChange={(e) => setSelectedStaffId(e.target.value)}
-              className="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#470DA8] focus:border-transparent"
+              className="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
             >
               <option value="">Select staff member...</option>
               {allStaff

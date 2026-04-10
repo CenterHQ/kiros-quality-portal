@@ -109,7 +109,7 @@ export default function NewPolicyPage() {
           <button onClick={() => save('draft')} disabled={saving || !title.trim()} className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50 disabled:opacity-50">
             Save as Draft
           </button>
-          <button onClick={() => save('published')} disabled={saving || !title.trim() || !content.trim()} className="px-4 py-2 bg-[#470DA8] text-white rounded-lg text-sm font-medium hover:opacity-90 disabled:opacity-50">
+          <button onClick={() => save('published')} disabled={saving || !title.trim() || !content.trim()} className="px-4 py-2 bg-primary text-white rounded-lg text-sm font-medium hover:opacity-90 disabled:opacity-50">
             {saving ? 'Saving...' : 'Publish'}
           </button>
         </div>
@@ -121,7 +121,7 @@ export default function NewPolicyPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="md:col-span-2">
             <label className="block text-sm font-medium text-gray-700 mb-1">Policy Title *</label>
-            <input type="text" value={title} onChange={e => setTitle(e.target.value)} placeholder="e.g., Sun Safety Policy" className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#470DA8] focus:border-transparent" />
+            <input type="text" value={title} onChange={e => setTitle(e.target.value)} placeholder="e.g., Sun Safety Policy" className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent" />
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
@@ -138,7 +138,7 @@ export default function NewPolicyPage() {
           </div>
           <div className="md:col-span-2">
             <label className="block text-sm font-medium text-gray-700 mb-1">Summary</label>
-            <textarea value={summary} onChange={e => setSummary(e.target.value)} rows={2} placeholder="Brief summary of the policy purpose" className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#470DA8] focus:border-transparent" />
+            <textarea value={summary} onChange={e => setSummary(e.target.value)} rows={2} placeholder="Brief summary of the policy purpose" className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent" />
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Related Quality Areas</label>
@@ -156,7 +156,7 @@ export default function NewPolicyPage() {
           </div>
           <div>
             <label className="flex items-center gap-2 text-sm">
-              <input type="checkbox" checked={isFamilyFacing} onChange={e => setIsFamilyFacing(e.target.checked)} className="rounded border-gray-300 text-[#470DA8] focus:ring-[#470DA8]" />
+              <input type="checkbox" checked={isFamilyFacing} onChange={e => setIsFamilyFacing(e.target.checked)} className="rounded border-gray-300 text-primary focus:ring-primary" />
               <span className="text-gray-700">Family-facing policy (visible to families)</span>
             </label>
           </div>
@@ -179,7 +179,7 @@ export default function NewPolicyPage() {
       {/* Content editor */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
         <h2 className="font-semibold text-gray-900 mb-4">Policy Content</h2>
-        <textarea value={content} onChange={e => setContent(e.target.value)} rows={25} placeholder="Enter policy content here. Use {{service_name}}, {{nominated_supervisor}}, etc. for auto-populated service details..." className="w-full px-4 py-3 border border-gray-300 rounded-lg text-sm font-mono leading-relaxed focus:ring-2 focus:ring-[#470DA8] focus:border-transparent" />
+        <textarea value={content} onChange={e => setContent(e.target.value)} rows={25} placeholder="Enter policy content here. Use {{service_name}}, {{nominated_supervisor}}, etc. for auto-populated service details..." className="w-full px-4 py-3 border border-gray-300 rounded-lg text-sm font-mono leading-relaxed focus:ring-2 focus:ring-primary focus:border-transparent" />
       </div>
     </div>
   )

@@ -464,7 +464,7 @@ export default function ChatPage() {
                 }`}
               >
                 <div className="truncate pr-6">{conv.title || 'Untitled'}</div>
-                <div className="text-[10px] text-muted-foreground mt-0.5 flex items-center gap-1.5">
+                <div className="text-xs text-muted-foreground mt-0.5 flex items-center gap-1.5">
                   <span>{new Date(conv.updated_at).toLocaleDateString('en-AU', { day: 'numeric', month: 'short' })}</span>
                   <span className="inline-block w-0.5 h-0.5 rounded-full bg-muted-foreground/40" />
                   <span className="truncate">{conv.title ? conv.title.slice(0, 30) : 'No preview'}</span>
@@ -488,13 +488,13 @@ export default function ChatPage() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
               </svg>
               <p className="text-xs font-medium text-muted-foreground">No conversations yet</p>
-              <p className="text-[10px] text-muted-foreground/60 mt-1">Start a new chat to get going</p>
+              <p className="text-xs text-muted-foreground/60 mt-1">Start a new chat to get going</p>
             </div>
           )}
         </div>
 
         {/* Sidebar footer */}
-        <div className="flex-shrink-0 p-3 border-t border-border/50 text-[10px] text-muted-foreground text-center">
+        <div className="flex-shrink-0 p-3 border-t border-border/50 text-xs text-muted-foreground text-center">
           Powered by Anthropic Claude
         </div>
       </div>
@@ -517,7 +517,7 @@ export default function ChatPage() {
               <div className="w-7 h-7 rounded-full flex items-center justify-center bg-primary text-primary-foreground text-xs font-bold">K</div>
               <div>
                 <div className="text-sm font-semibold text-foreground">Kiros AI</div>
-                <div className="text-[10px] text-muted-foreground hidden sm:block">ECEC Operations Expert &middot; {roleLabel}</div>
+                <div className="text-xs text-muted-foreground hidden sm:block">ECEC Operations Expert &middot; {roleLabel}</div>
               </div>
             </div>
           </div>
@@ -642,7 +642,7 @@ export default function ChatPage() {
                               </svg>
                               <div className="min-w-0">
                                 <div className="text-sm font-medium text-purple-800 truncate">{doc.title}</div>
-                                <div className="text-[10px] text-purple-500">{doc.document_type} &middot; {new Date(doc.generated_at).toLocaleDateString('en-AU')}</div>
+                                <div className="text-xs text-purple-500">{doc.document_type} &middot; {new Date(doc.generated_at).toLocaleDateString('en-AU')}</div>
                               </div>
                             </div>
                             <div className="flex flex-wrap items-center gap-1 flex-shrink-0">
@@ -724,7 +724,7 @@ export default function ChatPage() {
 
                   {/* Model badge */}
                   {activeModel && (
-                    <div className="text-[10px] text-muted-foreground">
+                    <div className="text-xs text-muted-foreground">
                       {activeModel.includes('opus') ? 'Deep analysis mode' : 'Fast mode'}
                     </div>
                   )}
@@ -794,7 +794,7 @@ export default function ChatPage() {
                       {file.type.startsWith('image/') ? '\u{1F5BC}\u{FE0F}' : '\u{1F4CE}'}
                     </span>
                     <span className="text-purple-700 max-w-[120px] truncate">{file.name}</span>
-                    <span className="text-purple-400 text-[10px]">({(file.size / 1024).toFixed(0)}KB)</span>
+                    <span className="text-purple-400 text-xs">({(file.size / 1024).toFixed(0)}KB)</span>
                     <button onClick={() => removeAttachment(i)} className="text-purple-400 hover:text-red-500 ml-0.5">
                       <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -854,7 +854,7 @@ export default function ChatPage() {
                 </button>
               )}
             </div>
-            <div className="text-[10px] text-muted-foreground text-center mt-2">
+            <div className="text-xs text-muted-foreground text-center mt-2">
               Kiros AI is grounded in your centre&apos;s policies, QIP, and the NQS. It can create tasks, assign training, and generate documents.
             </div>
           </div>

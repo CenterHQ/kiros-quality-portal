@@ -335,7 +335,7 @@ export default function LearningHubPage() {
                     {pathway.related_qa?.map(qa => (
                       <span
                         key={qa}
-                        className="w-5 h-5 rounded-full text-white text-[10px] flex items-center justify-center font-bold"
+                        className="w-5 h-5 rounded-full text-white text-xs flex items-center justify-center font-bold"
                         style={{ backgroundColor: QA_COLORS[qa] || '#999' }}
                       >
                         {qa}

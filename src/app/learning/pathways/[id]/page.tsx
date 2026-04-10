@@ -173,7 +173,7 @@ export default function PathwayDetailPage() {
     return (
       <div className="p-8">
         <p className="text-gray-500">Pathway not found.</p>
-        <Link href="/learning/pathways" className="text-sm mt-2 inline-block" style={{ color: '#470DA8' }}>
+        <Link href="/learning/pathways" className="text-sm mt-2 inline-block text-primary">
           Back to Pathways
         </Link>
       </div>
@@ -187,8 +187,7 @@ export default function PathwayDetailPage() {
       {/* Back link */}
       <Link
         href="/learning/pathways"
-        className="inline-flex items-center text-sm font-medium mb-4 hover:underline"
-        style={{ color: '#470DA8' }}
+        className="inline-flex items-center text-sm font-medium mb-4 hover:underline text-primary"
       >
         <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -237,7 +236,7 @@ export default function PathwayDetailPage() {
             <span className="text-gray-600 font-medium">
               {completedCount} of {totalCount} modules completed
             </span>
-            <span className="font-semibold" style={{ color: progressPercent === 100 ? '#22c55e' : '#470DA8' }}>
+            <span className={`font-semibold ${progressPercent === 100 ? 'text-green-500' : 'text-primary'}`}>
               {progressPercent}%
             </span>
           </div>
@@ -246,7 +245,7 @@ export default function PathwayDetailPage() {
               className="h-3 rounded-full transition-all"
               style={{
                 width: `${progressPercent}%`,
-                backgroundColor: progressPercent === 100 ? '#22c55e' : '#470DA8',
+                backgroundColor: progressPercent === 100 ? '#22c55e' : 'hsl(var(--primary))',
               }}
             />
           </div>
@@ -328,8 +327,7 @@ export default function PathwayDetailPage() {
                 ) : status === 'in_progress' ? (
                   <Link
                     href={`/learning/modules/${pm.module_id}`}
-                    className="inline-flex items-center px-3 py-1.5 text-xs font-medium rounded-lg text-white transition-colors"
-                    style={{ backgroundColor: '#470DA8' }}
+                    className="inline-flex items-center px-3 py-1.5 text-xs font-medium rounded-lg text-white transition-colors bg-primary"
                   >
                     Continue
                   </Link>
@@ -337,8 +335,7 @@ export default function PathwayDetailPage() {
                   <button
                     onClick={() => handleStartModule(pm.module_id)}
                     disabled={startingModuleId === pm.module_id}
-                    className="inline-flex items-center px-3 py-1.5 text-xs font-medium rounded-lg border-2 transition-colors disabled:opacity-50"
-                    style={{ borderColor: '#470DA8', color: '#470DA8' }}
+                    className="inline-flex items-center px-3 py-1.5 text-xs font-medium rounded-lg border-2 transition-colors disabled:opacity-50 border-primary text-primary"
                   >
                     {startingModuleId === pm.module_id ? 'Starting...' : 'Start Module'}
                   </button>

@@ -168,7 +168,7 @@ export default function PoliciesPage() {
                             </div>
                             <span className="text-xs text-muted-foreground w-16 text-right">{ack.acknowledged}/{ack.total}</span>
                           </div>
-                          <p className="text-[10px] text-muted-foreground mt-0.5">acknowledged</p>
+                          <p className="text-xs text-muted-foreground mt-0.5">acknowledged</p>
                         </div>
                       </div>
                     </a>

@@ -129,7 +129,7 @@ export default function MobileSidebarContent({ profile }: { profile: Profile }) 
 
           return (
             <div key={group.label}>
-              <p className="px-3 pt-4 pb-1 text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
+              <p className="px-3 pt-4 pb-1 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                 {group.label}
               </p>
               {visibleItems.map(item => {
