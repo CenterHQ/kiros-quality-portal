@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { waitUntil } from '@vercel/functions'
-import { createServerSupabaseClient } from '@/lib/supabase/server'
+import { createServerSupabaseClient, createServiceRoleClient } from '@/lib/supabase/server'
 import Anthropic from '@anthropic-ai/sdk'
 
 export const dynamic = 'force-dynamic'
@@ -890,9 +890,13 @@ async function processChat(
   userRole: string,
   isNewConversation: boolean,
   originalMessage: string,
+  attachments?: Array<{ name: string; type: string; text?: string; base64?: string; mediaType?: string }>,
 ) {
   try {
-    const supabase = await createServerSupabaseClient()
+    // CRITICAL: Use service role client here — NOT createServerSupabaseClient()
+    // This function runs inside waitUntil() AFTER the HTTP response is sent.
+    // cookies() from next/headers is empty at this point, so the cookie-based client fails silently.
+    const supabase = createServiceRoleClient()
 
     // Load conversation history
     const { data: history } = await supabase.from('chat_messages')
@@ -906,6 +910,40 @@ async function processChat(
       role: m.role as 'user' | 'assistant',
       content: m.content,
     }))
+
+    // If attachments were provided, enhance the last user message with file content
+    if (attachments && attachments.length > 0) {
+      const lastUserMsg = messages[messages.length - 1]
+      if (lastUserMsg && lastUserMsg.role === 'user') {
+        const contentBlocks: Anthropic.ContentBlockParam[] = []
+
+        // Add text content
+        contentBlocks.push({ type: 'text', text: lastUserMsg.content as string })
+
+        // Add attachments
+        for (const att of attachments) {
+          if (att.base64 && att.mediaType) {
+            // Image attachment — use Claude's vision
+            contentBlocks.push({
+              type: 'image',
+              source: {
+                type: 'base64',
+                media_type: att.mediaType as 'image/jpeg' | 'image/png' | 'image/gif' | 'image/webp',
+                data: att.base64,
+              },
+            })
+          } else if (att.text) {
+            // Document attachment — include extracted text
+            contentBlocks.push({
+              type: 'text',
+              text: `\n\n---\nAttached document: ${att.name}\n${att.text}\n---`,
+            })
+          }
+        }
+
+        messages[messages.length - 1] = { role: 'user', content: contentBlocks }
+      }
+    }
 
     // Load centre context
     const { data: contextItems } = await supabase.from('centre_context')
@@ -998,7 +1036,7 @@ async function processChat(
     console.error('Background chat processing error:', error)
     // Save error as assistant message so the user sees it
     try {
-      const supabase = await createServerSupabaseClient()
+      const supabase = createServiceRoleClient()
       await supabase.from('chat_messages').insert({
         conversation_id: convId,
         role: 'assistant',
@@ -1017,7 +1055,7 @@ export async function POST(request: NextRequest) {
     const { data: profile } = await supabase.from('profiles').select('id, full_name, role').eq('id', user.id).single()
     if (!profile) return NextResponse.json({ error: 'Profile not found' }, { status: 404 })
 
-    const { conversationId, message } = await request.json()
+    const { conversationId, message, attachments } = await request.json()
 
     // Ensure conversation exists
     let convId = conversationId
@@ -1042,7 +1080,7 @@ export async function POST(request: NextRequest) {
     // Schedule heavy processing to run in the background via waitUntil
     // This keeps the function alive even after we send the response
     // The frontend receives the response via Supabase realtime subscription
-    waitUntil(processChat(convId, user.id, profile.role, isNew, message))
+    waitUntil(processChat(convId, user.id, profile.role, isNew, message, attachments))
 
     // Return immediately — the AI response will arrive via Supabase realtime
     return NextResponse.json({

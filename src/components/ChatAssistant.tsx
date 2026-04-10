@@ -23,8 +23,13 @@ export default function ChatAssistant() {
   const [loading, setLoading] = useState(false)
   const [conversationId, setConversationId] = useState<string | null>(null)
   const [hasNewMessage, setHasNewMessage] = useState(false)
+  const [processingConvId, setProcessingConvId] = useState<string | null>(null)
+  const [isRecording, setIsRecording] = useState(false)
+  const [speechSupported, setSpeechSupported] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const recognitionRef = useRef<any>(null)
 
   const scrollToBottom = useCallback(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -33,8 +38,62 @@ export default function ChatAssistant() {
   useEffect(() => { scrollToBottom() }, [messages, scrollToBottom])
   useEffect(() => { if (isOpen && inputRef.current) inputRef.current.focus() }, [isOpen])
 
+  // Persist processing state across navigations
+  useEffect(() => {
+    const stored = localStorage.getItem('kiros_ai_processing')
+    if (stored) {
+      const { convId, timestamp } = JSON.parse(stored)
+      // Only resume if less than 2 minutes old
+      if (Date.now() - timestamp < 120000) {
+        setProcessingConvId(convId)
+        setLoading(true)
+      } else {
+        localStorage.removeItem('kiros_ai_processing')
+      }
+    }
+  }, [])
+
+  // Check speech support on mount
+  useEffect(() => {
+    setSpeechSupported('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)
+  }, [])
+
   // Don't show the floating widget on the full chat page
   if (pathname === '/chat') return null
+
+  const toggleVoiceInput = () => {
+    if (isRecording) {
+      recognitionRef.current?.stop()
+      setIsRecording(false)
+      return
+    }
+
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
+    if (!SpeechRecognition) return
+
+    const recognition = new SpeechRecognition()
+    recognition.continuous = true
+    recognition.interimResults = true
+    recognition.lang = 'en-AU'
+
+    recognition.onresult = (event: any) => {
+      let transcript = ''
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        transcript += event.results[i][0].transcript
+      }
+      setInput(prev => {
+        const base = prev.split('\u{1F399}\u{FE0F}')[0].trim()
+        return base ? `${base} ${transcript}` : transcript
+      })
+    }
+
+    recognition.onerror = () => setIsRecording(false)
+    recognition.onend = () => setIsRecording(false)
+
+    recognitionRef.current = recognition
+    recognition.start()
+    setIsRecording(true)
+  }
 
   const sendMessage = async () => {
     if (!input.trim() || loading) return
@@ -57,6 +116,9 @@ export default function ChatAssistant() {
         setLoading(false)
       } else {
         if (!conversationId && data.conversationId) setConversationId(data.conversationId)
+        const activeConvId = data.conversationId || conversationId
+        setProcessingConvId(activeConvId)
+        localStorage.setItem('kiros_ai_processing', JSON.stringify({ convId: activeConvId, timestamp: Date.now() }))
         // Response arrives via polling — API returns immediately with status: 'processing'
         // Poll for the response since widget doesn't have realtime subscription
         const pollForResponse = async () => {
@@ -72,6 +134,8 @@ export default function ChatAssistant() {
                 return [...prev, { id: lastMsg.id, role: 'assistant' as const, content: lastMsg.content, timestamp: new Date(lastMsg.created_at) }]
               })
               if (!isOpen) setHasNewMessage(true)
+              localStorage.removeItem('kiros_ai_processing')
+              setProcessingConvId(null)
               setLoading(false)
               return
             }
@@ -94,6 +158,22 @@ export default function ChatAssistant() {
 
   return (
     <>
+      {/* Status indicator — visible when processing or new message, even with panel closed */}
+      {!isOpen && (loading || hasNewMessage) && (
+        <div className={`fixed bottom-[88px] right-6 z-50 rounded-full px-3 py-1.5 text-[11px] font-medium shadow-lg whitespace-nowrap transition-all ${
+          hasNewMessage
+            ? 'bg-green-500 text-white animate-bounce'
+            : 'bg-white text-purple-700 border border-purple-200'
+        }`}>
+          {hasNewMessage ? '\u2713 New response ready' : (
+            <span className="flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-purple-500 animate-pulse" />
+              Kiros AI is working...
+            </span>
+          )}
+        </div>
+      )}
+
       {/* Floating button */}
       <button
         onClick={() => { setIsOpen(!isOpen); if (!isOpen) setHasNewMessage(false) }}
@@ -227,6 +307,22 @@ export default function ChatAssistant() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 12h14M12 5l7 7-7 7" />
                 </svg>
               </button>
+              {speechSupported && (
+                <button
+                  onClick={toggleVoiceInput}
+                  className={`p-2 rounded-xl transition-all flex-shrink-0 ${
+                    isRecording
+                      ? 'bg-red-500 text-white animate-pulse'
+                      : 'text-gray-400 hover:text-purple-600 hover:bg-purple-50'
+                  }`}
+                  aria-label={isRecording ? 'Stop recording' : 'Voice input'}
+                  disabled={loading}
+                >
+                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+                  </svg>
+                </button>
+              )}
             </div>
           </div>
         </div>

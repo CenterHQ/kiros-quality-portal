@@ -43,8 +43,15 @@ export default function ChatPage() {
   const [expandedDoc, setExpandedDoc] = useState<string | null>(null)
   const [pendingActions, setPendingActions] = useState<Record<string, { action: any; status: 'pending' | 'confirmed' | 'cancelled'; result?: string }>>({})
   const [exportingFormat, setExportingFormat] = useState<string | null>(null)
+  const [attachments, setAttachments] = useState<File[]>([])
+  const [uploading, setUploading] = useState(false)
+  const [isRecording, setIsRecording] = useState(false)
+  const [speechSupported, setSpeechSupported] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const recognitionRef = useRef<any>(null)
 
   const scrollToBottom = useCallback(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -59,6 +66,11 @@ export default function ChatPage() {
   useEffect(() => {
     if (inputRef.current) inputRef.current.focus()
   }, [conversationId])
+
+  // Check speech support on mount
+  useEffect(() => {
+    setSpeechSupported('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)
+  }, [])
 
   // Realtime subscription: watch for new assistant messages in active conversation
   // This enables background processing — response arrives even if user navigated away
@@ -158,6 +170,55 @@ export default function ChatPage() {
     setMessages([])
   }
 
+  const handleFileSelect = (files: FileList | null) => {
+    if (!files) return
+    const validFiles = Array.from(files).filter(f => {
+      const ext = f.name.split('.').pop()?.toLowerCase()
+      const validExts = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'pdf', 'docx', 'txt', 'csv', 'md']
+      return validExts.includes(ext || '') && f.size <= 10 * 1024 * 1024 // 10MB max
+    })
+    setAttachments(prev => [...prev, ...validFiles])
+  }
+
+  const removeAttachment = (index: number) => {
+    setAttachments(prev => prev.filter((_, i) => i !== index))
+  }
+
+  const toggleVoiceInput = () => {
+    if (isRecording) {
+      recognitionRef.current?.stop()
+      setIsRecording(false)
+      return
+    }
+
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
+    if (!SpeechRecognition) return
+
+    const recognition = new SpeechRecognition()
+    recognition.continuous = true
+    recognition.interimResults = true
+    recognition.lang = 'en-AU'
+
+    recognition.onresult = (event: any) => {
+      let transcript = ''
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        transcript += event.results[i][0].transcript
+      }
+      setInput(prev => {
+        // Replace from last recognition start
+        const base = prev.split('\u{1F399}\u{FE0F}')[0].trim()
+        return base ? `${base} ${transcript}` : transcript
+      })
+    }
+
+    recognition.onerror = () => setIsRecording(false)
+    recognition.onend = () => setIsRecording(false)
+
+    recognitionRef.current = recognition
+    recognition.start()
+    setIsRecording(true)
+  }
+
   const sendMessage = async () => {
     if (!input.trim() || loading) return
 
@@ -175,11 +236,25 @@ export default function ChatPage() {
     }])
     setLoading(true)
 
+    let uploadedAttachments: Array<{ name: string; type: string; text?: string; base64?: string; mediaType?: string }> = []
+    if (attachments.length > 0) {
+      setUploading(true)
+      const formData = new FormData()
+      attachments.forEach(f => formData.append('files', f))
+      try {
+        const uploadRes = await fetch('/api/chat/upload', { method: 'POST', body: formData })
+        const uploadData = await uploadRes.json()
+        uploadedAttachments = uploadData.files || []
+      } catch { /* upload failed */ }
+      setUploading(false)
+      setAttachments([])
+    }
+
     try {
       const res = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ conversationId, message: userMessage }),
+        body: JSON.stringify({ conversationId, message: userMessage, attachments: uploadedAttachments }),
       })
 
       const data = await res.json()
@@ -418,7 +493,10 @@ export default function ChatPage() {
         </div>
 
         {/* Messages area - flex-1 + min-h-0 is the key pattern for scrollable flex children */}
-        <div className="flex-1 min-h-0 overflow-y-auto">
+        <div className="flex-1 min-h-0 overflow-y-auto"
+          onDragOver={(e) => { e.preventDefault(); e.stopPropagation() }}
+          onDrop={(e) => { e.preventDefault(); e.stopPropagation(); handleFileSelect(e.dataTransfer.files) }}
+        >
           <div className="max-w-full sm:max-w-3xl mx-auto px-4 py-6 space-y-6">
             {/* Conversation loading skeleton */}
             {conversationLoading && messages.length === 0 && (
@@ -600,7 +678,9 @@ export default function ChatPage() {
                     <div className="w-2 h-2 rounded-full bg-purple-400 animate-bounce" style={{ animationDelay: '150ms' }} />
                     <div className="w-2 h-2 rounded-full bg-purple-400 animate-bounce" style={{ animationDelay: '300ms' }} />
                   </div>
-                  <span className="text-xs text-gray-400">Kiros AI is working... you can navigate away and come back</span>
+                  <span className="text-xs text-gray-400">
+                    {uploading ? 'Uploading files...' : 'Kiros AI is working... you can navigate away and come back'}
+                  </span>
                 </div>
               </div>
             )}
@@ -612,7 +692,43 @@ export default function ChatPage() {
         {/* Input area - never shrinks, always visible at bottom */}
         <div className="flex-shrink-0 border-t border-gray-200 bg-white px-4 py-3">
           <div className="max-w-full sm:max-w-3xl mx-auto">
+            <input
+              ref={fileInputRef}
+              type="file"
+              multiple
+              accept=".jpg,.jpeg,.png,.gif,.webp,.pdf,.docx,.txt,.csv,.md"
+              className="hidden"
+              onChange={e => handleFileSelect(e.target.files)}
+            />
+            {attachments.length > 0 && (
+              <div className="flex flex-wrap gap-2 mb-2">
+                {attachments.map((file, i) => (
+                  <div key={i} className="flex items-center gap-1.5 bg-purple-50 border border-purple-200 rounded-lg px-2.5 py-1.5 text-xs">
+                    <span className="text-purple-600">
+                      {file.type.startsWith('image/') ? '\u{1F5BC}\u{FE0F}' : '\u{1F4CE}'}
+                    </span>
+                    <span className="text-purple-700 max-w-[120px] truncate">{file.name}</span>
+                    <span className="text-purple-400 text-[10px]">({(file.size / 1024).toFixed(0)}KB)</span>
+                    <button onClick={() => removeAttachment(i)} className="text-purple-400 hover:text-red-500 ml-0.5">
+                      <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
             <div className={`flex items-end gap-3 rounded-2xl border transition-all px-4 py-2 ${loading ? 'bg-gray-100 border-gray-200 opacity-60' : 'bg-gray-50 border-gray-200 focus-within:border-purple-400 focus-within:ring-2 focus-within:ring-purple-200'}`}>
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                className="p-2 rounded-lg text-gray-400 hover:text-purple-600 hover:bg-purple-50 transition-colors flex-shrink-0"
+                aria-label="Attach file"
+                disabled={loading}
+              >
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+                </svg>
+              </button>
               <textarea
                 ref={inputRef}
                 value={input}
@@ -636,6 +752,22 @@ export default function ChatPage() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 12h14M12 5l7 7-7 7" />
                 </svg>
               </button>
+              {speechSupported && (
+                <button
+                  onClick={toggleVoiceInput}
+                  className={`p-2 rounded-xl transition-all flex-shrink-0 ${
+                    isRecording
+                      ? 'bg-red-500 text-white animate-pulse'
+                      : 'text-gray-400 hover:text-purple-600 hover:bg-purple-50'
+                  }`}
+                  aria-label={isRecording ? 'Stop recording' : 'Voice input'}
+                  disabled={loading}
+                >
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+                  </svg>
+                </button>
+              )}
             </div>
             <div className="text-[10px] text-gray-400 text-center mt-2">
               Kiros AI is grounded in your centre&apos;s policies, QIP, and the NQS. It can create tasks, assign training, and generate documents.
