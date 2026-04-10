@@ -1,6 +1,7 @@
 'use client'
 
 import { usePathname, useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import type { Profile } from '@/lib/types'
 import { ROLE_LABELS } from '@/lib/types'
@@ -136,7 +137,7 @@ export default function MobileSidebarContent({ profile, badgeCounts = {} }: { pr
                 const isActive = pathname === item.href || (item.href !== '/' && pathname.startsWith(item.href))
                 const Icon = item.icon
                 return (
-                  <a
+                  <Link
                     key={item.href}
                     href={item.href}
                     className={cn(
@@ -153,7 +154,7 @@ export default function MobileSidebarContent({ profile, badgeCounts = {} }: { pr
                         {badgeCounts[item.href]}
                       </span>
                     )}
-                  </a>
+                  </Link>
                 )
               })}
             </div>

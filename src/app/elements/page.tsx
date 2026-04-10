@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
@@ -119,13 +120,13 @@ export default function ElementsPage() {
               </div>
               <div className="divide-y divide-border/50">
                 {qa.elements.map(el => (
-                  <a key={el.id} href={`/elements/${el.id}`} className="flex items-center gap-4 px-6 py-3 hover:bg-accent transition">
+                  <Link key={el.id} href={`/elements/${el.id}`} className="flex items-center gap-4 px-6 py-3 hover:bg-accent transition">
                     <span className="text-sm font-mono font-bold text-foreground w-12">{el.element_code}</span>
                     <span className="flex-1 text-sm text-foreground/80">{el.element_name}</span>
                     <StatusBadge status={el.current_rating} size="sm" />
                     <StatusBadge status={el.status} size="sm" />
                     {el.profiles && <span className="text-xs text-muted-foreground">{(el.profiles as any).full_name}</span>}
-                  </a>
+                  </Link>
                 ))}
               </div>
             </div>

@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { useEffect, useState, useRef } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
@@ -178,7 +179,7 @@ export default function PolicyDetailPage() {
         { label: 'Policies', href: '/policies' },
         { label: policy.title },
       ]} />
-      <a href="/policies" className="text-sm text-muted-foreground hover:text-foreground mb-4 inline-block">&larr; Back to Policies</a>
+      <Link href="/policies" className="text-sm text-muted-foreground hover:text-foreground mb-4 inline-block">&larr; Back to Policies</Link>
 
       {/* Header */}
       <div className="bg-card rounded-xl shadow-sm border border-border p-6 mb-6">

@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import type { Policy, PolicyCategory, PolicyAcknowledgement, Profile } from '@/lib/types'
@@ -77,7 +78,7 @@ export default function PoliciesPage() {
         description="Create, manage, and track policy acknowledgements"
         actions={
           isPrivileged ? (
-            <a href="/policies/new" className="px-4 py-2 bg-primary text-white rounded-lg text-sm font-medium hover:opacity-90">+ New Policy</a>
+            <Link href="/policies/new" className="px-4 py-2 bg-primary text-white rounded-lg text-sm font-medium hover:opacity-90">+ New Policy</Link>
           ) : undefined
         }
       />
@@ -140,7 +141,7 @@ export default function PoliciesPage() {
                   const ack = getAckRate(policy.id, policy.version)
                   const isOverdue = policy.next_review_date && policy.next_review_date <= today
                   return (
-                    <a key={policy.id} href={`/policies/${policy.id}`} className="block bg-card rounded-xl shadow-sm border border-border p-4 hover:shadow-md transition">
+                    <Link key={policy.id} href={`/policies/${policy.id}`} className="block bg-card rounded-xl shadow-sm border border-border p-4 hover:shadow-md transition">
                       <div className="flex items-center justify-between">
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 mb-1">
@@ -171,7 +172,7 @@ export default function PoliciesPage() {
                           <p className="text-xs text-muted-foreground mt-0.5">acknowledged</p>
                         </div>
                       </div>
-                    </a>
+                    </Link>
                   )
                 })}
               </div>
@@ -184,10 +185,10 @@ export default function PoliciesPage() {
               <h3 className="font-semibold text-foreground text-sm mb-3">Uncategorized</h3>
               <div className="space-y-2">
                 {filtered.filter(p => !p.category_id).map(policy => (
-                  <a key={policy.id} href={`/policies/${policy.id}`} className="block bg-card rounded-xl shadow-sm border border-border p-4 hover:shadow-md transition">
+                  <Link key={policy.id} href={`/policies/${policy.id}`} className="block bg-card rounded-xl shadow-sm border border-border p-4 hover:shadow-md transition">
                     <h4 className="font-medium text-sm text-foreground">{policy.title}</h4>
                     <StatusBadge status={statusToKey[policy.status] || policy.status} size="sm" />
-                  </a>
+                  </Link>
                 ))}
               </div>
             </div>
@@ -210,10 +211,10 @@ export default function PoliciesPage() {
             <div className="bg-red-50 border border-red-200 rounded-xl p-4">
               <h3 className="font-semibold text-red-700 text-sm mb-3">Overdue for Review ({dueForReview.length})</h3>
               {dueForReview.map(p => (
-                <a key={p.id} href={`/policies/${p.id}`} className="flex items-center justify-between py-2 border-b border-red-100 last:border-0 hover:bg-red-100/50 px-2 rounded">
+                <Link key={p.id} href={`/policies/${p.id}`} className="flex items-center justify-between py-2 border-b border-red-100 last:border-0 hover:bg-red-100/50 px-2 rounded">
                   <span className="text-sm text-foreground">{p.title}</span>
                   <span className="text-xs text-red-600">Due: {new Date(p.next_review_date!).toLocaleDateString()}</span>
-                </a>
+                </Link>
               ))}
             </div>
           )}
@@ -221,10 +222,10 @@ export default function PoliciesPage() {
             <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4">
               <h3 className="font-semibold text-yellow-700 text-sm mb-3">Upcoming Reviews — Next 30 Days ({upcomingReviews.length})</h3>
               {upcomingReviews.map(p => (
-                <a key={p.id} href={`/policies/${p.id}`} className="flex items-center justify-between py-2 border-b border-yellow-100 last:border-0 hover:bg-yellow-100/50 px-2 rounded">
+                <Link key={p.id} href={`/policies/${p.id}`} className="flex items-center justify-between py-2 border-b border-yellow-100 last:border-0 hover:bg-yellow-100/50 px-2 rounded">
                   <span className="text-sm text-foreground">{p.title}</span>
                   <span className="text-xs text-yellow-600">Due: {new Date(p.next_review_date!).toLocaleDateString()}</span>
-                </a>
+                </Link>
               ))}
             </div>
           )}
@@ -243,7 +244,7 @@ export default function PoliciesPage() {
               <tbody className="divide-y divide-border">
                 {policies.filter(p => p.status !== 'archived').map(p => (
                   <tr key={p.id}>
-                    <td className="py-2"><a href={`/policies/${p.id}`} className="text-primary hover:underline">{p.title}</a></td>
+                    <td className="py-2"><Link href={`/policies/${p.id}`} className="text-primary hover:underline">{p.title}</Link></td>
                     <td className="py-2 text-muted-foreground">{REVIEW_FREQUENCY_LABELS[p.review_frequency]}</td>
                     <td className="py-2 text-muted-foreground">{p.last_reviewed_at ? new Date(p.last_reviewed_at).toLocaleDateString() : 'Never'}</td>
                     <td className="py-2">{p.next_review_date ? new Date(p.next_review_date).toLocaleDateString() : 'Not set'}</td>

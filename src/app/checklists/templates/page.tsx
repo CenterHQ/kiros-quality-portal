@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import type { ChecklistTemplate, ChecklistCategory, ChecklistItemDefinition, ChecklistFrequency, ChecklistItemType, Profile } from '@/lib/types'
@@ -317,7 +318,7 @@ export default function ChecklistTemplatesPage() {
       <div className="flex items-center justify-between mb-6">
         <div>
           <div className="flex items-center gap-3 mb-1">
-            <a href="/checklists" className="text-sm text-muted-foreground hover:text-foreground">&larr; Checklists</a>
+            <Link href="/checklists" className="text-sm text-muted-foreground hover:text-foreground">&larr; Checklists</Link>
           </div>
           <h1 className="text-2xl font-bold">Checklist Templates</h1>
           <p className="text-muted-foreground text-sm mt-1">Create and manage checklist templates for your service</p>

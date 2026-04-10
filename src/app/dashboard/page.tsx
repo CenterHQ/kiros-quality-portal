@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
 import { QA_COLORS, STATUS_COLORS } from '@/lib/types'
 import { PageHeader } from '@/components/ui/page-header'
@@ -149,7 +150,7 @@ export default async function DashboardPage() {
             const notMet = qa.elements.filter((e: any) => e.current_rating === 'not_met').length
             const met = qa.elements.filter((e: any) => e.current_rating === 'met').length
             return (
-              <a key={qaNum} href={`/elements?qa=${qaNum}`} className="flex items-center gap-4 px-4 py-4 hover:bg-muted/50 transition-colors">
+              <Link key={qaNum} href={`/elements?qa=${qaNum}`} className="flex items-center gap-4 px-4 py-4 hover:bg-muted/50 transition-colors">
                 <QABadge qaNumber={num} showLabel size="lg" />
                 <div className="flex-1 min-w-0">
                   <p className="font-medium text-sm text-foreground truncate">{qa.name}</p>
@@ -163,7 +164,7 @@ export default async function DashboardPage() {
                     <StatusBadge status="met" size="sm" />
                   )}
                 </div>
-              </a>
+              </Link>
             )
           })}
         </div>

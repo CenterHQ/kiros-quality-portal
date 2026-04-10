@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import type { RegisterDefinition, RegisterColumnDef, RegisterColumnType, Profile } from '@/lib/types'
@@ -303,9 +304,9 @@ export default function RegistersPage() {
                 </div>
 
                 <div className="flex gap-2">
-                  <a href={`/registers/${reg.id}`} className="flex-1 px-3 py-1.5 bg-primary text-white rounded-lg text-xs font-medium text-center hover:opacity-90">
+                  <Link href={`/registers/${reg.id}`} className="flex-1 px-3 py-1.5 bg-primary text-white rounded-lg text-xs font-medium text-center hover:opacity-90">
                     Open
-                  </a>
+                  </Link>
                   {isPrivileged && (
                     <>
                       <button onClick={() => openBuilder(reg)} className="px-3 py-1.5 border border-border text-muted-foreground rounded-lg text-xs font-medium hover:bg-accent">Edit</button>

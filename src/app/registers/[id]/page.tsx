@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { useEffect, useState, useMemo } from 'react'
 import { useParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
@@ -199,7 +200,7 @@ export default function RegisterDetailPage() {
       ]} />
       <div className="flex items-center justify-between mb-6">
         <div>
-          <a href="/registers" className="text-sm text-muted-foreground hover:text-foreground mb-1 inline-block">&larr; Back to Registers</a>
+          <Link href="/registers" className="text-sm text-muted-foreground hover:text-foreground mb-1 inline-block">&larr; Back to Registers</Link>
           <div className="flex items-center gap-3">
             <span className="text-2xl">{register.icon}</span>
             <div>

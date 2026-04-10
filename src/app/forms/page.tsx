@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import type { FormSubmission } from '@/lib/types'
@@ -41,9 +42,9 @@ export default function FormsPage() {
                     <h3 className="font-semibold text-foreground">{ft.name}</h3>
                     <p className="text-xs text-muted-foreground mt-1">{ft.description}</p>
                   </div>
-                  <a href={`/forms/new?type=${ft.id}`} className="px-3 py-1 bg-primary text-white rounded-lg text-xs font-medium hover:opacity-90 transition whitespace-nowrap">
+                  <Link href={`/forms/new?type=${ft.id}`} className="px-3 py-1 bg-primary text-white rounded-lg text-xs font-medium hover:opacity-90 transition whitespace-nowrap">
                     + New
-                  </a>
+                  </Link>
                 </div>
                 {ftSubmissions.length > 0 && (
                   <div className="mt-3 border-t border-border pt-3">

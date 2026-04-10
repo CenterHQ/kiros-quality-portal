@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
 import { fetchServiceOverview, fetchQipGoalProgress, fetchStaffCompliance, fetchOperationalHealth, fetchPendingSuggestions } from '@/lib/ap-dashboard-data'
@@ -205,7 +206,7 @@ export default async function APDashboardPage() {
         <h2 className="text-lg font-semibold text-foreground mb-4">Quality Area Breakdown</h2>
         <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
           {qaBreakdown.map(qa => (
-            <a key={qa.qa} href={`/elements?qa=${qa.qa}`} className="block rounded-lg border border-border p-4 hover:shadow-md transition-shadow focus:ring-2 focus:ring-ring focus:outline-none">
+            <Link key={qa.qa} href={`/elements?qa=${qa.qa}`} className="block rounded-lg border border-border p-4 hover:shadow-md transition-shadow focus:ring-2 focus:ring-ring focus:outline-none">
               <div className="flex items-center gap-2 mb-2">
                 <span className="text-xs px-2 py-0.5 rounded text-white font-medium" style={{ backgroundColor: QA_COLORS[qa.qa] || '#999' }}>
                   QA{qa.qa}
@@ -222,7 +223,7 @@ export default async function APDashboardPage() {
               {qa.goals > 0 && (
                 <div className="mt-2 text-xs text-muted-foreground">QIP progress: {qa.avgProgress}%</div>
               )}
-            </a>
+            </Link>
           ))}
         </div>
       </div>

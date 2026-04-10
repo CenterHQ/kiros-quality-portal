@@ -1,6 +1,7 @@
 'use client'
 
 import { usePathname } from 'next/navigation'
+import Link from 'next/link'
 import { cn } from '@/lib/utils'
 import { LayoutDashboard, CheckSquare, ShieldCheck, MessageSquare, Menu } from 'lucide-react'
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
@@ -44,7 +45,7 @@ export default function MobileNav({ profile, badgeCounts = {} }: { profile: Prof
             const isActive = pathname === tab.href || (tab.href !== '/' && pathname.startsWith(tab.href))
             const Icon = tab.icon
             return (
-              <a
+              <Link
                 key={tab.href}
                 href={tab.href}
                 className={cn(
@@ -61,7 +62,7 @@ export default function MobileNav({ profile, badgeCounts = {} }: { profile: Prof
                   )}
                 </div>
                 <span className="text-[10px] font-medium">{tab.label}</span>
-              </a>
+              </Link>
             )
           })}
           <Sheet>

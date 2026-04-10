@@ -1,6 +1,7 @@
 'use client'
 
 import { usePathname, useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import type { Profile } from '@/lib/types'
 import { ROLE_LABELS } from '@/lib/types'
@@ -154,7 +155,7 @@ export default function Sidebar({ profile, badgeCounts = {} }: { profile: Profil
     const badgeCount = badgeCounts[item.href] || 0
 
     const linkContent = (
-      <a
+      <Link
         key={item.href}
         href={item.href}
         title={collapsed ? item.label : undefined}
@@ -178,7 +179,7 @@ export default function Sidebar({ profile, badgeCounts = {} }: { profile: Profil
             {badgeCount}
           </span>
         )}
-      </a>
+      </Link>
     )
 
     return linkContent

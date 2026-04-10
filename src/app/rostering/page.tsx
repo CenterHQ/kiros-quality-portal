@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { useEffect, useState, useMemo } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import type { Profile, Room, RosterShift, StaffQualification, LeaveRequest, ProgrammingTime, RatioStatus } from '@/lib/types'
@@ -646,7 +647,7 @@ export default function RosteringPage() {
                       <p className="text-xs text-muted-foreground">{p.role}</p>
                     </div>
                     {isPrivileged && (
-                      <a href={`/rostering/qualifications/${p.id}`} className="px-3 py-1.5 border border-border text-muted-foreground rounded-lg text-xs hover:bg-muted">Manage</a>
+                      <Link href={`/rostering/qualifications/${p.id}`} className="px-3 py-1.5 border border-border text-muted-foreground rounded-lg text-xs hover:bg-muted">Manage</Link>
                     )}
                   </div>
                   {pQuals.length === 0 ? (

@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { useEffect, useState, useRef } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
@@ -157,7 +158,7 @@ export default function ChecklistCompletionPage() {
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <a href="/checklists" className="text-sm text-muted-foreground hover:text-foreground mb-1 inline-block">&larr; Back to Checklists</a>
+          <Link href="/checklists" className="text-sm text-muted-foreground hover:text-foreground mb-1 inline-block">&larr; Back to Checklists</Link>
           <h1 className="text-2xl font-bold">{instance.name}</h1>
           <div className="flex items-center gap-3 text-sm text-muted-foreground mt-1">
             <span>Due: {new Date(instance.due_date).toLocaleDateString()}</span>

@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import type { ChecklistTemplate, ChecklistInstance, ChecklistCategory, SmartTicket, Profile, ChecklistItemDefinition } from '@/lib/types'
@@ -128,9 +129,9 @@ export default function ChecklistsPage() {
         description="Daily, weekly, and compliance checklists"
         actions={
           <div className="flex gap-2">
-            <a href="/checklists/templates" className="px-4 py-2 border border-border text-foreground rounded-lg text-sm font-medium hover:bg-accent">
+            <Link href="/checklists/templates" className="px-4 py-2 border border-border text-foreground rounded-lg text-sm font-medium hover:bg-accent">
               Manage Templates
-            </a>
+            </Link>
             {isPrivileged && (
               <button onClick={() => setShowCreate(true)} className="px-4 py-2 bg-primary text-white rounded-lg text-sm font-medium hover:opacity-90">
                 + Assign Checklist
@@ -368,16 +369,16 @@ function InstanceRow({ instance: i, onSkip, isPrivileged }: { instance: Checklis
                 </div>
                 <p className="text-xs text-muted-foreground mt-0.5 text-right">{progress}%</p>
               </div>
-              <a href={`/checklists/${i.id}`} className="px-3 py-2.5 bg-primary text-white rounded-lg text-xs font-medium hover:opacity-90 min-h-[44px] flex items-center">
+              <Link href={`/checklists/${i.id}`} className="px-3 py-2.5 bg-primary text-white rounded-lg text-xs font-medium hover:opacity-90 min-h-[44px] flex items-center">
                 {i.status === 'in_progress' ? 'Continue' : 'Start'}
-              </a>
+              </Link>
               {isPrivileged && (
                 <button onClick={() => onSkip(i.id)} className="px-3 py-2.5 border border-border text-muted-foreground rounded-lg text-xs hover:bg-accent min-h-[44px]">Skip</button>
               )}
             </>
           )}
           {i.status === 'completed' && (
-            <a href={`/checklists/${i.id}`} className="px-3 py-2.5 border border-border text-muted-foreground rounded-lg text-xs font-medium hover:bg-accent min-h-[44px] flex items-center">View</a>
+            <Link href={`/checklists/${i.id}`} className="px-3 py-2.5 border border-border text-muted-foreground rounded-lg text-xs font-medium hover:bg-accent min-h-[44px] flex items-center">View</Link>
           )}
         </div>
       </div>

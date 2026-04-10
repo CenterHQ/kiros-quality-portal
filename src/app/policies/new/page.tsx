@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
@@ -102,7 +103,7 @@ export default function NewPolicyPage() {
     <div className="max-w-4xl mx-auto">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <a href="/policies" className="text-sm text-muted-foreground hover:text-foreground mb-1 inline-block">&larr; Back to Policies</a>
+          <Link href="/policies" className="text-sm text-muted-foreground hover:text-foreground mb-1 inline-block">&larr; Back to Policies</Link>
           <h1 className="text-2xl font-bold">Create New Policy</h1>
         </div>
         <div className="flex gap-2">

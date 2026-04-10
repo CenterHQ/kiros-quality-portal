@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
 import { QA_COLORS, ROLE_LABELS } from '@/lib/types'
 
@@ -111,34 +112,34 @@ export default async function CentreHubPage() {
               )
             })}
           </div>
-          <a href="/elements" className="block mt-3 text-xs text-purple-600 hover:text-purple-800 font-medium">
+          <Link href="/elements" className="block mt-3 text-xs text-purple-600 hover:text-purple-800 font-medium">
             View all QA Elements &rarr;
-          </a>
+          </Link>
         </div>
 
         {/* Quick Actions */}
         <div className="bg-card rounded-xl shadow-sm p-5 border border-border">
           <h2 className="text-base font-semibold text-foreground mb-4">Quick Actions</h2>
           <div className="space-y-2">
-            <a href="/tasks" aria-label="Go to Task Board" className="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-muted hover:bg-accent transition-colors text-sm text-foreground focus:ring-2 focus:ring-purple-300 focus:outline-none">
+            <Link href="/tasks" aria-label="Go to Task Board" className="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-muted hover:bg-accent transition-colors text-sm text-foreground focus:ring-2 focus:ring-purple-300 focus:outline-none">
               <span>✅</span> <span>Task Board</span>
-            </a>
-            <a href="/checklists" aria-label="Go to Daily Checklists" className="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-muted hover:bg-accent transition-colors text-sm text-foreground focus:ring-2 focus:ring-purple-300 focus:outline-none">
+            </Link>
+            <Link href="/checklists" aria-label="Go to Daily Checklists" className="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-muted hover:bg-accent transition-colors text-sm text-foreground focus:ring-2 focus:ring-purple-300 focus:outline-none">
               <span>🛡️</span> <span>Daily Checklists</span>
-            </a>
-            <a href="/learning" aria-label="Go to Learning Hub" className="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-muted hover:bg-accent transition-colors text-sm text-foreground focus:ring-2 focus:ring-purple-300 focus:outline-none">
+            </Link>
+            <Link href="/learning" aria-label="Go to Learning Hub" className="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-muted hover:bg-accent transition-colors text-sm text-foreground focus:ring-2 focus:ring-purple-300 focus:outline-none">
               <span>🎓</span> <span>Learning Hub</span>
-            </a>
-            <a href="/compliance" aria-label="Go to Compliance" className="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-muted hover:bg-accent transition-colors text-sm text-foreground focus:ring-2 focus:ring-purple-300 focus:outline-none">
+            </Link>
+            <Link href="/compliance" aria-label="Go to Compliance" className="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-muted hover:bg-accent transition-colors text-sm text-foreground focus:ring-2 focus:ring-purple-300 focus:outline-none">
               <span>⚖️</span> <span>Compliance</span>
-            </a>
-            <a href="/policies" aria-label="Go to Policies" className="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-muted hover:bg-accent transition-colors text-sm text-foreground focus:ring-2 focus:ring-purple-300 focus:outline-none">
+            </Link>
+            <Link href="/policies" aria-label="Go to Policies" className="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-muted hover:bg-accent transition-colors text-sm text-foreground focus:ring-2 focus:ring-purple-300 focus:outline-none">
               <span>📄</span> <span>Policies</span>
-            </a>
+            </Link>
             {profile?.role === 'admin' && (
-              <a href="/ap-dashboard" aria-label="Go to AP Dashboard" className="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-purple-50 hover:bg-purple-100 transition-colors text-sm text-primary focus:ring-2 focus:ring-purple-300 focus:outline-none">
+              <Link href="/ap-dashboard" aria-label="Go to AP Dashboard" className="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-purple-50 hover:bg-purple-100 transition-colors text-sm text-primary focus:ring-2 focus:ring-purple-300 focus:outline-none">
                 <span>🏢</span> <span>AP Dashboard</span>
-              </a>
+              </Link>
             )}
           </div>
         </div>

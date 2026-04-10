@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { usePathname } from 'next/navigation'
 import { useProfile } from '@/lib/ProfileContext'
@@ -186,7 +187,7 @@ export default function ChatAssistant() {
               </div>
             </div>
             <div className="flex items-center gap-1">
-              <a
+              <Link
                 href="/chat"
                 className="p-1.5 rounded-lg hover:bg-white/20 text-white transition-colors"
                 aria-label="Expand to full chat page"
@@ -195,7 +196,7 @@ export default function ChatAssistant() {
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
                 </svg>
-              </a>
+              </Link>
               <button
                 onClick={() => { setMessages([]); setConversationId(null) }}
                 className="p-1.5 rounded-lg hover:bg-white/20 text-white transition-colors"
@@ -223,9 +224,9 @@ export default function ChatAssistant() {
                   <button onClick={() => setInput('What items are overdue?')} className="w-full text-left px-3 py-2 rounded-lg bg-muted text-xs text-muted-foreground hover:bg-accent transition-colors">
                     What items are overdue?
                   </button>
-                  <a href="/chat" className="block text-center text-xs font-semibold mt-3 px-3 py-2 rounded-lg bg-purple-50 text-purple-700 hover:bg-purple-100 transition-colors border border-purple-200">
+                  <Link href="/chat" className="block text-center text-xs font-semibold mt-3 px-3 py-2 rounded-lg bg-purple-50 text-purple-700 hover:bg-purple-100 transition-colors border border-purple-200">
                     Open full chat for documents &amp; history &rarr;
-                  </a>
+                  </Link>
                 </div>
               </div>
             )}
