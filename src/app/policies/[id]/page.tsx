@@ -6,6 +6,7 @@ import { createClient } from '@/lib/supabase/client'
 import type { Policy, PolicyCategory, PolicyVersion, PolicyAcknowledgement, ServiceDetail, Profile, ReviewFrequency } from '@/lib/types'
 import { POLICY_STATUS_LABELS, REVIEW_FREQUENCY_LABELS, QA_COLORS } from '@/lib/types'
 import { useProfile } from '@/lib/ProfileContext'
+import Breadcrumbs from '@/components/Breadcrumbs'
 
 export default function PolicyDetailPage() {
   const { id } = useParams()
@@ -173,6 +174,10 @@ export default function PolicyDetailPage() {
 
   return (
     <div className="max-w-4xl mx-auto">
+      <Breadcrumbs items={[
+        { label: 'Policies', href: '/policies' },
+        { label: policy.title },
+      ]} />
       <a href="/policies" className="text-sm text-gray-500 hover:text-gray-700 mb-4 inline-block">&larr; Back to Policies</a>
 
       {/* Header */}

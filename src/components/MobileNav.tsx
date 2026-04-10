@@ -14,7 +14,7 @@ const bottomTabs = [
   { href: '/chat', label: 'AI Chat', icon: MessageSquare },
 ]
 
-export default function MobileNav({ profile }: { profile: Profile }) {
+export default function MobileNav({ profile, badgeCounts = {} }: { profile: Profile; badgeCounts?: Record<string, number> }) {
   const pathname = usePathname()
 
   return (
@@ -27,7 +27,7 @@ export default function MobileNav({ profile }: { profile: Profile }) {
               <Menu className="size-5 text-foreground" />
             </SheetTrigger>
             <SheetContent side="left" className="w-72 p-0">
-              <MobileSidebarContent profile={profile} />
+              <MobileSidebarContent profile={profile} badgeCounts={badgeCounts} />
             </SheetContent>
           </Sheet>
           <div className="flex items-center gap-2">
@@ -48,11 +48,18 @@ export default function MobileNav({ profile }: { profile: Profile }) {
                 key={tab.href}
                 href={tab.href}
                 className={cn(
-                  'flex flex-col items-center justify-center gap-0.5 min-w-[64px] min-h-[48px] rounded-lg transition-colors',
+                  'flex flex-col items-center justify-center gap-0.5 min-w-[64px] min-h-[48px] rounded-lg transition-colors relative',
                   isActive ? 'text-primary' : 'text-muted-foreground'
                 )}
               >
-                <Icon className={cn('size-5', isActive && 'stroke-[2.5]')} />
+                <div className="relative">
+                  <Icon className={cn('size-5', isActive && 'stroke-[2.5]')} />
+                  {(badgeCounts[tab.href] || 0) > 0 && (
+                    <span className="absolute -top-1.5 -right-2.5 min-w-4 h-4 rounded-full bg-destructive text-destructive-foreground text-[9px] font-bold flex items-center justify-center px-0.5">
+                      {badgeCounts[tab.href]}
+                    </span>
+                  )}
+                </div>
                 <span className="text-[10px] font-medium">{tab.label}</span>
               </a>
             )
@@ -63,7 +70,7 @@ export default function MobileNav({ profile }: { profile: Profile }) {
               <span className="text-[10px] font-medium">More</span>
             </SheetTrigger>
             <SheetContent side="bottom" className="max-h-[70vh] rounded-t-2xl p-0">
-              <MobileSidebarContent profile={profile} />
+              <MobileSidebarContent profile={profile} badgeCounts={badgeCounts} />
             </SheetContent>
           </Sheet>
         </div>

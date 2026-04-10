@@ -102,7 +102,7 @@ function Toast({ type, message, description, duration = DEFAULT_DURATION, onClos
       <button
         type="button"
         onClick={onClose}
-        className="absolute right-2 top-2 rounded-md p-1 text-muted-foreground hover:text-foreground transition-colors"
+        className="absolute right-1 top-1 rounded-md p-2.5 text-muted-foreground hover:text-foreground transition-colors"
       >
         <X className="size-4" />
         <span className="sr-only">Close</span>

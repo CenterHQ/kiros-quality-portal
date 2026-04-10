@@ -5,6 +5,7 @@ import { useParams, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import type { ChecklistInstance, ChecklistItemDefinition, ChecklistItemResponse, Profile } from '@/lib/types'
 import { useProfile } from '@/lib/ProfileContext'
+import Breadcrumbs from '@/components/Breadcrumbs'
 
 export default function ChecklistCompletionPage() {
   const { id } = useParams()
@@ -145,6 +146,12 @@ export default function ChecklistCompletionPage() {
 
   return (
     <div className="max-w-3xl mx-auto">
+      {/* Breadcrumbs */}
+      <Breadcrumbs items={[
+        { label: 'Checklists', href: '/checklists' },
+        { label: instance.name },
+      ]} />
+
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>

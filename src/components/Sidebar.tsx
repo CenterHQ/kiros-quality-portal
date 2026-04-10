@@ -121,7 +121,7 @@ function isActivePath(pathname: string, href: string): boolean {
 
 // ─── Sidebar Component ───────────────────────────────────────────────────────
 
-export default function Sidebar({ profile }: { profile: Profile }) {
+export default function Sidebar({ profile, badgeCounts = {} }: { profile: Profile; badgeCounts?: Record<string, number> }) {
   const pathname = usePathname()
   const router = useRouter()
   const [collapsed, setCollapsed] = useState(false)
@@ -151,6 +151,7 @@ export default function Sidebar({ profile }: { profile: Profile }) {
   const renderNavItem = (item: NavItem) => {
     const isActive = isActivePath(pathname, item.href)
     const Icon = item.icon
+    const badgeCount = badgeCounts[item.href] || 0
 
     const linkContent = (
       <a
@@ -159,7 +160,7 @@ export default function Sidebar({ profile }: { profile: Profile }) {
         title={collapsed ? item.label : undefined}
         className={cn(
           'flex items-center gap-3 rounded-lg text-sm font-medium transition-all duration-150',
-          collapsed ? 'justify-center px-2 py-2.5' : 'px-3 py-2',
+          collapsed ? 'justify-center px-2 py-2.5 relative' : 'px-3 py-2',
           isActive
             ? 'bg-primary text-primary-foreground shadow-sm'
             : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
@@ -167,6 +168,16 @@ export default function Sidebar({ profile }: { profile: Profile }) {
       >
         <Icon className={cn('shrink-0', collapsed ? 'size-5' : 'size-[18px]')} />
         {!collapsed && <span className="truncate">{item.label}</span>}
+        {badgeCount > 0 && !collapsed && (
+          <span className="ml-auto min-w-5 h-5 rounded-full bg-destructive text-destructive-foreground text-xs font-bold flex items-center justify-center px-1">
+            {badgeCount}
+          </span>
+        )}
+        {badgeCount > 0 && collapsed && (
+          <span className="absolute -top-1 -right-1 min-w-4 h-4 rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold flex items-center justify-center px-0.5">
+            {badgeCount}
+          </span>
+        )}
       </a>
     )
 

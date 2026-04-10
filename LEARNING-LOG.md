@@ -61,6 +61,13 @@
 - If a sub-route layout has no special purpose, use `<>{children}</>` or delete the file entirely
 - Long URLs/text in grid cells need `break-all` and `min-w-0` to prevent overflow into adjacent cells
 
+## Process Rules
+
+- **Every plan item = its own task** — never batch multiple deliverables into one task. If the plan says "breadcrumbs + badge counts + skeleton components", create 3 separate tasks.
+- **Verify against the plan, not the agent output** — when an agent says "done", cross-reference every line of the plan file before marking complete. Agents optimise for what's in their prompt, not what's in the plan.
+- **Structural changes need dedicated agents** — token replacements (colour swaps) and structural changes (new components, layout refactors) should never be mixed in the same agent prompt. Token agents skip structural work.
+- **Final audit is mandatory** — before declaring any phase complete, read the plan file and check off each item explicitly.
+
 ## Security Rules
 
 - `executeTool()` must validate role access before executing any tool

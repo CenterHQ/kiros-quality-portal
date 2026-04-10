@@ -87,7 +87,7 @@ export default function OwnaFamiliesPage() {
 
       {tab === 'families' && (
         <>
-          <input type="text" value={search} onChange={e => setSearch(e.target.value)} placeholder="Search families..." className="px-3 py-2 border border-gray-300 rounded-lg text-sm mb-4 w-64 focus:ring-2 focus:ring-primary" />
+          <input type="text" value={search} onChange={e => setSearch(e.target.value)} placeholder="Search families..." className="px-3 py-2 border border-gray-300 rounded-lg text-sm mb-4 w-full md:w-64 focus:ring-2 focus:ring-primary" />
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
             <table className="w-full text-sm">
               <thead>

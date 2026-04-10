@@ -429,7 +429,7 @@ export default function OwnaApiTestingPage() {
               value={savedCentreId}
               onChange={e => saveCentreId(e.target.value)}
               placeholder="Save centre ID for quick use"
-              className="px-2 py-1 border border-border rounded text-xs w-64 focus:ring-1 focus:ring-primary"
+              className="px-2 py-1 border border-border rounded text-xs w-full md:w-64 focus:ring-1 focus:ring-primary"
             />
           </div>
           <span className="px-2 py-1 bg-green-50 text-green-700 rounded text-xs font-medium">API Connected</span>

@@ -15,6 +15,7 @@ import {
   type LmsEnrollment,
   type LmsModule,
 } from '@/lib/types'
+import Breadcrumbs from '@/components/Breadcrumbs'
 
 interface PathwayModuleRow extends LmsPathwayModule {
   lms_modules: LmsModule
@@ -184,6 +185,13 @@ export default function PathwayDetailPage() {
 
   return (
     <div className="p-6 md:p-8 max-w-4xl mx-auto">
+      {/* Breadcrumbs */}
+      <Breadcrumbs items={[
+        { label: 'Learning', href: '/learning' },
+        { label: 'Pathways', href: '/learning/pathways' },
+        { label: pathway.title },
+      ]} />
+
       {/* Back link */}
       <Link
         href="/learning/pathways"

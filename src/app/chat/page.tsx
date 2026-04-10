@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useProfile } from '@/lib/ProfileContext'
+import { useToast } from '@/components/ui/toast'
 import { ROLE_LABELS } from '@/lib/types'
 import { useChatStream } from '@/hooks/useChatStream'
 import { TOOL_LABELS } from '@/lib/chat/sse-protocol'
@@ -50,6 +51,7 @@ export default function ChatPage() {
   const [isRecording, setIsRecording] = useState(false)
   const [speechSupported, setSpeechSupported] = useState(false)
   const { streamingMessage, activeTools, error: streamError, model: activeModel, sendMessage: sendStreamMessage, abort: abortStream } = useChatStream()
+  const { toast } = useToast()
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -349,8 +351,14 @@ export default function ChatPage() {
       })
       const data = await res.json()
       setPendingActions(prev => ({ ...prev, [actionId]: { ...prev[actionId], status: confirmed ? 'confirmed' : 'cancelled', result: data.message || data.error } }))
+      if (confirmed) {
+        toast({ type: 'success', message: data.message || 'Action confirmed' })
+      } else {
+        toast({ type: 'info', message: 'Action cancelled' })
+      }
     } catch {
       setPendingActions(prev => ({ ...prev, [actionId]: { ...prev[actionId], result: 'Failed to process' } }))
+      toast({ type: 'error', message: 'Failed to process action' })
     }
   }
 
@@ -472,7 +480,7 @@ export default function ChatPage() {
               </button>
               <button
                 onClick={(e) => { e.stopPropagation(); deleteConversation(conv.id) }}
-                className="absolute right-2 top-3 opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-red-50 transition-all"
+                className="absolute right-1 top-2 md:opacity-0 md:group-hover:opacity-100 p-2.5 rounded hover:bg-red-50 transition-all"
                 title="Delete"
                 aria-label={`Delete conversation: ${conv.title || 'Untitled'}`}
               >
@@ -506,7 +514,7 @@ export default function ChatPage() {
           <div className="flex items-center gap-3">
             <button
               onClick={() => setSidebarOpen(!sidebarOpen)}
-              className="p-1.5 rounded-lg hover:bg-accent transition-colors"
+              className="p-2.5 rounded-lg hover:bg-accent transition-colors"
               aria-label={sidebarOpen ? 'Close sidebar' : 'Open sidebar'}
             >
               <svg className="w-5 h-5 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -669,10 +677,10 @@ export default function ChatPage() {
                       ))}
 
                       {/* Action buttons */}
-                      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <div className="flex items-center gap-1 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
                         <button
                           onClick={() => copyToClipboard(msg.content, msg.id)}
-                          className="p-1.5 rounded-lg hover:bg-accent transition-colors"
+                          className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-lg hover:bg-accent transition-colors"
                           title="Copy"
                           aria-label="Copy message to clipboard"
                         >
@@ -795,8 +803,8 @@ export default function ChatPage() {
                     </span>
                     <span className="text-purple-700 max-w-[120px] truncate">{file.name}</span>
                     <span className="text-purple-400 text-xs">({(file.size / 1024).toFixed(0)}KB)</span>
-                    <button onClick={() => removeAttachment(i)} className="text-purple-400 hover:text-red-500 ml-0.5">
-                      <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <button onClick={() => removeAttachment(i)} className="text-purple-400 hover:text-red-500 ml-0.5 p-1.5 -m-1">
+                      <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                       </svg>
                     </button>

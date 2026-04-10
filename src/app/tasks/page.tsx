@@ -5,6 +5,7 @@ import { DragDropContext, Droppable, Draggable, type DropResult } from '@hello-p
 import { createClient } from '@/lib/supabase/client'
 import { type Task, type Profile, type Comment } from '@/lib/types'
 import { useProfile } from '@/lib/ProfileContext'
+import { useToast } from '@/components/ui/toast'
 import CentreContextPanel from '@/components/CentreContextPanel'
 import { PageHeader } from '@/components/ui/page-header'
 import { PriorityBadge } from '@/components/ui/priority-badge'
@@ -23,6 +24,7 @@ export default function TaskBoardPage() {
   const [showAdd, setShowAdd] = useState(false)
   const [newTask, setNewTask] = useState({ title: '', description: '', priority: 'medium', assigned_to: '', due_date: '' })
   const user = useProfile()
+  const { toast } = useToast()
   const [view, setView] = useState<'board' | 'list'>('board')
   const [mobileCol, setMobileCol] = useState('todo')
   const [expandedTask, setExpandedTask] = useState<string | null>(null)
@@ -87,24 +89,34 @@ export default function TaskBoardPage() {
 
   const deleteTask = async (taskId: string) => {
     if (!confirm('Delete this task?')) return
-    await supabase.from('tasks').delete().eq('id', taskId)
-    setTasks(prev => prev.filter(t => t.id !== taskId))
+    try {
+      await supabase.from('tasks').delete().eq('id', taskId)
+      setTasks(prev => prev.filter(t => t.id !== taskId))
+      toast({ type: 'success', message: 'Task deleted' })
+    } catch {
+      toast({ type: 'error', message: 'Failed to delete task' })
+    }
   }
 
   const createTask = async () => {
     if (!newTask.title.trim() || !user) return
-    await supabase.from('tasks').insert({
-      title: newTask.title,
-      description: newTask.description || null,
-      priority: newTask.priority,
-      assigned_to: newTask.assigned_to || null,
-      due_date: newTask.due_date || null,
-      created_by: user.id,
-      status: 'todo',
-    })
-    setNewTask({ title: '', description: '', priority: 'medium', assigned_to: '', due_date: '' })
-    setShowAdd(false)
-    await loadTasks()
+    try {
+      await supabase.from('tasks').insert({
+        title: newTask.title,
+        description: newTask.description || null,
+        priority: newTask.priority,
+        assigned_to: newTask.assigned_to || null,
+        due_date: newTask.due_date || null,
+        created_by: user.id,
+        status: 'todo',
+      })
+      setNewTask({ title: '', description: '', priority: 'medium', assigned_to: '', due_date: '' })
+      setShowAdd(false)
+      await loadTasks()
+      toast({ type: 'success', message: 'Task created' })
+    } catch {
+      toast({ type: 'error', message: 'Failed to create task' })
+    }
   }
 
   const addComment = async (taskId: string) => {
@@ -325,7 +337,7 @@ export default function TaskBoardPage() {
                                                     <p className="text-xs text-muted-foreground whitespace-pre-line">{c.content}</p>
                                                   </div>
                                                   {user && c.user_id === user.id && (
-                                                    <button onClick={() => deleteComment(c.id)} className="opacity-0 group-hover/comment:opacity-100 text-muted-foreground hover:text-red-500 transition text-xs ml-2 shrink-0">
+                                                    <button onClick={() => deleteComment(c.id)} className="md:opacity-0 md:group-hover/comment:opacity-100 text-muted-foreground hover:text-red-500 transition text-xs ml-2 shrink-0 min-h-[44px] min-w-[44px] flex items-center justify-center">
                                                       &#10005;
                                                     </button>
                                                   )}

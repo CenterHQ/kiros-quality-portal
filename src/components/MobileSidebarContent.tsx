@@ -94,7 +94,7 @@ function canAccessPage(profile: Profile, href: string): boolean {
   return profile.allowed_pages.includes(href)
 }
 
-export default function MobileSidebarContent({ profile }: { profile: Profile }) {
+export default function MobileSidebarContent({ profile, badgeCounts = {} }: { profile: Profile; badgeCounts?: Record<string, number> }) {
   const pathname = usePathname()
   const router = useRouter()
 
@@ -148,6 +148,11 @@ export default function MobileSidebarContent({ profile }: { profile: Profile }) 
                   >
                     <Icon className="size-[18px] shrink-0" />
                     <span>{item.label}</span>
+                    {(badgeCounts[item.href] || 0) > 0 && (
+                      <span className="ml-auto min-w-5 h-5 rounded-full bg-destructive text-destructive-foreground text-xs font-bold flex items-center justify-center px-1">
+                        {badgeCounts[item.href]}
+                      </span>
+                    )}
                   </a>
                 )
               })}

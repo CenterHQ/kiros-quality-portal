@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase/client'
 import type { ChecklistTemplate, ChecklistInstance, ChecklistCategory, SmartTicket, Profile, ChecklistItemDefinition } from '@/lib/types'
 import { CHECKLIST_FREQUENCY_LABELS, QA_COLORS } from '@/lib/types'
 import { useProfile } from '@/lib/ProfileContext'
+import { useToast } from '@/components/ui/toast'
 import CentreContextPanel from '@/components/CentreContextPanel'
 import { PageHeader } from '@/components/ui/page-header'
 import { StatusBadge } from '@/components/ui/status-badge'
@@ -16,6 +17,7 @@ type Tab = 'today' | 'upcoming' | 'history' | 'tickets'
 export default function ChecklistsPage() {
   const supabase = createClient()
   const user = useProfile()
+  const { toast } = useToast()
   const [templates, setTemplates] = useState<ChecklistTemplate[]>([])
   const [instances, setInstances] = useState<ChecklistInstance[]>([])
   const [categories, setCategories] = useState<ChecklistCategory[]>([])
@@ -90,6 +92,7 @@ export default function ChecklistsPage() {
     setSelectedTemplate('')
     setAssignTo('')
     await load()
+    toast({ type: 'success', message: 'Checklist assigned' })
   }
 
   const skipInstance = async (id: string) => {
@@ -281,9 +284,9 @@ export default function ChecklistsPage() {
                   {isPrivileged && t.status !== 'resolved' && t.status !== 'closed' && (
                     <div className="flex gap-1">
                       {t.status === 'open' && (
-                        <button onClick={() => updateTicketStatus(t.id, 'in_progress')} className="px-3 py-1 border border-blue-300 text-blue-600 rounded-lg text-xs hover:bg-blue-50">Start</button>
+                        <button onClick={() => updateTicketStatus(t.id, 'in_progress')} className="px-3 py-2.5 border border-blue-300 text-blue-600 rounded-lg text-xs hover:bg-blue-50 min-h-[44px]">Start</button>
                       )}
-                      <button onClick={() => updateTicketStatus(t.id, 'resolved')} className="px-3 py-1 border border-green-300 text-green-600 rounded-lg text-xs hover:bg-green-50">Resolve</button>
+                      <button onClick={() => updateTicketStatus(t.id, 'resolved')} className="px-3 py-2.5 border border-green-300 text-green-600 rounded-lg text-xs hover:bg-green-50 min-h-[44px]">Resolve</button>
                     </div>
                   )}
                 </div>
@@ -365,16 +368,16 @@ function InstanceRow({ instance: i, onSkip, isPrivileged }: { instance: Checklis
                 </div>
                 <p className="text-xs text-muted-foreground mt-0.5 text-right">{progress}%</p>
               </div>
-              <a href={`/checklists/${i.id}`} className="px-3 py-1.5 bg-primary text-white rounded-lg text-xs font-medium hover:opacity-90">
+              <a href={`/checklists/${i.id}`} className="px-3 py-2.5 bg-primary text-white rounded-lg text-xs font-medium hover:opacity-90 min-h-[44px] flex items-center">
                 {i.status === 'in_progress' ? 'Continue' : 'Start'}
               </a>
               {isPrivileged && (
-                <button onClick={() => onSkip(i.id)} className="px-3 py-1.5 border border-border text-muted-foreground rounded-lg text-xs hover:bg-accent">Skip</button>
+                <button onClick={() => onSkip(i.id)} className="px-3 py-2.5 border border-border text-muted-foreground rounded-lg text-xs hover:bg-accent min-h-[44px]">Skip</button>
               )}
             </>
           )}
           {i.status === 'completed' && (
-            <a href={`/checklists/${i.id}`} className="px-3 py-1.5 border border-border text-muted-foreground rounded-lg text-xs font-medium hover:bg-accent">View</a>
+            <a href={`/checklists/${i.id}`} className="px-3 py-2.5 border border-border text-muted-foreground rounded-lg text-xs font-medium hover:bg-accent min-h-[44px] flex items-center">View</a>
           )}
         </div>
       </div>

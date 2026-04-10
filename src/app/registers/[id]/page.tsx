@@ -5,6 +5,7 @@ import { useParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import type { RegisterDefinition, RegisterEntry, RegisterColumnDef, Profile } from '@/lib/types'
 import { useProfile } from '@/lib/ProfileContext'
+import Breadcrumbs from '@/components/Breadcrumbs'
 
 export default function RegisterDetailPage() {
   const { id } = useParams()
@@ -190,6 +191,10 @@ export default function RegisterDetailPage() {
 
   return (
     <div className="max-w-[1400px] mx-auto">
+      <Breadcrumbs items={[
+        { label: 'Registers', href: '/registers' },
+        { label: register.name },
+      ]} />
       <div className="flex items-center justify-between mb-6">
         <div>
           <a href="/registers" className="text-sm text-gray-500 hover:text-gray-700 mb-1 inline-block">&larr; Back to Registers</a>
@@ -209,7 +214,7 @@ export default function RegisterDetailPage() {
 
       {/* Search and stats */}
       <div className="flex items-center justify-between mb-4">
-        <input type="text" value={searchTerm} onChange={e => { setSearchTerm(e.target.value); setPage(0) }} placeholder="Search entries..." className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent w-64" />
+        <input type="text" value={searchTerm} onChange={e => { setSearchTerm(e.target.value); setPage(0) }} placeholder="Search entries..." className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent w-full md:w-64" />
         <span className="text-xs text-gray-400">{processedEntries.length} entries</span>
       </div>
 
@@ -279,10 +284,10 @@ export default function RegisterDetailPage() {
                         <button onClick={() => setEditingRow(null)} className="px-2 py-1 border border-gray-300 text-gray-500 rounded text-xs hover:bg-gray-50">Cancel</button>
                       </div>
                     ) : (
-                      <div className="flex gap-1 justify-end opacity-0 group-hover:opacity-100 hover:opacity-100" style={{ opacity: 1 }}>
-                        <button onClick={() => startEdit(entry)} className="px-2 py-1 border border-gray-300 text-gray-500 rounded text-xs hover:bg-gray-50">Edit</button>
+                      <div className="flex gap-1 justify-end md:opacity-0 md:group-hover:opacity-100">
+                        <button onClick={() => startEdit(entry)} className="px-3 py-2 border border-gray-300 text-gray-500 rounded text-xs hover:bg-gray-50 min-h-[44px]">Edit</button>
                         {isPrivileged && (
-                          <button onClick={() => deleteRow(entry.id)} className="px-2 py-1 border border-red-200 text-red-400 rounded text-xs hover:bg-red-50">Del</button>
+                          <button onClick={() => deleteRow(entry.id)} className="px-3 py-2 border border-red-200 text-red-400 rounded text-xs hover:bg-red-50 min-h-[44px]">Del</button>
                         )}
                       </div>
                     )}

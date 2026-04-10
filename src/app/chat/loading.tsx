@@ -1,19 +1,28 @@
+import { Skeleton } from "@/components/ui/skeleton"
+
 export default function ChatLoading() {
   return (
-    <div className="flex h-full w-full bg-gray-50 animate-pulse">
-      <div className="w-72 bg-white border-r border-gray-200 p-3">
-        <div className="h-10 bg-gray-200 rounded-lg mb-4" />
-        <div className="space-y-2">
-          {[...Array(5)].map((_, i) => (
-            <div key={i} className="h-12 bg-gray-100 rounded-lg" />
-          ))}
-        </div>
+    <div className="flex h-full w-full">
+      {/* Sidebar */}
+      <div className="w-72 bg-card border-r border-border p-3 space-y-2">
+        <Skeleton className="h-10 w-full rounded-lg" />
+        {[...Array(5)].map((_, i) => (
+          <Skeleton key={i} className="h-12 w-full rounded-lg" />
+        ))}
       </div>
-      <div className="flex-1 flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-16 h-16 bg-gray-200 rounded-full mx-auto mb-4" />
-          <div className="h-5 bg-gray-200 rounded w-40 mx-auto mb-2" />
-          <div className="h-3 bg-gray-100 rounded w-56 mx-auto" />
+      {/* Main area */}
+      <div className="flex-1 flex flex-col">
+        {/* Messages area */}
+        <div className="flex-1 flex items-center justify-center">
+          <div className="text-center space-y-4">
+            <Skeleton className="w-16 h-16 rounded-full mx-auto" />
+            <Skeleton className="h-5 w-40 mx-auto" />
+            <Skeleton className="h-3 w-56 mx-auto" />
+          </div>
+        </div>
+        {/* Input bar */}
+        <div className="border-t border-border p-4">
+          <Skeleton className="h-10 w-full rounded-lg" />
         </div>
       </div>
     </div>

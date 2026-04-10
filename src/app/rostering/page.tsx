@@ -42,6 +42,11 @@ export default function RosteringPage() {
   const [showLeaveForm, setShowLeaveForm] = useState(false)
   const [newLeave, setNewLeave] = useState({ user_id: '', leave_type: 'annual', start_date: '', end_date: '', reason: '' })
 
+  const [mobileDay, setMobileDay] = useState(() => {
+    const day = new Date().getDay()
+    return day === 0 || day === 6 ? 0 : day - 1 // Mon=0, clamp weekends to Mon
+  })
+
   const weekDates = useMemo(() => getWeekDates(weekOffset), [weekOffset])
   const weekLabel = `${new Date(weekDates[0]).toLocaleDateString('en-AU', { day: 'numeric', month: 'short' })} - ${new Date(weekDates[4]).toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' })}`
 
@@ -255,6 +260,18 @@ export default function RosteringPage() {
             <button onClick={() => setWeekOffset(o => o + 1)} className="px-3 py-1.5 border border-border rounded-lg text-sm hover:bg-muted">Next &rarr;</button>
           </div>
 
+          {/* Mobile day selector */}
+          <div className="flex md:hidden gap-1 mb-3 bg-muted rounded-lg p-1">
+            {weekDates.map((date, i) => (
+              <button key={i} onClick={() => setMobileDay(i)}
+                className={`flex-1 px-2 py-2 rounded-md text-xs font-medium transition ${
+                  mobileDay === i ? 'bg-card shadow text-foreground' : 'text-muted-foreground'
+                }`}>
+                {['Mon','Tue','Wed','Thu','Fri'][i]}
+              </button>
+            ))}
+          </div>
+
           {/* Roster grid by room */}
           {rooms.length === 0 ? (
             <Card className="p-12 text-center text-muted-foreground">
@@ -269,7 +286,8 @@ export default function RosteringPage() {
                   <h3 className="font-semibold text-foreground">{room.name}</h3>
                   <span className="text-xs text-muted-foreground">{AGE_GROUP_LABELS[room.age_group]} | Capacity: {room.licensed_capacity} | Ratio: 1:{room.ratio_children}</span>
                 </div>
-                <div className="bg-card rounded-xl shadow-sm ring-1 ring-foreground/10 overflow-hidden">
+                {/* Desktop: full week grid */}
+                <div className="hidden md:block bg-card rounded-xl shadow-sm ring-1 ring-foreground/10 overflow-hidden">
                   <div className="grid grid-cols-5 divide-x divide-border">
                     {weekDates.map((date, dayIdx) => {
                       const dayShifts = shifts.filter(s => s.room_id === room.id && s.shift_date === date && s.status !== 'cancelled')
@@ -287,7 +305,7 @@ export default function RosteringPage() {
                                 <div className="flex items-center justify-between">
                                   <span className="font-medium truncate" style={{ color: room.color }}>{(shift.profiles as any)?.full_name || 'Unassigned'}</span>
                                   {isPrivileged && (
-                                    <button onClick={() => deleteShift(shift.id)} className="opacity-0 group-hover:opacity-100 text-red-400 hover:text-red-600 text-xs transition">&#10005;</button>
+                                    <button onClick={() => deleteShift(shift.id)} className="md:opacity-0 md:group-hover:opacity-100 text-red-400 hover:text-red-600 text-xs transition min-h-[44px] min-w-[44px] flex items-center justify-center -my-2 -mr-1">&#10005;</button>
                                   )}
                                 </div>
                                 <span className="text-muted-foreground">{shift.start_time?.slice(0, 5)}-{shift.end_time?.slice(0, 5)}</span>
@@ -307,6 +325,50 @@ export default function RosteringPage() {
                       )
                     })}
                   </div>
+                </div>
+
+                {/* Mobile: single day view */}
+                <div className="md:hidden space-y-2">
+                  {(() => {
+                    const date = weekDates[mobileDay]
+                    const dayShifts = shifts.filter(s => s.room_id === room.id && s.shift_date === date && s.status !== 'cancelled')
+                    const ratio = getRatioStatus(room, date)
+                    return (
+                      <>
+                        <div className="flex items-center justify-between px-1 mb-1">
+                          <span className="text-xs font-medium text-muted-foreground">{DAYS[mobileDay]} {new Date(date).getDate()}</span>
+                          <span className={`inline-flex items-center gap-1 text-xs ${ratio.status === 'compliant' ? 'text-green-600' : ratio.status === 'at_minimum' ? 'text-yellow-600' : 'text-red-600'}`}>
+                            <span className={`w-2 h-2 rounded-full ${ratio.status === 'compliant' ? 'bg-green-400' : ratio.status === 'at_minimum' ? 'bg-yellow-400' : 'bg-red-400'}`} />
+                            {ratio.educatorsOnFloor}/{ratio.requiredEducators} educators
+                          </span>
+                        </div>
+                        {dayShifts.length === 0 ? (
+                          <div className="bg-card border border-border rounded-lg p-4 text-center text-xs text-muted-foreground">No shifts scheduled</div>
+                        ) : dayShifts.map(shift => (
+                          <div key={shift.id} className="bg-card border border-border rounded-lg p-3" style={{ borderLeftWidth: 3, borderLeftColor: room.color }}>
+                            <div className="flex items-center justify-between">
+                              <span className="font-medium text-sm" style={{ color: room.color }}>{(shift.profiles as any)?.full_name || 'Unassigned'}</span>
+                              {isPrivileged && (
+                                <button onClick={() => deleteShift(shift.id)} className="text-red-400 hover:text-red-600 text-xs min-h-[44px] min-w-[44px] flex items-center justify-center -my-2 -mr-1">&#10005;</button>
+                              )}
+                            </div>
+                            <div className="flex items-center gap-2 mt-1 text-xs text-muted-foreground">
+                              <span>{shift.start_time?.slice(0, 5)} - {shift.end_time?.slice(0, 5)}</span>
+                              {shift.shift_type !== 'regular' && (
+                                <span className="px-1.5 py-0.5 bg-muted rounded text-[10px]">{SHIFT_TYPE_LABELS[shift.shift_type]}</span>
+                              )}
+                              {shift.is_published && <span className="text-green-500 text-[10px]">&#10003; Published</span>}
+                            </div>
+                          </div>
+                        ))}
+                        {isPrivileged && (
+                          <button onClick={() => { setSelectedDay(date); setNewShift({ ...newShift, room_id: String(room.id) }); setShowAddShift(true) }} className="w-full px-3 py-2.5 border border-dashed border-border text-muted-foreground rounded-lg text-xs hover:border-primary hover:text-primary transition">
+                            + Add Shift
+                          </button>
+                        )}
+                      </>
+                    )
+                  })()}
                 </div>
               </div>
             ))

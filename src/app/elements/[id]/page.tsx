@@ -6,6 +6,7 @@ import { createClient } from '@/lib/supabase/client'
 import { QA_COLORS, STATUS_COLORS, type QAElement, type Comment, type Profile } from '@/lib/types'
 import { useProfile } from '@/lib/ProfileContext'
 import CentreContextPanel from '@/components/CentreContextPanel'
+import Breadcrumbs from '@/components/Breadcrumbs'
 
 interface ElementAction {
   id: string
@@ -237,6 +238,13 @@ export default function ElementDetailPage() {
 
   return (
     <div className="max-w-5xl mx-auto">
+      {/* Breadcrumbs */}
+      <Breadcrumbs items={[
+        { label: 'QA Elements', href: '/elements' },
+        { label: `QA${element.qa_number}`, href: `/elements?qa=${element.qa_number}` },
+        { label: element.element_code },
+      ]} />
+
       {/* Header */}
       <button onClick={() => router.back()} className="text-sm text-muted-foreground hover:text-gray-700 mb-4 inline-block">&larr; Back to Elements</button>
 

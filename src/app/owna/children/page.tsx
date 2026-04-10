@@ -105,7 +105,7 @@ export default function OwnaChildrenPage() {
 
       {/* Search */}
       <div className="flex gap-3 mb-4">
-        <input type="text" value={search} onChange={e => setSearch(e.target.value)} placeholder="Search by name..." className="px-3 py-2 border border-border rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent w-64" />
+        <input type="text" value={search} onChange={e => setSearch(e.target.value)} placeholder="Search by name..." className="px-3 py-2 border border-border rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent w-full md:w-64" />
         <span className="text-sm text-muted-foreground self-center">{filtered.length} results</span>
       </div>
 

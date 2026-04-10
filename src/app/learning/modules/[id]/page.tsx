@@ -21,6 +21,7 @@ import {
   LMS_TIER_COLORS,
   LMS_CATEGORY_LABELS,
 } from '@/lib/types'
+import Breadcrumbs from '@/components/Breadcrumbs'
 
 // ============================================
 // TYPES
@@ -592,8 +593,15 @@ export default function ModulePlayerPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Top Bar */}
+      {/* Breadcrumbs + Top Bar */}
       <div className="sticky top-0 z-30 bg-white border-b border-gray-200 shadow-sm">
+        <div className="px-4 pt-2">
+          <Breadcrumbs items={[
+            { label: 'Learning', href: '/learning' },
+            { label: 'Module Library', href: '/learning' },
+            { label: mod.title },
+          ]} />
+        </div>
         <div className="flex items-center justify-between px-4 py-2">
           <Link
             href="/learning"
