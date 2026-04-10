@@ -1,10 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
-import Anthropic from '@anthropic-ai/sdk'
+import { getAnthropicClient } from '@/lib/chat/shared'
 
 export const dynamic = 'force-dynamic'
 
-const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
+// Lazy init — avoid throwing at build time when env vars aren't available
+let _anthropic: ReturnType<typeof getAnthropicClient> | null = null
+function getAnthropic() {
+  if (!_anthropic) _anthropic = getAnthropicClient()
+  return _anthropic
+}
 
 const CONTEXT_EXTRACTION_PROMPT = `You are an expert in Australian Early Childhood Education and Care (ECEC), the National Quality Framework (NQF), and Assessment & Rating (A&R).
 
@@ -73,7 +78,7 @@ export async function POST(request: NextRequest) {
         .replace('{DOCUMENT_TYPE}', doc.document_type || 'other')
         .replace('{CONTENT}', doc.extracted_text.substring(0, 80000))
 
-      const message = await anthropic.messages.create({
+      const message = await getAnthropic().messages.create({
         model: 'claude-sonnet-4-20250514',
         max_tokens: 4096,
         messages: [{ role: 'user', content: prompt }],
@@ -152,7 +157,7 @@ export async function POST(request: NextRequest) {
         .replace('{MODULE_QA}', (lmsModule.related_qa || []).map((n: number) => `QA${n}`).join(', '))
         .replace('{CONTEXT_ITEMS}', contextStr)
 
-      const message = await anthropic.messages.create({
+      const message = await getAnthropic().messages.create({
         model: 'claude-sonnet-4-20250514',
         max_tokens: 2048,
         messages: [{ role: 'user', content: prompt }],
@@ -222,7 +227,7 @@ export async function POST(request: NextRequest) {
           .replace('{CONTEXT_ITEMS}', contextStr)
 
         try {
-          const message = await anthropic.messages.create({
+          const message = await getAnthropic().messages.create({
             model: 'claude-sonnet-4-20250514',
             max_tokens: 2048,
             messages: [{ role: 'user', content: prompt }],

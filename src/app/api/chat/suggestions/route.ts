@@ -63,7 +63,7 @@ export async function PATCH(request: NextRequest) {
     const payload = data.action_payload as Record<string, unknown>
 
     if (data.action_type === 'create_task' && payload.title) {
-      await supabase.from('tasks').insert({
+      const { error: taskErr } = await supabase.from('tasks').insert({
         title: payload.title,
         description: payload.description || data.content,
         priority: payload.priority || 'medium',
@@ -72,21 +72,27 @@ export async function PATCH(request: NextRequest) {
         created_by: user.id,
         due_date: payload.due_date || null,
       })
-      await supabase.from('ai_suggestions').update({ status: 'actioned' }).eq('id', suggestionId)
+      if (!taskErr) {
+        await supabase.from('ai_suggestions').update({ status: 'actioned' }).eq('id', suggestionId)
+      }
     }
 
     if (data.action_type === 'assign_training' && payload.module_title && payload.staff_name) {
-      const { data: mod } = await supabase.from('lms_modules').select('id').ilike('title', `%${payload.module_title}%`).limit(1).single()
-      const { data: staff } = await supabase.from('profiles').select('id').ilike('full_name', `%${payload.staff_name}%`).limit(1).single()
+      const { data: mod, error: modErr } = await supabase.from('lms_modules').select('id').ilike('title', `%${payload.module_title}%`).limit(1).single()
+      const { data: staff, error: staffErr } = await supabase.from('profiles').select('id').ilike('full_name', `%${payload.staff_name}%`).limit(1).single()
+      if (modErr && modErr.code !== 'PGRST116') console.error('Module lookup failed:', modErr.message)
+      if (staffErr && staffErr.code !== 'PGRST116') console.error('Staff lookup failed:', staffErr.message)
       if (mod && staff) {
-        await supabase.from('lms_enrollments').upsert({
+        const { error: enrollErr } = await supabase.from('lms_enrollments').upsert({
           user_id: staff.id,
           module_id: mod.id,
           assigned_by: user.id,
           status: 'not_started',
           due_date: payload.due_date || null,
         }, { onConflict: 'user_id,module_id' })
-        await supabase.from('ai_suggestions').update({ status: 'actioned' }).eq('id', suggestionId)
+        if (!enrollErr) {
+          await supabase.from('ai_suggestions').update({ status: 'actioned' }).eq('id', suggestionId)
+        }
       }
     }
   }

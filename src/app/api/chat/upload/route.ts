@@ -15,10 +15,16 @@ export async function POST(request: NextRequest) {
     const files = formData.getAll('files') as File[]
 
     if (!files.length) return NextResponse.json({ error: 'No files provided' }, { status: 400 })
+    if (files.length > 10) return NextResponse.json({ error: 'Maximum 10 files per upload' }, { status: 400 })
 
+    const MAX_FILE_SIZE = 10 * 1024 * 1024 // 10MB
     const results = []
 
     for (const file of files) {
+      if (file.size > MAX_FILE_SIZE) {
+        results.push({ name: file.name, error: `File exceeds 10MB limit (${(file.size / 1024 / 1024).toFixed(1)}MB)` })
+        continue
+      }
       const buffer = Buffer.from(await file.arrayBuffer())
       const ext = file.name.split('.').pop()?.toLowerCase() || ''
       const safeName = `${user.id}/${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`

@@ -38,11 +38,13 @@ export async function POST(request: NextRequest) {
       case 'create_task': {
         let assignedTo = null
         if (details.assigned_to_name) {
-          const { data: profile } = await supabase
+          const { data: profile, error: profileErr } = await supabase
             .from('profiles').select('id')
             .ilike('full_name', `%${details.assigned_to_name}%`)
             .limit(1).single()
-          assignedTo = profile?.id
+          if (profileErr && profileErr.code !== 'PGRST116') return NextResponse.json({ error: `Staff lookup failed: ${profileErr.message}` }, { status: 500 })
+          if (!profile) return NextResponse.json({ error: `Staff member "${details.assigned_to_name}" not found` }, { status: 404 })
+          assignedTo = profile.id
         }
         const { data, error } = await supabase.from('tasks').insert({
           title: details.title,
@@ -59,14 +61,16 @@ export async function POST(request: NextRequest) {
       }
 
       case 'assign_training': {
-        const { data: mod } = await supabase
+        const { data: mod, error: modErr } = await supabase
           .from('lms_modules').select('id, title')
           .ilike('title', `%${details.module_title}%`)
           .eq('status', 'published').limit(1).single()
-        const { data: staff } = await supabase
+        if (modErr && modErr.code !== 'PGRST116') return NextResponse.json({ error: `Module lookup failed: ${modErr.message}` }, { status: 500 })
+        const { data: staff, error: staffErr } = await supabase
           .from('profiles').select('id, full_name')
           .ilike('full_name', `%${details.staff_name}%`)
           .limit(1).single()
+        if (staffErr && staffErr.code !== 'PGRST116') return NextResponse.json({ error: `Staff lookup failed: ${staffErr.message}` }, { status: 500 })
         if (!mod || !staff) return NextResponse.json({ error: 'Module or staff not found' }, { status: 404 })
         const { error } = await supabase.from('lms_enrollments').upsert({
           user_id: staff.id, module_id: mod.id, assigned_by: user.id,
@@ -84,19 +88,22 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ success: true, status: 'confirmed', message: `${item_type} updated successfully.` })
       }
 
-      case 'create_checklist': {
-        const { data: template } = await supabase
+      case 'create_checklist_instance': {
+        const { data: template, error: tplErr } = await supabase
           .from('checklist_templates').select('id, name, items')
           .ilike('name', `%${details.template_name}%`)
           .limit(1).single()
+        if (tplErr && tplErr.code !== 'PGRST116') return NextResponse.json({ error: `Template lookup failed: ${tplErr.message}` }, { status: 500 })
         if (!template) return NextResponse.json({ error: 'Template not found' }, { status: 404 })
         let assignedTo = null
         if (details.assigned_to_name) {
-          const { data: profile } = await supabase
+          const { data: profile, error: profileErr } = await supabase
             .from('profiles').select('id')
             .ilike('full_name', `%${details.assigned_to_name}%`)
             .limit(1).single()
-          assignedTo = profile?.id
+          if (profileErr && profileErr.code !== 'PGRST116') return NextResponse.json({ error: `Staff lookup failed: ${profileErr.message}` }, { status: 500 })
+          if (!profile) return NextResponse.json({ error: `Staff member "${details.assigned_to_name}" not found` }, { status: 404 })
+          assignedTo = profile.id
         }
         const items = template.items as Array<Record<string, unknown>>
         const { error } = await supabase.from('checklist_instances').insert({

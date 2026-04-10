@@ -4,6 +4,8 @@ import { useState, useRef, useEffect, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useProfile } from '@/lib/ProfileContext'
 import { ROLE_LABELS } from '@/lib/types'
+import { useChatStream } from '@/hooks/useChatStream'
+import { TOOL_LABELS } from '@/lib/chat/sse-protocol'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 
@@ -47,6 +49,7 @@ export default function ChatPage() {
   const [uploading, setUploading] = useState(false)
   const [isRecording, setIsRecording] = useState(false)
   const [speechSupported, setSpeechSupported] = useState(false)
+  const { streamingMessage, activeTools, error: streamError, model: activeModel, sendMessage: sendStreamMessage, abort: abortStream } = useChatStream()
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -67,9 +70,15 @@ export default function ChatPage() {
     if (inputRef.current) inputRef.current.focus()
   }, [conversationId])
 
-  // Check speech support on mount
+  // Check speech support on mount + cleanup on unmount
   useEffect(() => {
     setSpeechSupported('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)
+    return () => {
+      if (recognitionRef.current) {
+        recognitionRef.current.stop()
+        recognitionRef.current = null
+      }
+    }
   }, [])
 
   // Realtime subscription: watch for new assistant messages in active conversation
@@ -219,6 +228,52 @@ export default function ChatPage() {
     setIsRecording(true)
   }
 
+  // When streaming completes, finalize the message
+  useEffect(() => {
+    if (streamingMessage && !streamingMessage.isStreaming) {
+      // Only add to messages if there's actual text content
+      if (streamingMessage.text) {
+        const docs = (streamingMessage.documents || []) as GeneratedDocument[]
+        const actions = (streamingMessage.pendingActions || []) as Array<{ id: string; action_type: string; description: string; details: Record<string, unknown> }>
+
+        setMessages(prev => {
+          if (streamingMessage.messageId && prev.some(m => m.id === streamingMessage.messageId)) return prev
+          return [...prev, {
+            id: streamingMessage.messageId || `stream-${Date.now()}`,
+            role: 'assistant' as const,
+            content: streamingMessage.text,
+            documents: docs,
+            timestamp: new Date(),
+          }]
+        })
+
+        if (actions.length > 0) {
+          const newActions: Record<string, { action: unknown; status: 'pending' }> = {}
+          for (const action of actions) {
+            newActions[action.id] = { action, status: 'pending' }
+          }
+          setPendingActions(prev => ({ ...prev, ...newActions }))
+        }
+      }
+
+      // Always clear loading when streaming is done, even if text is empty
+      setLoading(false)
+    }
+  }, [streamingMessage?.isStreaming, streamingMessage?.messageId, streamingMessage?.text])
+
+  // Show stream errors
+  useEffect(() => {
+    if (streamError) {
+      setMessages(prev => [...prev, {
+        id: `error-${Date.now()}`,
+        role: 'assistant',
+        content: `I encountered an error: ${streamError}`,
+        timestamp: new Date(),
+      }])
+      setLoading(false)
+    }
+  }, [streamError])
+
   const sendMessage = async () => {
     if (!input.trim() || loading) return
 
@@ -250,40 +305,17 @@ export default function ChatPage() {
       setAttachments([])
     }
 
-    try {
-      const res = await fetch('/api/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ conversationId, message: userMessage, attachments: uploadedAttachments }),
-      })
+    // Use SSE streaming endpoint
+    const result = await sendStreamMessage({
+      conversationId,
+      message: userMessage,
+      attachments: uploadedAttachments,
+    })
 
-      const data = await res.json()
-
-      if (data.error) {
-        setMessages(prev => [...prev, {
-          id: `error-${Date.now()}`,
-          role: 'assistant',
-          content: `I encountered an error: ${data.error}`,
-          timestamp: new Date(),
-        }])
-        setLoading(false)
-      } else {
-        // API returns immediately with conversationId + status: 'processing'
-        // The actual AI response will arrive via Supabase realtime subscription
-        if (!conversationId && data.conversationId) {
-          setConversationId(data.conversationId)
-          loadConversations()
-        }
-        // Keep loading=true — realtime subscription will set it to false when response arrives
-      }
-    } catch {
-      setMessages(prev => [...prev, {
-        id: `error-${Date.now()}`,
-        role: 'assistant',
-        content: 'I couldn\'t connect to the server. Please try again.',
-        timestamp: new Date(),
-      }])
-      setLoading(false)
+    // Set conversation ID for new conversations
+    if (!conversationId && result.conversationId) {
+      setConversationId(result.conversationId)
+      loadConversations()
     }
   }
 
@@ -573,7 +605,7 @@ export default function ChatPage() {
                                 {action.action_type === 'create_task' && `Priority: ${action.details.priority || 'medium'} • ${action.details.assigned_to_name ? `Assigned to: ${action.details.assigned_to_name}` : 'Unassigned'} • ${action.details.due_date ? `Due: ${action.details.due_date}` : 'No due date'}`}
                                 {action.action_type === 'assign_training' && `Module: ${action.details.module_title} • Staff: ${action.details.staff_name}`}
                                 {action.action_type === 'update_item' && `${action.details.item_type}: ${JSON.stringify(action.details.updates)}`}
-                                {action.action_type === 'create_checklist' && `Template: ${action.details.template_name}`}
+                                {action.action_type === 'create_checklist_instance' && `Template: ${action.details.template_name}`}
                               </div>
                               <div className="flex items-center gap-2 mt-3">
                                 <button
@@ -668,19 +700,74 @@ export default function ChatPage() {
               </div>
             ))}
 
-            {/* Loading indicator */}
-            {loading && (
+            {/* Streaming response — shows text as it arrives */}
+            {streamingMessage?.isStreaming && streamingMessage.text && (
+              <div className="flex gap-3 justify-start">
+                <div className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0 mt-1" style={{ backgroundColor: '#470DA8' }}>K</div>
+                <div className="max-w-[90%] sm:max-w-[80%] space-y-3">
+                  <div className="prose prose-sm max-w-none text-gray-800 [&_h1]:text-base [&_h1]:font-bold [&_h2]:text-sm [&_h2]:font-semibold [&_h3]:text-sm [&_h3]:font-medium [&_p]:text-sm [&_p]:leading-relaxed [&_li]:text-sm [&_table]:text-xs [&_th]:bg-gray-50 [&_th]:px-3 [&_th]:py-1.5 [&_td]:px-3 [&_td]:py-1.5 [&_blockquote]:border-l-purple-400 [&_blockquote]:bg-purple-50/50 [&_code]:text-xs [&_code]:bg-gray-100 [&_code]:px-1 [&_code]:rounded [&_pre]:bg-gray-900 [&_pre]:text-gray-100 [&_pre]:rounded-lg [&_pre]:text-xs">
+                    <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                      {streamingMessage.text}
+                    </ReactMarkdown>
+                  </div>
+
+                  {/* Tool activity indicators */}
+                  {activeTools.length > 0 && (
+                    <div className="flex flex-wrap gap-2">
+                      {activeTools.map(tool => (
+                        <div key={tool} className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-purple-50 border border-purple-200 text-xs text-purple-700">
+                          <div className="w-1.5 h-1.5 rounded-full bg-purple-500 animate-pulse" />
+                          {TOOL_LABELS[tool] || tool}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Model badge */}
+                  {activeModel && (
+                    <div className="text-[10px] text-gray-400">
+                      {activeModel.includes('opus') ? 'Deep analysis mode' : 'Fast mode'}
+                    </div>
+                  )}
+
+                  {/* Stop button */}
+                  <button
+                    onClick={abortStream}
+                    className="text-xs text-gray-400 hover:text-red-500 transition-colors"
+                  >
+                    Stop generating
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Loading indicator — waiting for first tokens or uploading */}
+            {loading && (!streamingMessage?.text) && (
               <div className="flex gap-3">
                 <div className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0" style={{ backgroundColor: '#470DA8' }}>K</div>
-                <div className="flex items-center gap-2 py-3">
-                  <div className="flex gap-1">
-                    <div className="w-2 h-2 rounded-full bg-purple-400 animate-bounce" style={{ animationDelay: '0ms' }} />
-                    <div className="w-2 h-2 rounded-full bg-purple-400 animate-bounce" style={{ animationDelay: '150ms' }} />
-                    <div className="w-2 h-2 rounded-full bg-purple-400 animate-bounce" style={{ animationDelay: '300ms' }} />
+                <div className="space-y-2 py-3">
+                  <div className="flex items-center gap-2">
+                    <div className="flex gap-1">
+                      <div className="w-2 h-2 rounded-full bg-purple-400 animate-bounce" style={{ animationDelay: '0ms' }} />
+                      <div className="w-2 h-2 rounded-full bg-purple-400 animate-bounce" style={{ animationDelay: '150ms' }} />
+                      <div className="w-2 h-2 rounded-full bg-purple-400 animate-bounce" style={{ animationDelay: '300ms' }} />
+                    </div>
+                    <span className="text-xs text-gray-400">
+                      {uploading ? 'Uploading files...' : 'Kiros AI is thinking...'}
+                    </span>
                   </div>
-                  <span className="text-xs text-gray-400">
-                    {uploading ? 'Uploading files...' : 'Kiros AI is working... you can navigate away and come back'}
-                  </span>
+
+                  {/* Tool activity indicators during initial load */}
+                  {activeTools.length > 0 && (
+                    <div className="flex flex-wrap gap-2">
+                      {activeTools.map(tool => (
+                        <div key={tool} className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-purple-50 border border-purple-200 text-xs text-purple-700">
+                          <div className="w-1.5 h-1.5 rounded-full bg-purple-500 animate-pulse" />
+                          {TOOL_LABELS[tool] || tool}
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
             )}

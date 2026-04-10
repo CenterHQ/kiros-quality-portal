@@ -4,6 +4,8 @@ import { useState, useRef, useEffect, useCallback } from 'react'
 import { usePathname } from 'next/navigation'
 import { useProfile } from '@/lib/ProfileContext'
 import { ROLE_LABELS } from '@/lib/types'
+import { useChatStream } from '@/hooks/useChatStream'
+import { TOOL_LABELS } from '@/lib/chat/sse-protocol'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 
@@ -23,8 +25,8 @@ export default function ChatAssistant() {
   const [loading, setLoading] = useState(false)
   const [conversationId, setConversationId] = useState<string | null>(null)
   const [hasNewMessage, setHasNewMessage] = useState(false)
-  const [processingConvId, setProcessingConvId] = useState<string | null>(null)
   const [isRecording, setIsRecording] = useState(false)
+  const { streamingMessage, activeTools, error: streamError, sendMessage: sendStreamMessage, abort: abortStream } = useChatStream()
   const [speechSupported, setSpeechSupported] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
@@ -38,20 +40,38 @@ export default function ChatAssistant() {
   useEffect(() => { scrollToBottom() }, [messages, scrollToBottom])
   useEffect(() => { if (isOpen && inputRef.current) inputRef.current.focus() }, [isOpen])
 
-  // Persist processing state across navigations
+  // When streaming completes, add message
   useEffect(() => {
-    const stored = localStorage.getItem('kiros_ai_processing')
-    if (stored) {
-      const { convId, timestamp } = JSON.parse(stored)
-      // Only resume if less than 2 minutes old
-      if (Date.now() - timestamp < 120000) {
-        setProcessingConvId(convId)
-        setLoading(true)
-      } else {
-        localStorage.removeItem('kiros_ai_processing')
+    if (streamingMessage && !streamingMessage.isStreaming) {
+      if (streamingMessage.text) {
+        setMessages(prev => {
+          if (streamingMessage.messageId && prev.some(m => m.id === streamingMessage.messageId)) return prev
+          return [...prev, {
+            id: streamingMessage.messageId || `stream-${Date.now()}`,
+            role: 'assistant' as const,
+            content: streamingMessage.text,
+            timestamp: new Date(),
+          }]
+        })
+        if (!isOpen) setHasNewMessage(true)
       }
+      // Always clear loading when streaming is done, even if text is empty
+      setLoading(false)
     }
-  }, [])
+  }, [streamingMessage?.isStreaming, streamingMessage?.messageId, streamingMessage?.text, isOpen])
+
+  // Show stream errors
+  useEffect(() => {
+    if (streamError) {
+      setMessages(prev => [...prev, {
+        id: `err-${Date.now()}`,
+        role: 'assistant',
+        content: `Error: ${streamError}`,
+        timestamp: new Date(),
+      }])
+      setLoading(false)
+    }
+  }, [streamError])
 
   // Check speech support on mount
   useEffect(() => {
@@ -103,51 +123,12 @@ export default function ChatAssistant() {
     setMessages(prev => [...prev, { id: `user-${Date.now()}`, role: 'user', content: userMessage, timestamp: new Date() }])
     setLoading(true)
 
-    try {
-      const res = await fetch('/api/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ conversationId, message: userMessage }),
-      })
-      const data = await res.json()
+    const result = await sendStreamMessage({
+      conversationId,
+      message: userMessage,
+    })
 
-      if (data.error) {
-        setMessages(prev => [...prev, { id: `err-${Date.now()}`, role: 'assistant', content: `Error: ${data.error}`, timestamp: new Date() }])
-        setLoading(false)
-      } else {
-        if (!conversationId && data.conversationId) setConversationId(data.conversationId)
-        const activeConvId = data.conversationId || conversationId
-        setProcessingConvId(activeConvId)
-        localStorage.setItem('kiros_ai_processing', JSON.stringify({ convId: activeConvId, timestamp: Date.now() }))
-        // Response arrives via polling — API returns immediately with status: 'processing'
-        // Poll for the response since widget doesn't have realtime subscription
-        const pollForResponse = async () => {
-          for (let i = 0; i < 60; i++) { // Poll for up to 60 seconds
-            await new Promise(r => setTimeout(r, 2000)) // Check every 2s
-            const convRes = await fetch(`/api/chat/conversations?id=${data.conversationId}`)
-            const convData = await convRes.json()
-            const msgs = convData.messages || []
-            const lastMsg = msgs[msgs.length - 1]
-            if (lastMsg && lastMsg.role === 'assistant' && new Date(lastMsg.created_at) > new Date(Date.now() - 120000)) {
-              setMessages(prev => {
-                if (prev.some(m => m.id === lastMsg.id)) return prev
-                return [...prev, { id: lastMsg.id, role: 'assistant' as const, content: lastMsg.content, timestamp: new Date(lastMsg.created_at) }]
-              })
-              if (!isOpen) setHasNewMessage(true)
-              localStorage.removeItem('kiros_ai_processing')
-              setProcessingConvId(null)
-              setLoading(false)
-              return
-            }
-          }
-          setLoading(false) // Timeout after 60 polls
-        }
-        pollForResponse()
-      }
-    } catch {
-      setMessages(prev => [...prev, { id: `err-${Date.now()}`, role: 'assistant', content: 'Connection error. Please try again.', timestamp: new Date() }])
-      setLoading(false)
-    }
+    if (!conversationId && result.conversationId) setConversationId(result.conversationId)
   }
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -268,15 +249,50 @@ export default function ChatAssistant() {
               </div>
             ))}
 
-            {loading && (
+            {/* Streaming response */}
+            {streamingMessage?.isStreaming && streamingMessage.text && (
               <div className="flex justify-start">
-                <div className="bg-gray-50 rounded-2xl rounded-bl-md px-3 py-2.5 flex items-center gap-2">
-                  <div className="flex gap-1">
-                    <div className="w-1.5 h-1.5 rounded-full bg-purple-400 animate-bounce" style={{ animationDelay: '0ms' }} />
-                    <div className="w-1.5 h-1.5 rounded-full bg-purple-400 animate-bounce" style={{ animationDelay: '150ms' }} />
-                    <div className="w-1.5 h-1.5 rounded-full bg-purple-400 animate-bounce" style={{ animationDelay: '300ms' }} />
+                <div className="max-w-[85%] rounded-2xl rounded-bl-md bg-gray-50 text-gray-800 px-3 py-2 text-sm space-y-2">
+                  <div className="prose prose-sm max-w-none [&_p]:text-sm [&_p]:leading-relaxed [&_p]:my-1 [&_li]:text-sm [&_h1]:text-sm [&_h1]:font-bold [&_h2]:text-sm [&_h2]:font-semibold [&_h3]:text-xs [&_table]:text-[11px] [&_code]:text-xs [&_code]:bg-gray-100 [&_code]:px-1 [&_code]:rounded [&_blockquote]:text-xs [&_blockquote]:border-l-purple-300">
+                    <ReactMarkdown remarkPlugins={[remarkGfm]}>{streamingMessage.text}</ReactMarkdown>
                   </div>
-                  <span className="text-[10px] text-gray-400">Thinking...</span>
+                  {activeTools.length > 0 && (
+                    <div className="flex flex-wrap gap-1">
+                      {activeTools.map(tool => (
+                        <span key={tool} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-purple-50 border border-purple-200 text-[10px] text-purple-600">
+                          <span className="w-1 h-1 rounded-full bg-purple-500 animate-pulse" />
+                          {TOOL_LABELS[tool] || tool}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                  <button onClick={abortStream} className="text-[10px] text-gray-400 hover:text-red-500">Stop</button>
+                </div>
+              </div>
+            )}
+
+            {/* Loading indicator — before first tokens arrive */}
+            {loading && (!streamingMessage?.text) && (
+              <div className="flex justify-start">
+                <div className="bg-gray-50 rounded-2xl rounded-bl-md px-3 py-2.5 space-y-1.5">
+                  <div className="flex items-center gap-2">
+                    <div className="flex gap-1">
+                      <div className="w-1.5 h-1.5 rounded-full bg-purple-400 animate-bounce" style={{ animationDelay: '0ms' }} />
+                      <div className="w-1.5 h-1.5 rounded-full bg-purple-400 animate-bounce" style={{ animationDelay: '150ms' }} />
+                      <div className="w-1.5 h-1.5 rounded-full bg-purple-400 animate-bounce" style={{ animationDelay: '300ms' }} />
+                    </div>
+                    <span className="text-[10px] text-gray-400">Thinking...</span>
+                  </div>
+                  {activeTools.length > 0 && (
+                    <div className="flex flex-wrap gap-1">
+                      {activeTools.map(tool => (
+                        <span key={tool} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-purple-50 border border-purple-200 text-[10px] text-purple-600">
+                          <span className="w-1 h-1 rounded-full bg-purple-500 animate-pulse" />
+                          {TOOL_LABELS[tool] || tool}
+                        </span>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
             )}

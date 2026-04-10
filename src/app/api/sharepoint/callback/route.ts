@@ -39,7 +39,7 @@ export async function GET(request: NextRequest) {
       refresh_token: '__app_credentials__',
       token_expires_at: new Date(Date.now() + 3600 * 1000).toISOString(),
       connected_by: user?.id,
-      site_url: 'https://kirosgroup.sharepoint.com/sites/operations',
+      site_url: process.env.MICROSOFT_SHAREPOINT_SITE_URL || 'https://kirosgroup.sharepoint.com/sites/operations',
       status: 'connected',
     }, { onConflict: 'id' })
 

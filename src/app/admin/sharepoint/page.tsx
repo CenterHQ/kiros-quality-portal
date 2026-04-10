@@ -574,10 +574,10 @@ export default function SharePointAdminPage() {
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 text-sm">
-              <div>
+              <div className="min-w-0">
                 <span className="text-gray-500 block">Site URL</span>
                 <a href={connection.site_url} target="_blank" rel="noopener noreferrer"
-                  className="font-medium hover:underline" style={{ color: '#470DA8' }}>
+                  className="font-medium hover:underline break-all" style={{ color: '#470DA8' }}>
                   {connection.site_url}
                 </a>
               </div>
