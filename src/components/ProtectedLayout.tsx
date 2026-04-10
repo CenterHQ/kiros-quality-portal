@@ -1,11 +1,30 @@
 import { redirect } from 'next/navigation'
 import { headers } from 'next/headers'
-import { createServerSupabaseClient } from '@/lib/supabase/server'
+import { unstable_cache } from 'next/cache'
+import { createServerSupabaseClient, createServiceRoleClient } from '@/lib/supabase/server'
 import Sidebar from '@/components/Sidebar'
 import MobileNav from '@/components/MobileNav'
 import { ProfileProvider } from '@/lib/ProfileContext'
 import ChatAssistant from '@/components/ChatAssistant'
 import Providers from '@/components/Providers'
+
+// Cache badge counts for 60 seconds — avoids re-querying on every navigation
+const getBadgeCounts = unstable_cache(
+  async () => {
+    const supabase = createServiceRoleClient()
+    const today = new Date().toISOString().split('T')[0]
+    const [{ count: overdueTaskCount }, { count: pendingChecklistCount }] = await Promise.all([
+      supabase.from('tasks').select('*', { count: 'exact', head: true }).lt('due_date', today).neq('status', 'done'),
+      supabase.from('checklist_instances').select('*', { count: 'exact', head: true }).in('status', ['pending', 'in_progress']).lte('due_date', today),
+    ])
+    return {
+      '/tasks': overdueTaskCount || 0,
+      '/checklists': pendingChecklistCount || 0,
+    }
+  },
+  ['badge-counts'],
+  { revalidate: 60 } // refresh every 60 seconds
+)
 
 function canAccessPath(profile: { role: string; allowed_pages?: string[] | null }, pathname: string): boolean {
   if (profile.role === 'admin') return true
@@ -27,24 +46,8 @@ export default async function ProtectedLayout({ children }: { children: React.Re
 
   if (!profile) redirect('/login')
 
-  // Fetch badge counts for sidebar navigation
-  const [{ count: overdueTaskCount }, { count: pendingChecklistCount }] = await Promise.all([
-    supabase
-      .from('tasks')
-      .select('*', { count: 'exact', head: true })
-      .lt('due_date', new Date().toISOString().split('T')[0])
-      .neq('status', 'done'),
-    supabase
-      .from('checklist_instances')
-      .select('*', { count: 'exact', head: true })
-      .in('status', ['pending', 'in_progress'])
-      .lte('due_date', new Date().toISOString().split('T')[0]),
-  ])
-
-  const badgeCounts: Record<string, number> = {
-    '/tasks': overdueTaskCount || 0,
-    '/checklists': pendingChecklistCount || 0,
-  }
+  // Badge counts are cached for 60s to avoid re-querying on every navigation
+  const badgeCounts = await getBadgeCounts()
 
   const headersList = await headers()
   const pathname = headersList.get('x-pathname') || ''
