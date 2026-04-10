@@ -46,6 +46,11 @@ async function extractText(buffer: Buffer, fileName: string): Promise<string> {
 export async function POST(request: NextRequest) {
   try {
     const supabase = await createServerSupabaseClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    const { data: authProfile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
+    if (!authProfile || !['admin', 'ns'].includes(authProfile.role)) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+
     const { itemId, documentType } = await request.json()
 
     if (!itemId) return NextResponse.json({ error: 'itemId required' }, { status: 400 })

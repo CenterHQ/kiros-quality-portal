@@ -295,10 +295,21 @@ export async function POST(request: NextRequest) {
         const errMsg = err instanceof Error ? err.message : 'Unknown error'
         console.error('Stream processing error:', err)
 
+        // User-friendly error messages for known API issues
+        let userMessage = `I encountered an error while processing your request. Please try again.`
+        if (errMsg.includes('rate_limit') || errMsg.includes('429')) {
+          userMessage = 'The AI service is temporarily busy. Please wait a moment and try again.'
+        } else if (errMsg.includes('overloaded') || errMsg.includes('529')) {
+          userMessage = 'The AI service is currently experiencing high demand. Please try again in a few minutes.'
+        } else if (errMsg.includes('authentication') || errMsg.includes('401') || errMsg.includes('api_key')) {
+          userMessage = 'There was an authentication issue with the AI service. Please contact your administrator.'
+        } else if (errMsg.includes('timeout') || errMsg.includes('ETIMEDOUT')) {
+          userMessage = 'The request timed out. Please try a shorter question or try again.'
+        }
+
         // Save partial response (if any) or error message
         try {
           if (fullText.trim()) {
-            // User already saw this text via streaming — preserve it
             await serviceSupabase.from('chat_messages').insert({
               conversation_id: convId,
               role: 'assistant',
@@ -309,7 +320,7 @@ export async function POST(request: NextRequest) {
             await serviceSupabase.from('chat_messages').insert({
               conversation_id: convId,
               role: 'assistant',
-              content: `I encountered an error while processing your request: ${errMsg}. Please try again.`,
+              content: userMessage,
             })
           }
         } catch { /* last resort */ }

@@ -28,6 +28,11 @@ async function getValidToken(supabase: any) {
 export async function GET(request: NextRequest) {
   try {
     const supabase = await createServerSupabaseClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    const { data: authProfile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
+    if (!authProfile || !['admin', 'ns'].includes(authProfile.role)) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+
     const folderId = request.nextUrl.searchParams.get('folderId') || undefined
     const { token, driveId } = await getValidToken(supabase)
     const files = await listFiles(token, driveId, folderId)

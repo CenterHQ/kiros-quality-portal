@@ -187,12 +187,21 @@ async function processChat(
 
   } catch (error) {
     console.error('Background chat processing error:', error)
+    const errMsg = error instanceof Error ? error.message : 'Unknown error'
+    let userMessage = 'I encountered an error while processing your request. Please try again.'
+    if (errMsg.includes('rate_limit') || errMsg.includes('429')) {
+      userMessage = 'The AI service is temporarily busy. Please wait a moment and try again.'
+    } else if (errMsg.includes('overloaded') || errMsg.includes('529')) {
+      userMessage = 'The AI service is currently experiencing high demand. Please try again in a few minutes.'
+    } else if (errMsg.includes('authentication') || errMsg.includes('401') || errMsg.includes('api_key')) {
+      userMessage = 'There was an authentication issue with the AI service. Please contact your administrator.'
+    }
     try {
       const supabase = createServiceRoleClient()
       await supabase.from('chat_messages').insert({
         conversation_id: convId,
         role: 'assistant',
-        content: `I encountered an error while processing your request: ${error instanceof Error ? error.message : 'Unknown error'}. Please try again.`,
+        content: userMessage,
       })
     } catch { /* last resort — can't even save error */ }
   }

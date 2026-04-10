@@ -59,6 +59,9 @@ export async function PATCH(request: NextRequest) {
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
   // If approved with action_payload, execute the action
+  let actionExecuted = false
+  let actionError: string | null = null
+
   if (status === 'approved' && data.action_type && data.action_payload) {
     const payload = data.action_payload as Record<string, unknown>
 
@@ -72,7 +75,10 @@ export async function PATCH(request: NextRequest) {
         created_by: user.id,
         due_date: payload.due_date || null,
       })
-      if (!taskErr) {
+      if (taskErr) {
+        actionError = `Task creation failed: ${taskErr.message}`
+      } else {
+        actionExecuted = true
         await supabase.from('ai_suggestions').update({ status: 'actioned' }).eq('id', suggestionId)
       }
     }
@@ -82,7 +88,9 @@ export async function PATCH(request: NextRequest) {
       const { data: staff, error: staffErr } = await supabase.from('profiles').select('id').ilike('full_name', `%${payload.staff_name}%`).limit(1).single()
       if (modErr && modErr.code !== 'PGRST116') console.error('Module lookup failed:', modErr.message)
       if (staffErr && staffErr.code !== 'PGRST116') console.error('Staff lookup failed:', staffErr.message)
-      if (mod && staff) {
+      if (!mod || !staff) {
+        actionError = !mod ? 'Training module not found' : 'Staff member not found'
+      } else {
         const { error: enrollErr } = await supabase.from('lms_enrollments').upsert({
           user_id: staff.id,
           module_id: mod.id,
@@ -90,12 +98,18 @@ export async function PATCH(request: NextRequest) {
           status: 'not_started',
           due_date: payload.due_date || null,
         }, { onConflict: 'user_id,module_id' })
-        if (!enrollErr) {
+        if (enrollErr) {
+          actionError = `Training assignment failed: ${enrollErr.message}`
+        } else {
+          actionExecuted = true
           await supabase.from('ai_suggestions').update({ status: 'actioned' }).eq('id', suggestionId)
         }
       }
     }
   }
 
-  return NextResponse.json({ suggestion: data })
+  return NextResponse.json({
+    suggestion: data,
+    ...(data.action_type ? { actionExecuted, actionError } : {}),
+  })
 }

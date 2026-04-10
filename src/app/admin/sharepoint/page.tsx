@@ -195,7 +195,7 @@ export default function SharePointAdminPage() {
 
   // ─── Role guard ─────────────────────────────────────────────────────────────
 
-  const isAllowed = profile.role === 'admin' || profile.role === 'manager'
+  const isAllowed = profile.role === 'admin'
 
   // ─── Flash from URL params ──────────────────────────────────────────────────
 

@@ -6,7 +6,7 @@ import type { Profile } from '@/lib/types'
 import { useProfile } from '@/lib/ProfileContext'
 
 const API_BASE = 'https://api.owna.com.au'
-const API_KEY = '63db089ff821163db089ff82114abf9e'
+// API key is stored in environment variable OWNA_API_KEY (used server-side by /api/owna-proxy)
 
 interface Endpoint {
   method: 'GET' | 'POST' | 'DELETE'

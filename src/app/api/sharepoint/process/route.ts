@@ -59,6 +59,11 @@ Return ONLY a valid JSON array, no other text.`
 export async function POST(request: NextRequest) {
   try {
     const supabase = await createServerSupabaseClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    const { data: authProfile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
+    if (!authProfile || !['admin', 'ns'].includes(authProfile.role)) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+
     const { action, documentId, moduleId } = await request.json()
 
     if (action === 'extract_context') {
