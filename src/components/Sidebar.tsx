@@ -4,56 +4,109 @@ import { usePathname, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import type { Profile } from '@/lib/types'
 import { ROLE_LABELS } from '@/lib/types'
+import { cn } from '@/lib/utils'
+import {
+  LayoutDashboard, Building2, MessageSquare, Home,
+  ClipboardList, CheckSquare, ShieldCheck, CalendarDays,
+  FileText, FolderOpen, FileStack, Scale, FormInput,
+  Link2, Activity, BarChart3, HelpCircle,
+  GraduationCap, BookOpen, Route, Target, Grid3X3, Award,
+  Baby, Clock, Users, Wallet, FileInput, HeartPulse,
+  Plug, UserCog, Bell, Tag, Cloud, Brain,
+  PanelLeftClose, PanelLeftOpen, LogOut, ChevronDown,
+  type LucideIcon,
+} from 'lucide-react'
+import { useState } from 'react'
 
-const apItems = [
-  { href: '/ap-dashboard', label: 'AP Dashboard', icon: '🏢' },
-  { href: '/hub', label: 'Centre Hub', icon: '🏠' },
-  { href: '/chat', label: 'Kiros AI Chat', icon: '💬' },
+// ─── Nav Configuration ────────────────────────────────────────────────────────
+
+interface NavItem {
+  href: string
+  label: string
+  icon: LucideIcon
+}
+
+interface NavGroup {
+  label: string
+  items: NavItem[]
+  adminOnly?: boolean
+  showIf?: (profile: Profile) => boolean
+}
+
+const apItems: NavItem[] = [
+  { href: '/ap-dashboard', label: 'AP Dashboard', icon: Building2 },
+  { href: '/hub', label: 'Centre Hub', icon: Home },
+  { href: '/chat', label: 'Kiros AI Chat', icon: MessageSquare },
 ]
 
-const navItems = [
-  { href: '/dashboard', label: 'Dashboard', icon: '📊' },
-  { href: '/elements', label: 'QA Elements', icon: '📋' },
-  { href: '/tasks', label: 'Task Board', icon: '✅' },
-  { href: '/checklists', label: 'Checklists', icon: '🛡️' },
-  { href: '/rostering', label: 'Rostering', icon: '📅' },
-  { href: '/policies', label: 'Policies', icon: '📄' },
-  { href: '/registers', label: 'Registers', icon: '🗂️' },
-  { href: '/documents', label: 'Documents', icon: '📁' },
-  { href: '/compliance', label: 'Compliance', icon: '⚖️' },
-  { href: '/forms', label: 'Forms', icon: '📝' },
-  { href: '/resources', label: 'Resources', icon: '🔗' },
-  { href: '/activity', label: 'Activity', icon: '📰' },
-  { href: '/reports', label: 'Reports', icon: '📈' },
-  { href: '/guide', label: 'User Guide', icon: '❓' },
+const navGroups: NavGroup[] = [
+  {
+    label: 'Operations',
+    items: [
+      { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+      { href: '/elements', label: 'QA Elements', icon: ClipboardList },
+      { href: '/tasks', label: 'Task Board', icon: CheckSquare },
+      { href: '/checklists', label: 'Checklists', icon: ShieldCheck },
+      { href: '/rostering', label: 'Rostering', icon: CalendarDays },
+    ],
+  },
+  {
+    label: 'Quality',
+    items: [
+      { href: '/policies', label: 'Policies', icon: FileText },
+      { href: '/compliance', label: 'Compliance', icon: Scale },
+      { href: '/documents', label: 'Documents', icon: FolderOpen },
+      { href: '/registers', label: 'Registers', icon: FileStack },
+      { href: '/forms', label: 'Forms', icon: FormInput },
+    ],
+  },
+  {
+    label: 'Insights',
+    items: [
+      { href: '/activity', label: 'Activity', icon: Activity },
+      { href: '/reports', label: 'Reports', icon: BarChart3 },
+      { href: '/resources', label: 'Resources', icon: Link2 },
+      { href: '/guide', label: 'User Guide', icon: HelpCircle },
+    ],
+  },
+  {
+    label: 'Learning & Development',
+    items: [
+      { href: '/learning', label: 'Learning Hub', icon: GraduationCap },
+      { href: '/learning/library', label: 'Module Library', icon: BookOpen },
+      { href: '/learning/pathways', label: 'Pathways', icon: Route },
+      { href: '/learning/pdp', label: 'My PDP', icon: Target },
+      { href: '/learning/matrix', label: 'Training Matrix', icon: Grid3X3 },
+      { href: '/learning/certificates', label: 'Certificates', icon: Award },
+    ],
+  },
+  {
+    label: 'OWNA Integration',
+    items: [
+      { href: '/owna/children', label: 'Children & Rooms', icon: Baby },
+      { href: '/owna/attendance', label: 'Attendance', icon: Clock },
+      { href: '/owna/staff', label: 'Staff', icon: Users },
+      { href: '/owna/families', label: 'Families & Billing', icon: Wallet },
+      { href: '/owna/enrolments', label: 'Enrolment Pipeline', icon: FileInput },
+      { href: '/owna/health', label: 'Health & Safety', icon: HeartPulse },
+    ],
+  },
+  {
+    label: 'Admin',
+    adminOnly: true,
+    showIf: (p) => p.role === 'admin' || p.role === 'manager',
+    items: [
+      { href: '/admin/owna', label: 'OWNA API', icon: Plug },
+      { href: '/admin/users', label: 'User Management', icon: UserCog },
+      { href: '/admin/notifications', label: 'Notifications', icon: Bell },
+      { href: '/admin/tags', label: 'Tags', icon: Tag },
+      { href: '/admin/sharepoint', label: 'SharePoint', icon: Cloud },
+      { href: '/admin/context', label: 'AI Context', icon: Brain },
+    ],
+  },
 ]
 
-const learningItems = [
-  { href: '/learning', label: 'Learning Hub', icon: '🎓' },
-  { href: '/learning/library', label: 'Module Library', icon: '📖' },
-  { href: '/learning/pathways', label: 'Pathways', icon: '🛤️' },
-  { href: '/learning/pdp', label: 'My PDP', icon: '🎯' },
-  { href: '/learning/matrix', label: 'Training Matrix', icon: '📊' },
-  { href: '/learning/certificates', label: 'Certificates', icon: '🏅' },
-]
-
-const ownaItems = [
-  { href: '/owna/children', label: 'Children & Rooms', icon: '👶' },
-  { href: '/owna/attendance', label: 'Attendance', icon: '📋' },
-  { href: '/owna/staff', label: 'Staff', icon: '👩‍🏫' },
-  { href: '/owna/families', label: 'Families & Billing', icon: '👨‍👩‍👧' },
-  { href: '/owna/enrolments', label: 'Enrolment Pipeline', icon: '📝' },
-  { href: '/owna/health', label: 'Health & Safety', icon: '🩹' },
-]
-
-const adminItems = [
-  { href: '/admin/owna', label: 'OWNA API Testing', icon: '🔌' },
-  { href: '/admin/users', label: 'User Management', icon: '👥' },
-  { href: '/admin/notifications', label: 'Notifications', icon: '🔔' },
-  { href: '/admin/tags', label: 'Tags', icon: '🏷️' },
-  { href: '/admin/sharepoint', label: 'SharePoint Integration', icon: '📂' },
-  { href: '/admin/context', label: 'AI Context Manager', icon: '🧠' },
-]
+// ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function canAccessPage(profile: Profile, href: string): boolean {
   if (profile.role === 'admin') return true
@@ -66,9 +119,13 @@ function isActivePath(pathname: string, href: string): boolean {
   return pathname === href || (href !== '/' && pathname.startsWith(href))
 }
 
+// ─── Sidebar Component ───────────────────────────────────────────────────────
+
 export default function Sidebar({ profile }: { profile: Profile }) {
   const pathname = usePathname()
   const router = useRouter()
+  const [collapsed, setCollapsed] = useState(false)
+  const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set(navGroups.map(g => g.label)))
 
   const handleSignOut = async () => {
     const supabase = createClient()
@@ -77,92 +134,141 @@ export default function Sidebar({ profile }: { profile: Profile }) {
     router.refresh()
   }
 
-  const filteredNavItems = navItems.filter(item => canAccessPage(profile, item.href))
-  const filteredLearningItems = learningItems.filter(item => canAccessPage(profile, item.href))
-  const filteredOwnaItems = ownaItems.filter(item => canAccessPage(profile, item.href))
-  const filteredAdminItems = adminItems.filter(item => canAccessPage(profile, item.href))
+  const toggleGroup = (label: string) => {
+    setExpandedGroups(prev => {
+      const next = new Set(prev)
+      if (next.has(label)) next.delete(label)
+      else next.add(label)
+      return next
+    })
+  }
 
-  const renderLink = (item: { href: string; label: string; icon: string }) => {
+  const filteredApItems = apItems.filter(item => {
+    if (item.href === '/ap-dashboard') return profile.role === 'admin'
+    return canAccessPage(profile, item.href)
+  })
+
+  const renderNavItem = (item: NavItem) => {
     const isActive = isActivePath(pathname, item.href)
-    return (
+    const Icon = item.icon
+
+    const linkContent = (
       <a
         key={item.href}
         href={item.href}
-        className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition ${
+        title={collapsed ? item.label : undefined}
+        className={cn(
+          'flex items-center gap-3 rounded-lg text-sm font-medium transition-all duration-150',
+          collapsed ? 'justify-center px-2 py-2.5' : 'px-3 py-2',
           isActive
-            ? 'bg-[#470DA8] text-white'
-            : 'text-gray-700 hover:bg-gray-100'
-        }`}
+            ? 'bg-primary text-primary-foreground shadow-sm'
+            : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
+        )}
       >
-        <span>{item.icon}</span>
-        <span>{item.label}</span>
+        <Icon className={cn('shrink-0', collapsed ? 'size-5' : 'size-[18px]')} />
+        {!collapsed && <span className="truncate">{item.label}</span>}
       </a>
     )
+
+    return linkContent
   }
 
   return (
-    <aside className="w-64 bg-white border-r border-gray-200 min-h-screen flex flex-col">
+    <aside
+      className={cn(
+        'hidden md:flex flex-col bg-card border-r border-border transition-all duration-200 shrink-0',
+        collapsed ? 'w-[68px]' : 'w-64'
+      )}
+    >
       {/* Logo */}
-      <div className="p-4 border-b border-gray-200 bg-white">
-        <img src="/logo.jpg" alt="Kiro's Early Education Centre" className="h-10 w-auto" />
-        <div className="mt-1.5 bg-gradient-to-r from-[#470DA8] to-[#6B3FCE] text-white text-xs font-medium px-2 py-0.5 rounded inline-block">
-          Quality Uplift Portal
-        </div>
+      <div className={cn('border-b border-border shrink-0', collapsed ? 'p-2' : 'p-4')}>
+        {collapsed ? (
+          <div className="w-10 h-10 rounded-lg bg-primary flex items-center justify-center text-primary-foreground font-bold text-lg mx-auto">
+            K
+          </div>
+        ) : (
+          <>
+            <img src="/logo.jpg" alt="Kiro's Early Education Centre" className="h-10 w-auto" />
+            <div className="mt-1.5 bg-gradient-to-r from-primary to-kiros-purple-light text-primary-foreground text-[10px] font-medium px-2 py-0.5 rounded inline-block">
+              Quality Uplift Portal
+            </div>
+          </>
+        )}
       </div>
 
       {/* User info */}
-      <div className="p-4 border-b border-gray-200">
-        <p className="font-medium text-sm truncate">{profile.full_name}</p>
-        <p className="text-xs text-gray-500">{ROLE_LABELS[profile.role] || profile.role}</p>
-      </div>
+      {!collapsed && (
+        <div className="p-4 border-b border-border shrink-0">
+          <p className="font-medium text-sm truncate text-foreground">{profile.full_name}</p>
+          <p className="text-xs text-muted-foreground">{ROLE_LABELS[profile.role] || profile.role}</p>
+        </div>
+      )}
 
       {/* Navigation */}
-      <nav className="flex-1 p-2 space-y-1 overflow-y-auto">
-        {/* AP Dashboard (admin only), Hub & Chat (all roles) */}
-        {apItems.filter(item => {
-          if (item.href === '/ap-dashboard') return profile.role === 'admin'
-          return canAccessPage(profile, item.href)
-        }).map(renderLink)}
+      <nav className="flex-1 overflow-y-auto p-2 space-y-1">
+        {/* AP / Priority items */}
+        {filteredApItems.map(renderNavItem)}
 
-        {filteredNavItems.map(renderLink)}
+        {filteredApItems.length > 0 && <div className="my-2 border-t border-border" />}
 
-        {/* Learning & Development */}
-        {filteredLearningItems.length > 0 && (
-          <>
-            <div className="pt-4 pb-1 px-3">
-              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Learning & Development</p>
+        {/* Grouped navigation */}
+        {navGroups.map(group => {
+          if (group.showIf && !group.showIf(profile)) return null
+          const visibleItems = group.items.filter(item => canAccessPage(profile, item.href))
+          if (visibleItems.length === 0) return null
+          const isExpanded = expandedGroups.has(group.label)
+
+          return (
+            <div key={group.label}>
+              {!collapsed ? (
+                <button
+                  onClick={() => toggleGroup(group.label)}
+                  className="flex items-center justify-between w-full px-3 pt-4 pb-1 group"
+                >
+                  <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
+                    {group.label}
+                  </p>
+                  <ChevronDown
+                    className={cn(
+                      'size-3.5 text-muted-foreground/50 transition-transform duration-200',
+                      !isExpanded && '-rotate-90'
+                    )}
+                  />
+                </button>
+              ) : (
+                <div className="my-2 border-t border-border" />
+              )}
+              {(collapsed || isExpanded) && (
+                <div className="space-y-0.5">
+                  {visibleItems.map(renderNavItem)}
+                </div>
+              )}
             </div>
-            {filteredLearningItems.map(renderLink)}
-          </>
-        )}
-
-        {/* OWNA Integration */}
-        {filteredOwnaItems.length > 0 && (
-          <>
-            <div className="pt-4 pb-1 px-3">
-              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">OWNA Integration</p>
-            </div>
-            {filteredOwnaItems.map(renderLink)}
-          </>
-        )}
-
-        {(profile.role === 'admin' || profile.role === 'manager') && filteredAdminItems.length > 0 && (
-          <>
-            <div className="pt-4 pb-1 px-3">
-              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Admin</p>
-            </div>
-            {filteredAdminItems.map(renderLink)}
-          </>
-        )}
+          )
+        })}
       </nav>
 
-      {/* Sign out */}
-      <div className="p-4 border-t border-gray-200">
+      {/* Collapse toggle + Sign out */}
+      <div className="border-t border-border p-2 shrink-0 space-y-1">
+        <button
+          onClick={() => setCollapsed(!collapsed)}
+          className={cn(
+            'flex items-center gap-3 w-full rounded-lg text-sm font-medium text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-all duration-150',
+            collapsed ? 'justify-center px-2 py-2.5' : 'px-3 py-2'
+          )}
+        >
+          {collapsed ? <PanelLeftOpen className="size-[18px]" /> : <PanelLeftClose className="size-[18px]" />}
+          {!collapsed && <span>Collapse</span>}
+        </button>
         <button
           onClick={handleSignOut}
-          className="w-full text-left px-3 py-2 rounded-lg text-sm text-gray-700 hover:bg-gray-100 transition"
+          className={cn(
+            'flex items-center gap-3 w-full rounded-lg text-sm font-medium text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-all duration-150',
+            collapsed ? 'justify-center px-2 py-2.5' : 'px-3 py-2'
+          )}
         >
-          Sign Out
+          <LogOut className="size-[18px]" />
+          {!collapsed && <span>Sign Out</span>}
         </button>
       </div>
     </aside>

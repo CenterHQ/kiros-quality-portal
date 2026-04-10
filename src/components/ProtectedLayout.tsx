@@ -2,8 +2,10 @@ import { redirect } from 'next/navigation'
 import { headers } from 'next/headers'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
 import Sidebar from '@/components/Sidebar'
+import MobileNav from '@/components/MobileNav'
 import { ProfileProvider } from '@/lib/ProfileContext'
 import ChatAssistant from '@/components/ChatAssistant'
+import { TooltipProvider } from '@/components/ui/tooltip'
 
 function canAccessPath(profile: { role: string; allowed_pages?: string[] | null }, pathname: string): boolean {
   if (profile.role === 'admin') return true
@@ -34,13 +36,26 @@ export default async function ProtectedLayout({ children }: { children: React.Re
 
   return (
     <ProfileProvider profile={profile}>
-      <div className="flex min-h-screen">
-        <Sidebar profile={profile} />
-        <main className="flex-1 p-6 overflow-auto">
-          {children}
-        </main>
-      </div>
-      <ChatAssistant />
+      <TooltipProvider delay={0}>
+        <div className="flex min-h-screen bg-background">
+          {/* Desktop sidebar — hidden on mobile */}
+          <Sidebar profile={profile} />
+
+          {/* Main content area */}
+          <div className="flex-1 flex flex-col min-w-0">
+            {/* Mobile top header + bottom nav */}
+            <MobileNav profile={profile} />
+
+            {/* Page content with responsive padding */}
+            <main className="flex-1 p-3 sm:p-4 md:p-6 overflow-auto pb-20 md:pb-6">
+              <div className="max-w-7xl mx-auto animate-fade-in">
+                {children}
+              </div>
+            </main>
+          </div>
+        </div>
+        <ChatAssistant />
+      </TooltipProvider>
     </ProfileProvider>
   )
 }

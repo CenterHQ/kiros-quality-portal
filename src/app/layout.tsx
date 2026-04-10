@@ -1,11 +1,8 @@
 import type { Metadata } from "next";
-import { Karla, Geist } from "next/font/google";
+import { Karla } from "next/font/google";
 import "./globals.css";
-import { cn } from "@/lib/utils";
 
-const geist = Geist({subsets:['latin'],variable:'--font-sans'});
-
-const karla = Karla({ subsets: ["latin"] });
+const karla = Karla({ subsets: ["latin"], variable: "--font-sans" });
 
 export const metadata: Metadata = {
   title: "Kiro's Early Education Centre — Quality Uplift Portal",
@@ -23,13 +20,14 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={cn("font-sans", geist.variable)}>
+    <html lang="en" className={karla.variable}>
       <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
         <link rel="icon" href="/favicon.ico" sizes="any" />
         <link rel="icon" href="/favicon-32x32.png" type="image/png" sizes="32x32" />
         <link rel="apple-touch-icon" href="/apple-icon.png" />
       </head>
-      <body className={`${karla.className} bg-gray-50 text-gray-900`}>
+      <body className={`${karla.className} bg-background text-foreground`}>
         {children}
       </body>
     </html>
