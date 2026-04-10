@@ -45,16 +45,11 @@ export default function ChatAssistant() {
     setLoading(true)
 
     try {
-      const controller = new AbortController()
-      const timeoutId = setTimeout(() => controller.abort(), 55000)
-
       const res = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ conversationId, message: userMessage }),
-        signal: controller.signal,
       })
-      clearTimeout(timeoutId)
       const data = await res.json()
 
       if (data.error) {
@@ -62,18 +57,32 @@ export default function ChatAssistant() {
         setLoading(false)
       } else {
         if (!conversationId && data.conversationId) setConversationId(data.conversationId)
-        setMessages(prev => [...prev, { id: `ai-${Date.now()}`, role: 'assistant', content: data.message, timestamp: new Date() }])
-        if (!isOpen) setHasNewMessage(true)
-        setLoading(false)
+        // Response arrives via polling — API returns immediately with status: 'processing'
+        // Poll for the response since widget doesn't have realtime subscription
+        const pollForResponse = async () => {
+          for (let i = 0; i < 60; i++) { // Poll for up to 60 seconds
+            await new Promise(r => setTimeout(r, 2000)) // Check every 2s
+            const convRes = await fetch(`/api/chat/conversations?id=${data.conversationId}`)
+            const convData = await convRes.json()
+            const msgs = convData.messages || []
+            const lastMsg = msgs[msgs.length - 1]
+            if (lastMsg && lastMsg.role === 'assistant' && new Date(lastMsg.created_at) > new Date(Date.now() - 120000)) {
+              setMessages(prev => {
+                if (prev.some(m => m.id === lastMsg.id)) return prev
+                return [...prev, { id: lastMsg.id, role: 'assistant' as const, content: lastMsg.content, timestamp: new Date(lastMsg.created_at) }]
+              })
+              if (!isOpen) setHasNewMessage(true)
+              setLoading(false)
+              return
+            }
+          }
+          setLoading(false) // Timeout after 60 polls
+        }
+        pollForResponse()
       }
-    } catch (err) {
-      if (err instanceof DOMException && err.name === 'AbortError') {
-        // Processing continues server-side — response will come via conversation history
-        console.log('Widget: request timed out, processing continues in background')
-      } else {
-        setMessages(prev => [...prev, { id: `err-${Date.now()}`, role: 'assistant', content: 'Connection error. Please try again.', timestamp: new Date() }])
-        setLoading(false)
-      }
+    } catch {
+      setMessages(prev => [...prev, { id: `err-${Date.now()}`, role: 'assistant', content: 'Connection error. Please try again.', timestamp: new Date() }])
+      setLoading(false)
     }
   }
 

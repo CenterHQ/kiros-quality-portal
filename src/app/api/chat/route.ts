@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { waitUntil } from '@vercel/functions'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
 import Anthropic from '@anthropic-ai/sdk'
 
@@ -882,35 +883,18 @@ async function callClaudeStreaming(
   return response
 }
 
-export async function POST(request: NextRequest) {
+// Background processing function — runs inside waitUntil() so it survives client disconnection
+async function processChat(
+  convId: string,
+  userId: string,
+  userRole: string,
+  isNewConversation: boolean,
+  originalMessage: string,
+) {
   try {
     const supabase = await createServerSupabaseClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-    const { data: profile } = await supabase.from('profiles').select('id, full_name, role').eq('id', user.id).single()
-    if (!profile) return NextResponse.json({ error: 'Profile not found' }, { status: 404 })
-
-    const { conversationId, message } = await request.json()
-
-    // Ensure conversation exists
-    let convId = conversationId
-    if (!convId) {
-      const { data: conv } = await supabase.from('chat_conversations').insert({
-        user_id: user.id,
-        title: message.substring(0, 80),
-      }).select().single()
-      convId = conv?.id
-    }
-
-    // Save user message
-    await supabase.from('chat_messages').insert({
-      conversation_id: convId,
-      role: 'user',
-      content: message,
-    })
-
-    // Load conversation history (last 40 user/assistant messages)
+    // Load conversation history
     const { data: history } = await supabase.from('chat_messages')
       .select('role, content')
       .eq('conversation_id', convId)
@@ -923,7 +907,7 @@ export async function POST(request: NextRequest) {
       content: m.content,
     }))
 
-    // Load centre context for system prompt
+    // Load centre context
     const { data: contextItems } = await supabase.from('centre_context')
       .select('context_type, title, content')
       .eq('is_active', true)
@@ -937,67 +921,40 @@ export async function POST(request: NextRequest) {
     const { data: staff } = await supabase.from('profiles').select('full_name, role').order('full_name')
     const staffList = (staff || []).map(s => `${s.full_name} (${ROLE_LABELS[s.role] || s.role})`).join(', ')
 
-    // Load service details for system prompt
-    const { data: serviceDetails } = await supabase
-      .from('service_details')
-      .select('key, value, label')
-
-    const serviceDetailsStr = (serviceDetails || [])
-      .map(s => `${s.label}: ${s.value}`)
-      .join('\n')
+    // Load service details
+    const { data: serviceDetails } = await supabase.from('service_details').select('key, value, label')
+    const serviceDetailsStr = (serviceDetails || []).map(s => `${s.label}: ${s.value}`).join('\n')
 
     // Filter tools by role
     const allowedTools: Anthropic.Tool[] = ALL_TOOLS
-      .filter(t => t.allowedRoles.includes(profile.role))
+      .filter(t => t.allowedRoles.includes(userRole))
       .map(({ allowedRoles: _, ...tool }) => tool)
 
-    const systemPrompt = buildSystemPrompt(profile.role, centreContext, staffList, serviceDetailsStr)
+    const systemPrompt = buildSystemPrompt(userRole, centreContext, staffList, serviceDetailsStr)
 
-    // Track generated documents
     const generatedDocuments: Array<{ type: string; title: string; document_type: string; content: string; recipient?: string; generated_at: string }> = []
-
-    // Track pending actions from confirmation-required tools
     const pendingActions: Array<{ id: string; action_type: string; description: string; details: Record<string, unknown>; status: string }> = []
 
     const anthropic = getAnthropicClient()
+    const apiParams = { model: MODEL, max_tokens: 16384, system: systemPrompt, tools: allowedTools, messages }
 
-    const apiParams = {
-      model: MODEL,
-      max_tokens: 16384,
-      system: systemPrompt,
-      tools: allowedTools,
-      messages,
-    }
-
-    // Call Claude with streaming (required for Opus)
+    // Call Claude with streaming
     let response = await callClaudeStreaming(anthropic, apiParams)
 
-    // Tool-use loop with streaming
+    // Tool-use loop
     let iterations = 0
     while (response.stop_reason === 'tool_use' && iterations < 5) {
       const toolUseBlocks = response.content.filter((b): b is Anthropic.ContentBlock & { type: 'tool_use' } => b.type === 'tool_use')
       const toolResultContent: Anthropic.ToolResultBlockParam[] = []
 
       for (const block of toolUseBlocks) {
-        const result = await executeTool(block.name, block.input as Record<string, unknown>, supabase, user.id, profile.role)
+        const result = await executeTool(block.name, block.input as Record<string, unknown>, supabase, userId, userRole)
 
-        // Capture generated documents
         if (block.name === 'generate_document') {
-          try {
-            const docData = JSON.parse(result)
-            if (docData.type === 'document') generatedDocuments.push(docData)
-          } catch { /* not a document */ }
+          try { const d = JSON.parse(result); if (d.type === 'document') generatedDocuments.push(d) } catch { /* */ }
         }
+        try { const p = JSON.parse(result); if (p.pending_action) pendingActions.push(p.pending_action) } catch { /* */ }
 
-        // Capture pending actions from confirmation-required tools
-        try {
-          const parsed = JSON.parse(result)
-          if (parsed.pending_action) {
-            pendingActions.push(parsed.pending_action)
-          }
-        } catch { /* not JSON */ }
-
-        // Persist tool interactions
         await supabase.from('chat_messages').insert([
           { conversation_id: convId, role: 'tool_call', content: JSON.stringify({ name: block.name, input: block.input }), metadata: { tool_use_id: block.id } },
           { conversation_id: convId, role: 'tool_result', content: result, metadata: { tool_use_id: block.id } },
@@ -1008,7 +965,6 @@ export async function POST(request: NextRequest) {
 
       messages.push({ role: 'assistant', content: response.content as Anthropic.ContentBlockParam[] })
       messages.push({ role: 'user', content: toolResultContent })
-
       response = await callClaudeStreaming(anthropic, { ...apiParams, messages })
       iterations++
     }
@@ -1019,27 +975,79 @@ export async function POST(request: NextRequest) {
       .map(b => b.text)
       .join('')
 
-    // Save assistant response with document metadata
+    // Save assistant response — this triggers the Supabase realtime event that the frontend listens for
     await supabase.from('chat_messages').insert({
       conversation_id: convId,
       role: 'assistant',
       content: textContent,
-      metadata: generatedDocuments.length > 0 ? { documents: generatedDocuments } : {},
+      metadata: {
+        ...(generatedDocuments.length > 0 ? { documents: generatedDocuments } : {}),
+        ...(pendingActions.length > 0 ? { pending_actions: pendingActions } : {}),
+      },
     })
 
     // Update conversation
     await supabase.from('chat_conversations')
       .update({
-        title: !conversationId ? message.substring(0, 80) : undefined,
+        title: isNewConversation ? originalMessage.substring(0, 80) : undefined,
         updated_at: new Date().toISOString(),
       })
       .eq('id', convId)
 
+  } catch (error) {
+    console.error('Background chat processing error:', error)
+    // Save error as assistant message so the user sees it
+    try {
+      const supabase = await createServerSupabaseClient()
+      await supabase.from('chat_messages').insert({
+        conversation_id: convId,
+        role: 'assistant',
+        content: `I encountered an error while processing your request: ${error instanceof Error ? error.message : 'Unknown error'}. Please try again.`,
+      })
+    } catch { /* last resort — can't even save error */ }
+  }
+}
+
+export async function POST(request: NextRequest) {
+  try {
+    const supabase = await createServerSupabaseClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+    const { data: profile } = await supabase.from('profiles').select('id, full_name, role').eq('id', user.id).single()
+    if (!profile) return NextResponse.json({ error: 'Profile not found' }, { status: 404 })
+
+    const { conversationId, message } = await request.json()
+
+    // Ensure conversation exists
+    let convId = conversationId
+    const isNew = !convId
+    if (!convId) {
+      const { data: conv } = await supabase.from('chat_conversations').insert({
+        user_id: user.id,
+        title: message.substring(0, 80),
+      }).select().single()
+      convId = conv?.id
+    }
+
+    if (!convId) return NextResponse.json({ error: 'Failed to create conversation' }, { status: 500 })
+
+    // Save user message immediately
+    await supabase.from('chat_messages').insert({
+      conversation_id: convId,
+      role: 'user',
+      content: message,
+    })
+
+    // Schedule heavy processing to run in the background via waitUntil
+    // This keeps the function alive even after we send the response
+    // The frontend receives the response via Supabase realtime subscription
+    waitUntil(processChat(convId, user.id, profile.role, isNew, message))
+
+    // Return immediately — the AI response will arrive via Supabase realtime
     return NextResponse.json({
       conversationId: convId,
-      message: textContent,
-      documents: generatedDocuments.length > 0 ? generatedDocuments : undefined,
-      pending_actions: pendingActions.length > 0 ? pendingActions : undefined,
+      status: 'processing',
     })
 
   } catch (error: unknown) {

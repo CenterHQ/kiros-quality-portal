@@ -76,13 +76,25 @@ export default function ChatPage() {
       }, (payload) => {
         const msg = payload.new as { id: string; role: string; content: string; metadata?: Record<string, unknown>; created_at: string }
         if (msg.role === 'assistant') {
+          const meta = msg.metadata as Record<string, unknown> | undefined
+
           // Extract documents from metadata
-          const docs = msg.metadata && 'documents' in msg.metadata
-            ? msg.metadata.documents as GeneratedDocument[]
+          const docs = meta && 'documents' in meta
+            ? meta.documents as GeneratedDocument[]
             : undefined
 
+          // Extract pending actions from metadata
+          if (meta && 'pending_actions' in meta) {
+            const actions = meta.pending_actions as Array<{ id: string; action_type: string; description: string; details: Record<string, unknown> }>
+            const newActions: Record<string, { action: unknown; status: 'pending' }> = {}
+            for (const action of actions) {
+              newActions[action.id] = { action, status: 'pending' }
+            }
+            setPendingActions(prev => ({ ...prev, ...newActions }))
+          }
+
           setMessages(prev => {
-            // Avoid duplicates (in case we already have this from the API response)
+            // Avoid duplicates
             if (prev.some(m => m.id === msg.id)) return prev
             return [...prev, {
               id: msg.id,
@@ -164,17 +176,12 @@ export default function ChatPage() {
     setLoading(true)
 
     try {
-      const controller = new AbortController()
-      const timeoutId = setTimeout(() => controller.abort(), 55000) // 55s client timeout (under Vercel's 60s)
-
       const res = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ conversationId, message: userMessage }),
-        signal: controller.signal,
       })
 
-      clearTimeout(timeoutId)
       const data = await res.json()
 
       if (data.error) {
@@ -186,51 +193,22 @@ export default function ChatPage() {
         }])
         setLoading(false)
       } else {
+        // API returns immediately with conversationId + status: 'processing'
+        // The actual AI response will arrive via Supabase realtime subscription
         if (!conversationId && data.conversationId) {
           setConversationId(data.conversationId)
           loadConversations()
         }
-
-        // Capture pending actions from the response
-        if (data.pending_actions) {
-          const newActions: Record<string, any> = {}
-          for (const action of data.pending_actions) {
-            newActions[action.id] = { action, status: 'pending' }
-          }
-          setPendingActions(prev => ({ ...prev, ...newActions }))
-        }
-
-        // Add assistant message (realtime subscription may also deliver this — dedup by checking)
-        const docs = data.documents || []
-        setMessages(prev => {
-          // If realtime already delivered this response, skip
-          const lastMsg = prev[prev.length - 1]
-          if (lastMsg?.role === 'assistant' && lastMsg.content === data.message) return prev
-          return [...prev, {
-            id: `assistant-${Date.now()}`,
-            role: 'assistant',
-            content: data.message,
-            documents: docs,
-            timestamp: new Date(),
-          }]
-        })
-        setLoading(false)
+        // Keep loading=true — realtime subscription will set it to false when response arrives
       }
-    } catch (err) {
-      // If request was aborted (timeout), the realtime subscription will still catch the response
-      if (err instanceof DOMException && err.name === 'AbortError') {
-        // Don't show error — processing continues in background
-        // Realtime subscription will deliver the response
-        console.log('Request timed out — waiting for background response via realtime')
-      } else {
-        setMessages(prev => [...prev, {
-          id: `error-${Date.now()}`,
-          role: 'assistant',
-          content: 'I couldn\'t connect to the server. Please try again.',
-          timestamp: new Date(),
-        }])
-        setLoading(false)
-      }
+    } catch {
+      setMessages(prev => [...prev, {
+        id: `error-${Date.now()}`,
+        role: 'assistant',
+        content: 'I couldn\'t connect to the server. Please try again.',
+        timestamp: new Date(),
+      }])
+      setLoading(false)
     }
   }
 
