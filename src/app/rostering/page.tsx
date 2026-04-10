@@ -5,6 +5,8 @@ import { createClient } from '@/lib/supabase/client'
 import type { Profile, Room, RosterShift, StaffQualification, LeaveRequest, ProgrammingTime, RatioStatus } from '@/lib/types'
 import { AGE_GROUP_LABELS, SHIFT_TYPE_LABELS, QUALIFICATION_LABELS } from '@/lib/types'
 import { useProfile } from '@/lib/ProfileContext'
+import { PageHeader } from '@/components/ui/page-header'
+import { Card, CardHeader, CardContent, CardTitle } from '@/components/ui/card'
 
 const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri']
 
@@ -211,24 +213,22 @@ export default function RosteringPage() {
 
   return (
     <div className="max-w-[1400px] mx-auto">
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-2xl font-bold">Rostering</h1>
-          <p className="text-gray-500 text-sm mt-1">Staff scheduling, ratio compliance & workforce management</p>
-        </div>
-        <div className="flex gap-2">
-          {isPrivileged && (
-            <>
-              <button onClick={() => setShowAddRoom(true)} className="px-3 py-2 border border-gray-300 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50">+ Room</button>
-              <button onClick={() => copyWeek(weekOffset - 1)} className="px-3 py-2 border border-gray-300 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50">Copy Previous Week</button>
-              <button onClick={publishWeek} className="px-4 py-2 bg-[#470DA8] text-white rounded-lg text-sm font-medium hover:opacity-90">Publish Week</button>
-            </>
-          )}
-        </div>
-      </div>
+      <PageHeader
+        title="Rostering"
+        description="Staff scheduling, ratio compliance & workforce management"
+        breadcrumbs={[{ label: 'Home', href: '/' }, { label: 'Rostering' }]}
+        actions={isPrivileged ? (
+          <>
+            <button onClick={() => setShowAddRoom(true)} className="px-3 py-2 border border-border text-foreground rounded-lg text-sm font-medium hover:bg-muted">+ Room</button>
+            <button onClick={() => copyWeek(weekOffset - 1)} className="px-3 py-2 border border-border text-foreground rounded-lg text-sm font-medium hover:bg-muted">Copy Previous Week</button>
+            <button onClick={publishWeek} className="px-4 py-2 bg-primary text-white rounded-lg text-sm font-medium hover:opacity-90">Publish Week</button>
+          </>
+        ) : undefined}
+        className="mb-6"
+      />
 
       {/* Tabs */}
-      <div className="flex gap-1 mb-6 bg-gray-100 rounded-lg p-1 w-fit">
+      <div className="flex gap-1 mb-6 bg-muted rounded-lg p-1 w-fit">
         {([
           { id: 'roster', label: 'Weekly Roster' },
           { id: 'compliance', label: 'Compliance' },
@@ -236,7 +236,7 @@ export default function RosteringPage() {
           { id: 'programming', label: 'Programming Time' },
           { id: 'staff', label: 'Staff & Qualifications' },
         ] as { id: Tab; label: string }[]).map(t => (
-          <button key={t.id} onClick={() => setTab(t.id)} className={`px-4 py-1.5 rounded-md text-sm font-medium transition ${tab === t.id ? 'bg-white shadow-sm text-[#470DA8]' : 'text-gray-500 hover:text-gray-700'}`}>
+          <button key={t.id} onClick={() => setTab(t.id)} className={`px-4 py-1.5 rounded-md text-sm font-medium transition ${tab === t.id ? 'bg-card shadow-sm text-primary' : 'text-muted-foreground hover:text-foreground'}`}>
             {t.label}
           </button>
         ))}
@@ -247,38 +247,38 @@ export default function RosteringPage() {
         <>
           {/* Week navigation */}
           <div className="flex items-center justify-between mb-4">
-            <button onClick={() => setWeekOffset(o => o - 1)} className="px-3 py-1.5 border border-gray-300 rounded-lg text-sm hover:bg-gray-50">&larr; Previous</button>
+            <button onClick={() => setWeekOffset(o => o - 1)} className="px-3 py-1.5 border border-border rounded-lg text-sm hover:bg-muted">&larr; Previous</button>
             <div className="text-center">
-              <h2 className="font-semibold text-gray-900">{weekLabel}</h2>
-              {weekOffset !== 0 && <button onClick={() => setWeekOffset(0)} className="text-xs text-[#470DA8] hover:underline">Today</button>}
+              <h2 className="font-semibold text-foreground">{weekLabel}</h2>
+              {weekOffset !== 0 && <button onClick={() => setWeekOffset(0)} className="text-xs text-primary hover:underline">Today</button>}
             </div>
-            <button onClick={() => setWeekOffset(o => o + 1)} className="px-3 py-1.5 border border-gray-300 rounded-lg text-sm hover:bg-gray-50">Next &rarr;</button>
+            <button onClick={() => setWeekOffset(o => o + 1)} className="px-3 py-1.5 border border-border rounded-lg text-sm hover:bg-muted">Next &rarr;</button>
           </div>
 
           {/* Roster grid by room */}
           {rooms.length === 0 ? (
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-12 text-center text-gray-400">
+            <Card className="p-12 text-center text-muted-foreground">
               <p className="text-4xl mb-3">🏫</p>
               <p className="text-sm">No rooms configured. Add rooms to start rostering.</p>
-            </div>
+            </Card>
           ) : (
             rooms.map(room => (
-              <div key={room.id} className="mb-6">
+              <div key={room.id} className="mb-6 animate-fade-in">
                 <div className="flex items-center gap-3 mb-3">
                   <div className="w-3 h-3 rounded-full" style={{ backgroundColor: room.color }} />
-                  <h3 className="font-semibold text-gray-900">{room.name}</h3>
-                  <span className="text-xs text-gray-400">{AGE_GROUP_LABELS[room.age_group]} | Capacity: {room.licensed_capacity} | Ratio: 1:{room.ratio_children}</span>
+                  <h3 className="font-semibold text-foreground">{room.name}</h3>
+                  <span className="text-xs text-muted-foreground">{AGE_GROUP_LABELS[room.age_group]} | Capacity: {room.licensed_capacity} | Ratio: 1:{room.ratio_children}</span>
                 </div>
-                <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-                  <div className="grid grid-cols-5 divide-x divide-gray-100">
+                <div className="bg-card rounded-xl shadow-sm ring-1 ring-foreground/10 overflow-hidden">
+                  <div className="grid grid-cols-5 divide-x divide-border">
                     {weekDates.map((date, dayIdx) => {
                       const dayShifts = shifts.filter(s => s.room_id === room.id && s.shift_date === date && s.status !== 'cancelled')
                       const ratio = getRatioStatus(room, date)
                       const isWeekend = dayIdx > 4
                       return (
-                        <div key={date} className={`p-3 min-h-[140px] ${isWeekend ? 'bg-gray-50' : ''}`}>
+                        <div key={date} className={`p-3 min-h-[140px] bg-card ${isWeekend ? 'bg-muted' : ''}`}>
                           <div className="flex items-center justify-between mb-2">
-                            <span className="text-xs font-medium text-gray-600">{DAYS[dayIdx]} {new Date(date).getDate()}</span>
+                            <span className="text-xs font-medium text-muted-foreground">{DAYS[dayIdx]} {new Date(date).getDate()}</span>
                             <span className={`w-2.5 h-2.5 rounded-full ${ratio.status === 'compliant' ? 'bg-green-400' : ratio.status === 'at_minimum' ? 'bg-yellow-400' : 'bg-red-400'}`} title={`${ratio.educatorsOnFloor}/${ratio.requiredEducators} educators`} />
                           </div>
                           <div className="space-y-1">
@@ -290,16 +290,16 @@ export default function RosteringPage() {
                                     <button onClick={() => deleteShift(shift.id)} className="opacity-0 group-hover:opacity-100 text-red-400 hover:text-red-600 text-[10px] transition">&#10005;</button>
                                   )}
                                 </div>
-                                <span className="text-gray-400">{shift.start_time?.slice(0, 5)}-{shift.end_time?.slice(0, 5)}</span>
+                                <span className="text-muted-foreground">{shift.start_time?.slice(0, 5)}-{shift.end_time?.slice(0, 5)}</span>
                                 {shift.shift_type !== 'regular' && (
-                                  <span className="ml-1 px-1 py-0.5 bg-white/60 rounded text-[9px] text-gray-500">{SHIFT_TYPE_LABELS[shift.shift_type]}</span>
+                                  <span className="ml-1 px-1 py-0.5 bg-card/60 rounded text-[9px] text-muted-foreground">{SHIFT_TYPE_LABELS[shift.shift_type]}</span>
                                 )}
                                 {shift.is_published && <span className="ml-1 text-green-500 text-[9px]">&#10003;</span>}
                               </div>
                             ))}
                           </div>
                           {isPrivileged && (
-                            <button onClick={() => { setSelectedDay(date); setNewShift({ ...newShift, room_id: String(room.id) }); setShowAddShift(true) }} className="mt-2 w-full px-2 py-1 border border-dashed border-gray-300 text-gray-400 rounded text-[10px] hover:border-[#470DA8] hover:text-[#470DA8] transition">
+                            <button onClick={() => { setSelectedDay(date); setNewShift({ ...newShift, room_id: String(room.id) }); setShowAddShift(true) }} className="mt-2 w-full px-2 py-1 border border-dashed border-border text-muted-foreground rounded text-[10px] hover:border-primary hover:text-primary transition">
                               + Add Shift
                             </button>
                           )}
@@ -316,25 +316,28 @@ export default function RosteringPage() {
 
       {/* COMPLIANCE TAB */}
       {tab === 'compliance' && (
-        <div className="space-y-6">
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-            <h2 className="font-semibold text-gray-900 mb-4">Ratio Compliance — {weekLabel}</h2>
+        <div className="space-y-6 animate-fade-in">
+          <Card>
+            <CardHeader>
+              <CardTitle>Ratio Compliance — {weekLabel}</CardTitle>
+            </CardHeader>
+            <CardContent>
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="border-b border-gray-200">
-                    <th className="text-left py-2 pr-4 font-medium text-gray-600">Room</th>
-                    {weekDates.map((d, i) => <th key={d} className="text-center py-2 px-2 font-medium text-gray-600">{DAYS[i]} {new Date(d).getDate()}</th>)}
+                  <tr className="border-b border-border">
+                    <th className="text-left py-2 pr-4 font-medium text-muted-foreground">Room</th>
+                    {weekDates.map((d, i) => <th key={d} className="text-center py-2 px-2 font-medium text-muted-foreground">{DAYS[i]} {new Date(d).getDate()}</th>)}
                   </tr>
                 </thead>
                 <tbody>
                   {rooms.map(room => (
-                    <tr key={room.id} className="border-b border-gray-100">
+                    <tr key={room.id} className="border-b border-border">
                       <td className="py-3 pr-4">
                         <div className="flex items-center gap-2">
                           <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: room.color }} />
                           <span className="font-medium">{room.name}</span>
-                          <span className="text-xs text-gray-400">1:{room.ratio_children}</span>
+                          <span className="text-xs text-muted-foreground">1:{room.ratio_children}</span>
                         </div>
                       </td>
                       {weekDates.map(date => {
@@ -356,20 +359,24 @@ export default function RosteringPage() {
                 </tbody>
               </table>
             </div>
-          </div>
+            </CardContent>
+          </Card>
 
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-            <h2 className="font-semibold text-gray-900 mb-4">Qualification Coverage</h2>
+          <Card>
+            <CardHeader>
+              <CardTitle>Qualification Coverage</CardTitle>
+            </CardHeader>
+            <CardContent>
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="border-b border-gray-200">
-                    <th className="text-left py-2 pr-4 font-medium text-gray-600">Requirement</th>
-                    {weekDates.map((d, i) => <th key={d} className="text-center py-2 px-2 font-medium text-gray-600">{DAYS[i]} {new Date(d).getDate()}</th>)}
+                  <tr className="border-b border-border">
+                    <th className="text-left py-2 pr-4 font-medium text-muted-foreground">Requirement</th>
+                    {weekDates.map((d, i) => <th key={d} className="text-center py-2 px-2 font-medium text-muted-foreground">{DAYS[i]} {new Date(d).getDate()}</th>)}
                   </tr>
                 </thead>
                 <tbody>
-                  <tr className="border-b border-gray-100">
+                  <tr className="border-b border-border">
                     <td className="py-3 pr-4 font-medium">First Aid on Site</td>
                     {weekDates.map(date => {
                       const cov = getQualificationCoverage(date)
@@ -382,7 +389,7 @@ export default function RosteringPage() {
                       )
                     })}
                   </tr>
-                  <tr className="border-b border-gray-100">
+                  <tr className="border-b border-border">
                     <td className="py-3 pr-4 font-medium">50% Diploma+ Mix</td>
                     {weekDates.map(date => {
                       const cov = getQualificationCoverage(date)
@@ -399,12 +406,16 @@ export default function RosteringPage() {
                 </tbody>
               </table>
             </div>
-          </div>
+            </CardContent>
+          </Card>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
-              <p className="text-xs text-gray-500 mb-1">Expiring Soon (30 days)</p>
-              <div className="space-y-2 mt-3">
+            <Card size="sm">
+              <CardHeader>
+                <CardTitle>Expiring Soon (30 days)</CardTitle>
+              </CardHeader>
+              <CardContent>
+              <div className="space-y-2">
                 {qualifications.filter(q => {
                   if (!q.expiry_date) return false
                   const exp = new Date(q.expiry_date)
@@ -415,65 +426,74 @@ export default function RosteringPage() {
                   const staff = profiles.find(p => p.id === q.user_id)
                   return (
                     <div key={q.id} className="flex items-center justify-between text-xs">
-                      <span className="text-gray-700">{staff?.full_name} — {QUALIFICATION_LABELS[q.qualification_type]}</span>
+                      <span className="text-foreground">{staff?.full_name} — {QUALIFICATION_LABELS[q.qualification_type]}</span>
                       <span className="text-orange-500">{new Date(q.expiry_date!).toLocaleDateString()}</span>
                     </div>
                   )
                 })}
                 {qualifications.filter(q => q.expiry_date && ((new Date(q.expiry_date).getTime() - Date.now()) / 86400000) <= 30 && ((new Date(q.expiry_date).getTime() - Date.now()) / 86400000) > 0).length === 0 && (
-                  <p className="text-xs text-gray-400">No expiring qualifications</p>
+                  <p className="text-xs text-muted-foreground">No expiring qualifications</p>
                 )}
               </div>
-            </div>
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
-              <p className="text-xs text-gray-500 mb-1">Expired</p>
-              <div className="space-y-2 mt-3">
+              </CardContent>
+            </Card>
+            <Card size="sm">
+              <CardHeader>
+                <CardTitle>Expired</CardTitle>
+              </CardHeader>
+              <CardContent>
+              <div className="space-y-2">
                 {qualifications.filter(q => q.expiry_date && new Date(q.expiry_date) < new Date()).map(q => {
                   const staff = profiles.find(p => p.id === q.user_id)
                   return (
                     <div key={q.id} className="flex items-center justify-between text-xs">
-                      <span className="text-gray-700">{staff?.full_name} — {QUALIFICATION_LABELS[q.qualification_type]}</span>
+                      <span className="text-foreground">{staff?.full_name} — {QUALIFICATION_LABELS[q.qualification_type]}</span>
                       <span className="text-red-500">{new Date(q.expiry_date!).toLocaleDateString()}</span>
                     </div>
                   )
                 })}
                 {qualifications.filter(q => q.expiry_date && new Date(q.expiry_date) < new Date()).length === 0 && (
-                  <p className="text-xs text-gray-400 text-green-600">All qualifications current</p>
+                  <p className="text-xs text-green-600">All qualifications current</p>
                 )}
               </div>
-            </div>
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
-              <p className="text-xs text-gray-500 mb-1">Approved Leave This Week</p>
-              <div className="space-y-2 mt-3">
+              </CardContent>
+            </Card>
+            <Card size="sm">
+              <CardHeader>
+                <CardTitle>Approved Leave This Week</CardTitle>
+              </CardHeader>
+              <CardContent>
+              <div className="space-y-2">
                 {leaveRequests.filter(l => l.status === 'approved' && l.start_date <= weekDates[4] && l.end_date >= weekDates[0]).map(l => (
                   <div key={l.id} className="flex items-center justify-between text-xs">
-                    <span className="text-gray-700">{(l.profiles as any)?.full_name}</span>
+                    <span className="text-foreground">{(l.profiles as any)?.full_name}</span>
                     <span className="text-blue-500">{l.leave_type}</span>
                   </div>
                 ))}
                 {leaveRequests.filter(l => l.status === 'approved' && l.start_date <= weekDates[4] && l.end_date >= weekDates[0]).length === 0 && (
-                  <p className="text-xs text-gray-400">No approved leave this week</p>
+                  <p className="text-xs text-muted-foreground">No approved leave this week</p>
                 )}
               </div>
-            </div>
+              </CardContent>
+            </Card>
           </div>
         </div>
       )}
 
       {/* LEAVE TAB */}
       {tab === 'leave' && (
-        <div>
+        <div className="animate-fade-in">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="font-semibold text-gray-900">Leave Requests</h2>
-            <button onClick={() => setShowLeaveForm(true)} className="px-4 py-2 bg-[#470DA8] text-white rounded-lg text-sm font-medium hover:opacity-90">+ Request Leave</button>
+            <h2 className="font-semibold text-foreground">Leave Requests</h2>
+            <button onClick={() => setShowLeaveForm(true)} className="px-4 py-2 bg-primary text-white rounded-lg text-sm font-medium hover:opacity-90">+ Request Leave</button>
           </div>
           <div className="space-y-3">
             {leaveRequests.length === 0 ? (
-              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-12 text-center text-gray-400">
+              <Card className="p-12 text-center text-muted-foreground">
                 <p className="text-sm">No leave requests.</p>
-              </div>
+              </Card>
             ) : leaveRequests.map(l => (
-              <div key={l.id} className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
+              <div key={l.id} className="bg-card rounded-xl shadow-sm ring-1 ring-foreground/10 p-4">
                 <div className="flex items-center justify-between">
                   <div>
                     <div className="flex items-center gap-2 mb-1">
@@ -482,13 +502,13 @@ export default function RosteringPage() {
                         l.status === 'approved' ? 'bg-green-50 text-green-600' :
                         l.status === 'pending' ? 'bg-yellow-50 text-yellow-600' :
                         l.status === 'declined' ? 'bg-red-50 text-red-600' :
-                        'bg-gray-100 text-gray-500'
+                        'bg-muted text-muted-foreground'
                       }`}>{l.status}</span>
                     </div>
-                    <p className="text-xs text-gray-500">
+                    <p className="text-xs text-muted-foreground">
                       {l.leave_type.replace('_', ' ')} | {new Date(l.start_date).toLocaleDateString()} - {new Date(l.end_date).toLocaleDateString()}
                     </p>
-                    {l.reason && <p className="text-xs text-gray-400 mt-1">{l.reason}</p>}
+                    {l.reason && <p className="text-xs text-muted-foreground/70 mt-1">{l.reason}</p>}
                   </div>
                   {isPrivileged && l.status === 'pending' && (
                     <div className="flex gap-2">
@@ -505,26 +525,27 @@ export default function RosteringPage() {
 
       {/* PROGRAMMING TIME TAB */}
       {tab === 'programming' && (
-        <div>
+        <div className="animate-fade-in">
           <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4 mb-6">
             <p className="text-sm text-yellow-800">Under the Children&apos;s Services Award (Clause 21.5), each educator is entitled to <strong>2 hours per week</strong> of non-contact programming time. Schedule programming time shifts to ensure coverage.</p>
           </div>
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+          <Card className="overflow-hidden">
+            <CardContent className="p-0">
             <table className="w-full text-sm">
               <thead>
-                <tr className="bg-gray-50 border-b border-gray-200">
-                  <th className="text-left py-3 px-4 font-medium text-gray-600">Educator</th>
-                  <th className="text-center py-3 px-2 font-medium text-gray-600">Week Starting</th>
-                  <th className="text-center py-3 px-2 font-medium text-gray-600">Planned</th>
-                  <th className="text-center py-3 px-2 font-medium text-gray-600">Actual</th>
-                  <th className="text-center py-3 px-2 font-medium text-gray-600">Status</th>
+                <tr className="bg-muted border-b border-border">
+                  <th className="text-left py-3 px-4 font-medium text-muted-foreground">Educator</th>
+                  <th className="text-center py-3 px-2 font-medium text-muted-foreground">Week Starting</th>
+                  <th className="text-center py-3 px-2 font-medium text-muted-foreground">Planned</th>
+                  <th className="text-center py-3 px-2 font-medium text-muted-foreground">Actual</th>
+                  <th className="text-center py-3 px-2 font-medium text-muted-foreground">Status</th>
                 </tr>
               </thead>
               <tbody>
                 {programmingTime.length === 0 ? (
-                  <tr><td colSpan={5} className="py-8 text-center text-gray-400">No programming time records. Programming time shifts will appear here when scheduled.</td></tr>
+                  <tr><td colSpan={5} className="py-8 text-center text-muted-foreground">No programming time records. Programming time shifts will appear here when scheduled.</td></tr>
                 ) : programmingTime.map(pt => (
-                  <tr key={pt.id} className="border-b border-gray-100">
+                  <tr key={pt.id} className="border-b border-border">
                     <td className="py-3 px-4 font-medium">{(pt.profiles as any)?.full_name}</td>
                     <td className="py-3 px-2 text-center">{new Date(pt.week_starting).toLocaleDateString()}</td>
                     <td className="py-3 px-2 text-center">{pt.planned_hours}h</td>
@@ -534,37 +555,38 @@ export default function RosteringPage() {
                         pt.status === 'completed' ? 'bg-green-50 text-green-600' :
                         pt.status === 'missed' ? 'bg-red-50 text-red-600' :
                         pt.status === 'scheduled' ? 'bg-blue-50 text-blue-600' :
-                        'bg-gray-100 text-gray-500'
+                        'bg-muted text-muted-foreground'
                       }`}>{pt.status}</span>
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
-          </div>
+            </CardContent>
+          </Card>
         </div>
       )}
 
       {/* STAFF TAB */}
       {tab === 'staff' && (
-        <div>
-          <h2 className="font-semibold text-gray-900 mb-4">Staff Qualifications</h2>
+        <div className="animate-fade-in">
+          <h2 className="font-semibold text-foreground mb-4">Staff Qualifications</h2>
           <div className="space-y-4">
             {profiles.map(p => {
               const pQuals = qualifications.filter(q => q.user_id === p.id)
               return (
-                <div key={p.id} className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
+                <div key={p.id} className="bg-card rounded-xl shadow-sm ring-1 ring-foreground/10 p-4">
                   <div className="flex items-center justify-between mb-3">
                     <div>
                       <h4 className="font-medium text-sm">{p.full_name}</h4>
-                      <p className="text-xs text-gray-400">{p.role}</p>
+                      <p className="text-xs text-muted-foreground">{p.role}</p>
                     </div>
                     {isPrivileged && (
-                      <a href={`/rostering/qualifications/${p.id}`} className="px-3 py-1.5 border border-gray-300 text-gray-600 rounded-lg text-xs hover:bg-gray-50">Manage</a>
+                      <a href={`/rostering/qualifications/${p.id}`} className="px-3 py-1.5 border border-border text-muted-foreground rounded-lg text-xs hover:bg-muted">Manage</a>
                     )}
                   </div>
                   {pQuals.length === 0 ? (
-                    <p className="text-xs text-gray-400">No qualifications recorded</p>
+                    <p className="text-xs text-muted-foreground">No qualifications recorded</p>
                   ) : (
                     <div className="flex flex-wrap gap-2">
                       {pQuals.map(q => (
@@ -572,7 +594,7 @@ export default function RosteringPage() {
                           q.status === 'current' ? 'bg-green-50 text-green-700 border border-green-200' :
                           q.status === 'expiring_soon' ? 'bg-yellow-50 text-yellow-700 border border-yellow-200' :
                           q.status === 'expired' ? 'bg-red-50 text-red-700 border border-red-200' :
-                          'bg-gray-50 text-gray-500 border border-gray-200'
+                          'bg-muted text-muted-foreground border border-border'
                         }`}>
                           {QUALIFICATION_LABELS[q.qualification_type]}
                           {q.expiry_date && <span className="ml-1 opacity-60">({new Date(q.expiry_date).toLocaleDateString()})</span>}
@@ -590,53 +612,53 @@ export default function RosteringPage() {
       {/* ADD SHIFT MODAL */}
       {showAddShift && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onClick={() => setShowAddShift(false)}>
-          <div className="bg-white rounded-xl shadow-xl p-6 w-full max-w-md" onClick={e => e.stopPropagation()}>
+          <div className="bg-card rounded-xl shadow-xl p-6 w-full max-w-md" onClick={e => e.stopPropagation()}>
             <h2 className="font-semibold text-lg mb-4">Add Shift — {selectedDay && new Date(selectedDay).toLocaleDateString('en-AU', { weekday: 'long', day: 'numeric', month: 'short' })}</h2>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Staff Member *</label>
-                <select value={newShift.user_id} onChange={e => setNewShift({ ...newShift, user_id: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#470DA8]">
+                <label className="block text-sm font-medium text-foreground mb-1">Staff Member *</label>
+                <select value={newShift.user_id} onChange={e => setNewShift({ ...newShift, user_id: e.target.value })} className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:ring-2 focus:ring-primary">
                   <option value="">Select staff...</option>
                   {profiles.map(p => <option key={p.id} value={p.id}>{p.full_name} ({p.role})</option>)}
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Room</label>
-                <select value={newShift.room_id} onChange={e => setNewShift({ ...newShift, room_id: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#470DA8]">
+                <label className="block text-sm font-medium text-foreground mb-1">Room</label>
+                <select value={newShift.room_id} onChange={e => setNewShift({ ...newShift, room_id: e.target.value })} className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:ring-2 focus:ring-primary">
                   <option value="">No room (admin/float)</option>
                   {rooms.map(r => <option key={r.id} value={r.id}>{r.name} ({AGE_GROUP_LABELS[r.age_group]})</option>)}
                 </select>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Start Time</label>
-                  <input type="time" value={newShift.start_time} onChange={e => setNewShift({ ...newShift, start_time: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#470DA8]" />
+                  <label className="block text-sm font-medium text-foreground mb-1">Start Time</label>
+                  <input type="time" value={newShift.start_time} onChange={e => setNewShift({ ...newShift, start_time: e.target.value })} className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:ring-2 focus:ring-primary" />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">End Time</label>
-                  <input type="time" value={newShift.end_time} onChange={e => setNewShift({ ...newShift, end_time: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#470DA8]" />
+                  <label className="block text-sm font-medium text-foreground mb-1">End Time</label>
+                  <input type="time" value={newShift.end_time} onChange={e => setNewShift({ ...newShift, end_time: e.target.value })} className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:ring-2 focus:ring-primary" />
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Shift Type</label>
-                <select value={newShift.shift_type} onChange={e => setNewShift({ ...newShift, shift_type: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#470DA8]">
+                <label className="block text-sm font-medium text-foreground mb-1">Shift Type</label>
+                <select value={newShift.shift_type} onChange={e => setNewShift({ ...newShift, shift_type: e.target.value })} className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:ring-2 focus:ring-primary">
                   {Object.entries(SHIFT_TYPE_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
                 </select>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Break Start</label>
-                  <input type="time" value={newShift.break_start} onChange={e => setNewShift({ ...newShift, break_start: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#470DA8]" />
+                  <label className="block text-sm font-medium text-foreground mb-1">Break Start</label>
+                  <input type="time" value={newShift.break_start} onChange={e => setNewShift({ ...newShift, break_start: e.target.value })} className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:ring-2 focus:ring-primary" />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Break End</label>
-                  <input type="time" value={newShift.break_end} onChange={e => setNewShift({ ...newShift, break_end: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#470DA8]" />
+                  <label className="block text-sm font-medium text-foreground mb-1">Break End</label>
+                  <input type="time" value={newShift.break_end} onChange={e => setNewShift({ ...newShift, break_end: e.target.value })} className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:ring-2 focus:ring-primary" />
                 </div>
               </div>
             </div>
             <div className="flex justify-end gap-2 mt-6">
-              <button onClick={() => setShowAddShift(false)} className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50">Cancel</button>
-              <button onClick={addShift} disabled={!newShift.user_id} className="px-4 py-2 bg-[#470DA8] text-white rounded-lg text-sm font-medium hover:opacity-90 disabled:opacity-50">Add Shift</button>
+              <button onClick={() => setShowAddShift(false)} className="px-4 py-2 border border-border text-foreground rounded-lg text-sm font-medium hover:bg-muted">Cancel</button>
+              <button onClick={addShift} disabled={!newShift.user_id} className="px-4 py-2 bg-primary text-white rounded-lg text-sm font-medium hover:opacity-90 disabled:opacity-50">Add Shift</button>
             </div>
           </div>
         </div>
@@ -645,42 +667,42 @@ export default function RosteringPage() {
       {/* ADD ROOM MODAL */}
       {showAddRoom && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onClick={() => setShowAddRoom(false)}>
-          <div className="bg-white rounded-xl shadow-xl p-6 w-full max-w-md" onClick={e => e.stopPropagation()}>
+          <div className="bg-card rounded-xl shadow-xl p-6 w-full max-w-md" onClick={e => e.stopPropagation()}>
             <h2 className="font-semibold text-lg mb-4">Add Room</h2>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Room Name *</label>
-                <input type="text" value={newRoom.name} onChange={e => setNewRoom({ ...newRoom, name: e.target.value })} placeholder="e.g., Joeys" className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#470DA8]" />
+                <label className="block text-sm font-medium text-foreground mb-1">Room Name *</label>
+                <input type="text" value={newRoom.name} onChange={e => setNewRoom({ ...newRoom, name: e.target.value })} placeholder="e.g., Joeys" className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:ring-2 focus:ring-primary" />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Age Group</label>
+                <label className="block text-sm font-medium text-foreground mb-1">Age Group</label>
                 <select value={newRoom.age_group} onChange={e => {
                   const ag = e.target.value
                   const defaults: Record<string, { ratio: number; cap: number }> = { '0-2': { ratio: 4, cap: 8 }, '2-3': { ratio: 5, cap: 10 }, '3-5': { ratio: 10, cap: 22 }, 'school_age': { ratio: 15, cap: 30 }, 'mixed': { ratio: 4, cap: 16 } }
                   const d = defaults[ag] || { ratio: 10, cap: 20 }
                   setNewRoom({ ...newRoom, age_group: ag, ratio_children: d.ratio, licensed_capacity: d.cap })
-                }} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#470DA8]">
+                }} className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:ring-2 focus:ring-primary">
                   {Object.entries(AGE_GROUP_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
                 </select>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Licensed Capacity</label>
-                  <input type="number" value={newRoom.licensed_capacity} onChange={e => setNewRoom({ ...newRoom, licensed_capacity: Number(e.target.value) })} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#470DA8]" />
+                  <label className="block text-sm font-medium text-foreground mb-1">Licensed Capacity</label>
+                  <input type="number" value={newRoom.licensed_capacity} onChange={e => setNewRoom({ ...newRoom, licensed_capacity: Number(e.target.value) })} className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:ring-2 focus:ring-primary" />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Ratio (1:X)</label>
-                  <input type="number" value={newRoom.ratio_children} onChange={e => setNewRoom({ ...newRoom, ratio_children: Number(e.target.value) })} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#470DA8]" />
+                  <label className="block text-sm font-medium text-foreground mb-1">Ratio (1:X)</label>
+                  <input type="number" value={newRoom.ratio_children} onChange={e => setNewRoom({ ...newRoom, ratio_children: Number(e.target.value) })} className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:ring-2 focus:ring-primary" />
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Color</label>
-                <input type="color" value={newRoom.color} onChange={e => setNewRoom({ ...newRoom, color: e.target.value })} className="w-16 h-8 border border-gray-300 rounded cursor-pointer" />
+                <label className="block text-sm font-medium text-foreground mb-1">Color</label>
+                <input type="color" value={newRoom.color} onChange={e => setNewRoom({ ...newRoom, color: e.target.value })} className="w-16 h-8 border border-border rounded cursor-pointer" />
               </div>
             </div>
             <div className="flex justify-end gap-2 mt-6">
-              <button onClick={() => setShowAddRoom(false)} className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50">Cancel</button>
-              <button onClick={addRoom} disabled={!newRoom.name} className="px-4 py-2 bg-[#470DA8] text-white rounded-lg text-sm font-medium hover:opacity-90 disabled:opacity-50">Add Room</button>
+              <button onClick={() => setShowAddRoom(false)} className="px-4 py-2 border border-border text-foreground rounded-lg text-sm font-medium hover:bg-muted">Cancel</button>
+              <button onClick={addRoom} disabled={!newRoom.name} className="px-4 py-2 bg-primary text-white rounded-lg text-sm font-medium hover:opacity-90 disabled:opacity-50">Add Room</button>
             </div>
           </div>
         </div>
@@ -689,19 +711,19 @@ export default function RosteringPage() {
       {/* LEAVE REQUEST MODAL */}
       {showLeaveForm && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onClick={() => setShowLeaveForm(false)}>
-          <div className="bg-white rounded-xl shadow-xl p-6 w-full max-w-md" onClick={e => e.stopPropagation()}>
+          <div className="bg-card rounded-xl shadow-xl p-6 w-full max-w-md" onClick={e => e.stopPropagation()}>
             <h2 className="font-semibold text-lg mb-4">Request Leave</h2>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Staff Member *</label>
-                <select value={newLeave.user_id} onChange={e => setNewLeave({ ...newLeave, user_id: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#470DA8]">
+                <label className="block text-sm font-medium text-foreground mb-1">Staff Member *</label>
+                <select value={newLeave.user_id} onChange={e => setNewLeave({ ...newLeave, user_id: e.target.value })} className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:ring-2 focus:ring-primary">
                   <option value="">Select staff...</option>
                   {profiles.map(p => <option key={p.id} value={p.id}>{p.full_name}</option>)}
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Leave Type</label>
-                <select value={newLeave.leave_type} onChange={e => setNewLeave({ ...newLeave, leave_type: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#470DA8]">
+                <label className="block text-sm font-medium text-foreground mb-1">Leave Type</label>
+                <select value={newLeave.leave_type} onChange={e => setNewLeave({ ...newLeave, leave_type: e.target.value })} className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:ring-2 focus:ring-primary">
                   <option value="annual">Annual Leave</option>
                   <option value="sick">Sick Leave</option>
                   <option value="personal">Personal Leave</option>
@@ -712,22 +734,22 @@ export default function RosteringPage() {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Start Date *</label>
-                  <input type="date" value={newLeave.start_date} onChange={e => setNewLeave({ ...newLeave, start_date: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#470DA8]" />
+                  <label className="block text-sm font-medium text-foreground mb-1">Start Date *</label>
+                  <input type="date" value={newLeave.start_date} onChange={e => setNewLeave({ ...newLeave, start_date: e.target.value })} className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:ring-2 focus:ring-primary" />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">End Date *</label>
-                  <input type="date" value={newLeave.end_date} onChange={e => setNewLeave({ ...newLeave, end_date: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#470DA8]" />
+                  <label className="block text-sm font-medium text-foreground mb-1">End Date *</label>
+                  <input type="date" value={newLeave.end_date} onChange={e => setNewLeave({ ...newLeave, end_date: e.target.value })} className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:ring-2 focus:ring-primary" />
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Reason</label>
-                <textarea value={newLeave.reason} onChange={e => setNewLeave({ ...newLeave, reason: e.target.value })} rows={2} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#470DA8]" />
+                <label className="block text-sm font-medium text-foreground mb-1">Reason</label>
+                <textarea value={newLeave.reason} onChange={e => setNewLeave({ ...newLeave, reason: e.target.value })} rows={2} className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:ring-2 focus:ring-primary" />
               </div>
             </div>
             <div className="flex justify-end gap-2 mt-6">
-              <button onClick={() => setShowLeaveForm(false)} className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50">Cancel</button>
-              <button onClick={addLeave} disabled={!newLeave.user_id || !newLeave.start_date || !newLeave.end_date} className="px-4 py-2 bg-[#470DA8] text-white rounded-lg text-sm font-medium hover:opacity-90 disabled:opacity-50">Submit Request</button>
+              <button onClick={() => setShowLeaveForm(false)} className="px-4 py-2 border border-border text-foreground rounded-lg text-sm font-medium hover:bg-muted">Cancel</button>
+              <button onClick={addLeave} disabled={!newLeave.user_id || !newLeave.start_date || !newLeave.end_date} className="px-4 py-2 bg-primary text-white rounded-lg text-sm font-medium hover:opacity-90 disabled:opacity-50">Submit Request</button>
             </div>
           </div>
         </div>

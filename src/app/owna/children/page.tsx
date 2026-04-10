@@ -67,33 +67,33 @@ export default function OwnaChildrenPage() {
     return days.join(', ') || '-'
   }
 
-  if (loading) return <div className="max-w-6xl mx-auto py-12 text-center text-gray-400">Loading OWNA children data...</div>
+  if (loading) return <div className="max-w-6xl mx-auto py-12 text-center text-muted-foreground">Loading OWNA children data...</div>
 
   return (
     <div className="max-w-6xl mx-auto">
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold">Children &amp; Rooms</h1>
-          <p className="text-gray-500 text-sm mt-1">Live from OWNA — {children.length} children across {rooms.length} rooms</p>
+          <p className="text-muted-foreground text-sm mt-1">Live from OWNA — {children.length} children across {rooms.length} rooms</p>
         </div>
         <span className="px-3 py-1 bg-green-50 text-green-700 rounded-lg text-xs font-medium">Live from OWNA</span>
       </div>
 
       {/* Room cards */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 mb-6">
-        <div onClick={() => setSelectedRoom('')} className={`bg-white rounded-xl shadow-sm border p-4 cursor-pointer transition hover:shadow-md ${!selectedRoom ? 'border-[#470DA8] ring-2 ring-[#470DA8]/20' : 'border-gray-200'}`}>
-          <p className="text-xs text-gray-500 mb-1">All Rooms</p>
-          <p className="text-2xl font-bold text-[#470DA8]">{children.length}</p>
-          <p className="text-xs text-gray-400">children</p>
+        <div onClick={() => setSelectedRoom('')} className={`bg-card rounded-xl shadow-sm border p-4 cursor-pointer transition hover:shadow-md ${!selectedRoom ? 'border-primary ring-2 ring-primary/20' : 'border-border'}`}>
+          <p className="text-xs text-muted-foreground mb-1">All Rooms</p>
+          <p className="text-2xl font-bold text-primary">{children.length}</p>
+          <p className="text-xs text-muted-foreground">children</p>
         </div>
         {rooms.map(room => {
           const count = children.filter(c => c.roomId === room.id).length
           return (
-            <div key={room.id} onClick={() => setSelectedRoom(selectedRoom === room.id ? '' : room.id)} className={`bg-white rounded-xl shadow-sm border p-4 cursor-pointer transition hover:shadow-md ${selectedRoom === room.id ? 'border-[#470DA8] ring-2 ring-[#470DA8]/20' : 'border-gray-200'}`}>
-              <p className="text-xs text-gray-500 mb-1 truncate">{room.name}</p>
-              <p className="text-2xl font-bold text-gray-900">{count}</p>
+            <div key={room.id} onClick={() => setSelectedRoom(selectedRoom === room.id ? '' : room.id)} className={`bg-card rounded-xl shadow-sm border p-4 cursor-pointer transition hover:shadow-md ${selectedRoom === room.id ? 'border-primary ring-2 ring-primary/20' : 'border-border'}`}>
+              <p className="text-xs text-muted-foreground mb-1 truncate">{room.name}</p>
+              <p className="text-2xl font-bold text-foreground">{count}</p>
               <div className="flex items-center justify-between mt-1">
-                <p className="text-xs text-gray-400">cap: {room.capacity || '-'}</p>
+                <p className="text-xs text-muted-foreground">cap: {room.capacity || '-'}</p>
                 {room.capacity > 0 && (
                   <span className={`text-xs font-medium ${count >= room.capacity ? 'text-red-500' : 'text-green-500'}`}>{Math.round((count / room.capacity) * 100)}%</span>
                 )}
@@ -105,15 +105,15 @@ export default function OwnaChildrenPage() {
 
       {/* Search */}
       <div className="flex gap-3 mb-4">
-        <input type="text" value={search} onChange={e => setSearch(e.target.value)} placeholder="Search by name..." className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#470DA8] focus:border-transparent w-64" />
-        <span className="text-sm text-gray-400 self-center">{filtered.length} results</span>
+        <input type="text" value={search} onChange={e => setSearch(e.target.value)} placeholder="Search by name..." className="px-3 py-2 border border-border rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent w-64" />
+        <span className="text-sm text-muted-foreground self-center">{filtered.length} results</span>
       </div>
 
       {/* Children table */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+      <div className="bg-card rounded-xl shadow-sm border border-border overflow-hidden">
         <table className="w-full text-sm">
           <thead>
-            <tr className="bg-gray-50 border-b border-gray-200">
+            <tr className="bg-muted border-b border-border">
               <th className="text-left py-3 px-4 font-medium text-gray-600">Child</th>
               <th className="text-left py-3 px-2 font-medium text-gray-600">Room</th>
               <th className="text-left py-3 px-2 font-medium text-gray-600">Age</th>
@@ -122,36 +122,36 @@ export default function OwnaChildrenPage() {
               <th className="text-left py-3 px-2 font-medium text-gray-600">CRN</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-100">
+          <tbody className="divide-y divide-border">
             {filtered.slice(0, 100).map(child => (
-              <tr key={child.id} className="hover:bg-gray-50 cursor-pointer" onClick={() => loadChildDetail(child.id)}>
+              <tr key={child.id} className="hover:bg-muted cursor-pointer" onClick={() => loadChildDetail(child.id)}>
                 <td className="py-3 px-4">
                   <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-[#470DA8]/10 flex items-center justify-center text-xs font-medium text-[#470DA8]">
+                    <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-xs font-medium text-primary">
                       {(child.firstname || '?')[0]}{(child.surname || '?')[0]}
                     </div>
-                    <span className="font-medium text-gray-900">{child.firstname} {child.surname}</span>
+                    <span className="font-medium text-foreground">{child.firstname} {child.surname}</span>
                   </div>
                 </td>
                 <td className="py-3 px-2 text-gray-600">{child.room || '-'}</td>
                 <td className="py-3 px-2 text-gray-600">{getAge(child.dob)}</td>
-                <td className="py-3 px-2 text-gray-500">{child.gender === 'M' ? 'Male' : child.gender === 'F' ? 'Female' : child.gender || '-'}</td>
-                <td className="py-3 px-2 text-gray-500 text-xs">{getDays(child)}</td>
-                <td className="py-3 px-2 text-gray-400 text-xs font-mono">{child.crn || '-'}</td>
+                <td className="py-3 px-2 text-muted-foreground">{child.gender === 'M' ? 'Male' : child.gender === 'F' ? 'Female' : child.gender || '-'}</td>
+                <td className="py-3 px-2 text-muted-foreground text-xs">{getDays(child)}</td>
+                <td className="py-3 px-2 text-muted-foreground text-xs font-mono">{child.crn || '-'}</td>
               </tr>
             ))}
           </tbody>
         </table>
-        {filtered.length === 0 && <div className="py-12 text-center text-gray-400 text-sm">No children found</div>}
-        {filtered.length > 100 && <div className="py-3 text-center text-gray-400 text-xs border-t border-gray-100">Showing first 100 of {filtered.length}</div>}
+        {filtered.length === 0 && <div className="py-12 text-center text-muted-foreground text-sm">No children found</div>}
+        {filtered.length > 100 && <div className="py-3 text-center text-muted-foreground text-xs border-t border-gray-100">Showing first 100 of {filtered.length}</div>}
 
         {expandedChild && childDetail && (
-          <div className="border-t border-gray-200 bg-gray-50 p-6">
+          <div className="border-t border-border bg-muted p-6">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="font-semibold text-gray-900">Child Details</h3>
-              <button onClick={() => setExpandedChild(null)} className="text-gray-400 hover:text-gray-600">&#10005;</button>
+              <h3 className="font-semibold text-foreground">Child Details</h3>
+              <button onClick={() => setExpandedChild(null)} className="text-muted-foreground hover:text-gray-600">&#10005;</button>
             </div>
-            <pre className="text-xs font-mono text-gray-600 bg-white p-4 rounded-lg border border-gray-200 max-h-64 overflow-auto whitespace-pre-wrap">{JSON.stringify(childDetail, null, 2)}</pre>
+            <pre className="text-xs font-mono text-gray-600 bg-card p-4 rounded-lg border border-border max-h-64 overflow-auto whitespace-pre-wrap">{JSON.stringify(childDetail, null, 2)}</pre>
           </div>
         )}
       </div>

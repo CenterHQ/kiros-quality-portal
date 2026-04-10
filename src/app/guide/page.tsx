@@ -26,7 +26,7 @@ function RoleBadge({ roles }: { roles: string[] }) {
   return (
     <div className="flex gap-1 flex-wrap mb-3">
       {roles.map(r => (
-        <span key={r} className={`text-xs px-2 py-0.5 rounded-full font-medium ${colors[r] || 'bg-gray-100 text-gray-600'}`}>{r}</span>
+        <span key={r} className={`text-xs px-2 py-0.5 rounded-full font-medium ${colors[r] || 'bg-muted text-gray-600'}`}>{r}</span>
       ))}
     </div>
   )
@@ -43,8 +43,8 @@ function TipBox({ children }: { children: React.ReactNode }) {
 
 function MockScreen({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <div className="bg-white rounded-lg border-2 border-gray-200 p-4 my-4 shadow-inner">
-      <div className="bg-gray-100 rounded p-2 mb-3 text-xs text-gray-400 font-mono">{label}</div>
+    <div className="bg-card rounded-lg border-2 border-border p-4 my-4 shadow-inner">
+      <div className="bg-muted rounded p-2 mb-3 text-xs text-muted-foreground font-mono">{label}</div>
       {children}
     </div>
   )
@@ -54,7 +54,7 @@ function Steps({ items }: { items: string[] }) {
   return (
     <ol className="list-decimal list-inside space-y-2 my-4">
       {items.map((item, i) => (
-        <li key={i} className="text-sm text-gray-700">{item}</li>
+        <li key={i} className="text-sm text-foreground">{item}</li>
       ))}
     </ol>
   )
@@ -67,23 +67,23 @@ export default function GuidePage() {
     <div className="max-w-5xl mx-auto">
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900">User Guide</h1>
-        <p className="text-gray-500 mt-1">How to Use the Quality Uplift Portal</p>
+        <h1 className="text-2xl font-bold text-foreground">User Guide</h1>
+        <p className="text-muted-foreground mt-1">How to Use the Quality Uplift Portal</p>
       </div>
 
       {/* Table of Contents */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8">
-        <h2 className="font-semibold text-gray-900 mb-3">Table of Contents</h2>
+      <div className="bg-card rounded-xl shadow-sm border border-border p-6 mb-8">
+        <h2 className="font-semibold text-foreground mb-3">Table of Contents</h2>
         <nav className="grid grid-cols-1 sm:grid-cols-2 gap-2">
           {SECTIONS.map(s => (
-            <a key={s.id} href={`#${s.id}`} className="text-sm text-[#470DA8] hover:underline">{s.title}</a>
+            <a key={s.id} href={`#${s.id}`} className="text-sm text-primary hover:underline">{s.title}</a>
           ))}
         </nav>
       </div>
 
       {/* Section 1: Getting Started */}
-      <div id="getting-started" className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden mb-8">
-        <div className="px-6 py-4 border-b border-gray-200 bg-[#470DA8]">
+      <div id="getting-started" className="bg-card rounded-xl shadow-sm border border-border overflow-hidden mb-8">
+        <div className="px-6 py-4 border-b border-border bg-primary">
           <h2 className="font-semibold text-white text-lg">1. Getting Started</h2>
         </div>
         <div className="p-6">
@@ -91,12 +91,12 @@ export default function GuidePage() {
 
           <MockScreen label="Login Screen">
             <div className="max-w-xs mx-auto space-y-3">
-              <div className="h-10 bg-[#470DA8] rounded-lg flex items-center justify-center">
+              <div className="h-10 bg-primary rounded-lg flex items-center justify-center">
                 <span className="text-white text-sm font-bold">Kiros Quality Uplift Portal</span>
               </div>
-              <div className="border border-gray-300 rounded p-2 text-xs text-gray-400">Email address</div>
-              <div className="border border-gray-300 rounded p-2 text-xs text-gray-400">Password</div>
-              <div className="bg-[#470DA8] text-white text-center rounded p-2 text-xs font-medium">Sign In</div>
+              <div className="border border-border rounded p-2 text-xs text-muted-foreground">Email address</div>
+              <div className="border border-border rounded p-2 text-xs text-muted-foreground">Password</div>
+              <div className="bg-primary text-white text-center rounded p-2 text-xs font-medium">Sign In</div>
             </div>
           </MockScreen>
 
@@ -112,11 +112,11 @@ export default function GuidePage() {
             <div className="flex gap-4">
               <div className="w-48 bg-gray-900 rounded-lg p-3 space-y-2">
                 {['Dashboard', 'Elements', 'Tasks', 'Training', 'Documents', 'Forms', 'Reports', 'Admin'].map(item => (
-                  <div key={item} className={`text-xs px-3 py-2 rounded ${item === 'Dashboard' ? 'bg-[#470DA8] text-white' : 'text-gray-400'}`}>{item}</div>
+                  <div key={item} className={`text-xs px-3 py-2 rounded ${item === 'Dashboard' ? 'bg-primary text-white' : 'text-muted-foreground'}`}>{item}</div>
                 ))}
               </div>
-              <div className="flex-1 bg-gray-50 rounded-lg p-4 flex items-center justify-center">
-                <span className="text-xs text-gray-400">Main content area</span>
+              <div className="flex-1 bg-muted rounded-lg p-4 flex items-center justify-center">
+                <span className="text-xs text-muted-foreground">Main content area</span>
               </div>
             </div>
           </MockScreen>
@@ -126,8 +126,8 @@ export default function GuidePage() {
       </div>
 
       {/* Section 2: Dashboard */}
-      <div id="dashboard" className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden mb-8">
-        <div className="px-6 py-4 border-b border-gray-200 bg-[#470DA8]">
+      <div id="dashboard" className="bg-card rounded-xl shadow-sm border border-border overflow-hidden mb-8">
+        <div className="px-6 py-4 border-b border-border bg-primary">
           <h2 className="font-semibold text-white text-lg">2. Dashboard</h2>
         </div>
         <div className="p-6">
@@ -135,24 +135,24 @@ export default function GuidePage() {
 
           <MockScreen label="Dashboard View">
             <div className="grid grid-cols-4 gap-2 mb-3">
-              <div className="bg-red-50 rounded p-2 text-center"><span className="text-lg font-bold text-red-500">30</span><br /><span className="text-xs text-gray-500">Not Met</span></div>
-              <div className="bg-yellow-50 rounded p-2 text-center"><span className="text-lg font-bold text-yellow-500">18</span><br /><span className="text-xs text-gray-500">Working Towards</span></div>
-              <div className="bg-green-50 rounded p-2 text-center"><span className="text-lg font-bold text-green-500">42</span><br /><span className="text-xs text-gray-500">Meeting</span></div>
-              <div className="bg-purple-50 rounded p-2 text-center"><span className="text-lg font-bold text-purple-500">10</span><br /><span className="text-xs text-gray-500">Exceeding</span></div>
+              <div className="bg-red-50 rounded p-2 text-center"><span className="text-lg font-bold text-red-500">30</span><br /><span className="text-xs text-muted-foreground">Not Met</span></div>
+              <div className="bg-yellow-50 rounded p-2 text-center"><span className="text-lg font-bold text-yellow-500">18</span><br /><span className="text-xs text-muted-foreground">Working Towards</span></div>
+              <div className="bg-green-50 rounded p-2 text-center"><span className="text-lg font-bold text-green-500">42</span><br /><span className="text-xs text-muted-foreground">Meeting</span></div>
+              <div className="bg-purple-50 rounded p-2 text-center"><span className="text-lg font-bold text-purple-500">10</span><br /><span className="text-xs text-muted-foreground">Exceeding</span></div>
             </div>
-            <div className="bg-gray-50 rounded p-3 mb-2">
-              <div className="text-xs text-gray-400 mb-1">Overall Progress</div>
+            <div className="bg-muted rounded p-3 mb-2">
+              <div className="text-xs text-muted-foreground mb-1">Overall Progress</div>
               <div className="w-full bg-gray-200 rounded-full h-3">
-                <div className="h-3 rounded-full bg-[#470DA8]" style={{ width: '52%' }} />
+                <div className="h-3 rounded-full bg-primary" style={{ width: '52%' }} />
               </div>
-              <div className="text-xs text-gray-500 mt-1">52% of elements at Meeting or above</div>
+              <div className="text-xs text-muted-foreground mt-1">52% of elements at Meeting or above</div>
             </div>
             <div className="grid grid-cols-7 gap-1">
               {[1,2,3,4,5,6,7].map(qa => (
                 <div key={qa} className="text-center">
-                  <div className="text-xs font-bold text-gray-500">QA{qa}</div>
-                  <div className="h-12 bg-gray-100 rounded mt-1 flex items-end justify-center pb-1">
-                    <div className="w-3 bg-[#470DA8] rounded-t" style={{ height: `${20 + qa * 5}px`, maxHeight: '40px' }} />
+                  <div className="text-xs font-bold text-muted-foreground">QA{qa}</div>
+                  <div className="h-12 bg-muted rounded mt-1 flex items-end justify-center pb-1">
+                    <div className="w-3 bg-primary rounded-t" style={{ height: `${20 + qa * 5}px`, maxHeight: '40px' }} />
                   </div>
                 </div>
               ))}
@@ -171,8 +171,8 @@ export default function GuidePage() {
       </div>
 
       {/* Section 3: QA Elements */}
-      <div id="qa-elements" className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden mb-8">
-        <div className="px-6 py-4 border-b border-gray-200 bg-[#470DA8]">
+      <div id="qa-elements" className="bg-card rounded-xl shadow-sm border border-border overflow-hidden mb-8">
+        <div className="px-6 py-4 border-b border-border bg-primary">
           <h2 className="font-semibold text-white text-lg">3. QA Elements</h2>
         </div>
         <div className="p-6">
@@ -180,10 +180,10 @@ export default function GuidePage() {
 
           <MockScreen label="Elements List View">
             <div className="flex gap-2 mb-3">
-              <div className="border border-gray-300 rounded px-2 py-1 text-xs text-gray-400 flex-1">Search elements...</div>
-              <div className="border border-gray-300 rounded px-2 py-1 text-xs text-gray-400">QA Area</div>
-              <div className="border border-gray-300 rounded px-2 py-1 text-xs text-gray-400">Status</div>
-              <div className="border border-gray-300 rounded px-2 py-1 text-xs text-gray-400">Rating</div>
+              <div className="border border-border rounded px-2 py-1 text-xs text-muted-foreground flex-1">Search elements...</div>
+              <div className="border border-border rounded px-2 py-1 text-xs text-muted-foreground">QA Area</div>
+              <div className="border border-border rounded px-2 py-1 text-xs text-muted-foreground">Status</div>
+              <div className="border border-border rounded px-2 py-1 text-xs text-muted-foreground">Rating</div>
             </div>
             <div className="space-y-2">
               {[
@@ -191,10 +191,10 @@ export default function GuidePage() {
                 { code: '1.1.2', name: 'Child-centred', qa: 1, rating: 'Not Met', color: 'red' },
                 { code: '2.1.1', name: 'Wellbeing and comfort', qa: 2, rating: 'Working Towards', color: 'yellow' },
               ].map(el => (
-                <div key={el.code} className="flex items-center gap-3 border border-gray-200 rounded p-2">
+                <div key={el.code} className="flex items-center gap-3 border border-border rounded p-2">
                   <div className={`w-8 h-8 rounded flex items-center justify-center text-white text-xs font-bold bg-${el.color}-500`} style={{ backgroundColor: el.color === 'green' ? '#2ecc71' : el.color === 'red' ? '#e74c3c' : '#f0ad4e' }}>Q{el.qa}</div>
                   <div className="flex-1">
-                    <div className="text-xs font-medium text-gray-900">{el.code} - {el.name}</div>
+                    <div className="text-xs font-medium text-foreground">{el.code} - {el.name}</div>
                   </div>
                   <span className={`text-xs px-2 py-0.5 rounded-full ${el.color === 'green' ? 'bg-green-100 text-green-700' : el.color === 'red' ? 'bg-red-100 text-red-700' : 'bg-yellow-100 text-yellow-700'}`}>{el.rating}</span>
                 </div>
@@ -214,22 +214,22 @@ export default function GuidePage() {
             <div className="flex items-center gap-3 mb-3">
               <div className="w-10 h-10 rounded bg-red-500 flex items-center justify-center text-white text-xs font-bold">QA1</div>
               <div>
-                <div className="text-sm font-bold text-gray-900">1.1.2 — Child-centred</div>
-                <div className="text-xs text-gray-500">Standard 1.1: Programme</div>
+                <div className="text-sm font-bold text-foreground">1.1.2 — Child-centred</div>
+                <div className="text-xs text-muted-foreground">Standard 1.1: Programme</div>
               </div>
             </div>
             <div className="grid grid-cols-3 gap-2 mb-3">
-              <div className="bg-gray-50 rounded p-2">
-                <div className="text-xs text-gray-400">Rating</div>
-                <div className="border border-gray-300 rounded px-2 py-1 text-xs mt-1">Not Met</div>
+              <div className="bg-muted rounded p-2">
+                <div className="text-xs text-muted-foreground">Rating</div>
+                <div className="border border-border rounded px-2 py-1 text-xs mt-1">Not Met</div>
               </div>
-              <div className="bg-gray-50 rounded p-2">
-                <div className="text-xs text-gray-400">Status</div>
-                <div className="border border-gray-300 rounded px-2 py-1 text-xs mt-1">In Progress</div>
+              <div className="bg-muted rounded p-2">
+                <div className="text-xs text-muted-foreground">Status</div>
+                <div className="border border-border rounded px-2 py-1 text-xs mt-1">In Progress</div>
               </div>
-              <div className="bg-gray-50 rounded p-2">
-                <div className="text-xs text-gray-400">Due Date</div>
-                <div className="border border-gray-300 rounded px-2 py-1 text-xs mt-1">2026-04-15</div>
+              <div className="bg-muted rounded p-2">
+                <div className="text-xs text-muted-foreground">Due Date</div>
+                <div className="border border-border rounded px-2 py-1 text-xs mt-1">2026-04-15</div>
               </div>
             </div>
             <div className="bg-red-50 rounded p-2 text-xs text-red-700 mb-2">
@@ -242,8 +242,8 @@ export default function GuidePage() {
       </div>
 
       {/* Section 4: Element Actions */}
-      <div id="element-actions" className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden mb-8">
-        <div className="px-6 py-4 border-b border-gray-200 bg-[#470DA8]">
+      <div id="element-actions" className="bg-card rounded-xl shadow-sm border border-border overflow-hidden mb-8">
+        <div className="px-6 py-4 border-b border-border bg-primary">
           <h2 className="font-semibold text-white text-lg">4. Element Actions</h2>
         </div>
         <div className="p-6">
@@ -251,11 +251,11 @@ export default function GuidePage() {
 
           <MockScreen label="Actions Checklist on Element Detail">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-sm font-semibold text-gray-900">Actions Checklist</span>
-              <span className="text-xs text-gray-500">2/4 complete</span>
+              <span className="text-sm font-semibold text-foreground">Actions Checklist</span>
+              <span className="text-xs text-muted-foreground">2/4 complete</span>
             </div>
             <div className="w-full bg-gray-200 rounded-full h-2 mb-3">
-              <div className="h-2 rounded-full bg-[#470DA8]" style={{ width: '50%' }} />
+              <div className="h-2 rounded-full bg-primary" style={{ width: '50%' }} />
             </div>
             <div className="space-y-2">
               {[
@@ -265,14 +265,14 @@ export default function GuidePage() {
                 { title: 'Implement new planning cycle', done: false },
               ].map((a, i) => (
                 <div key={i} className="flex items-center gap-2 p-2 border border-gray-100 rounded">
-                  <div className={`w-4 h-4 rounded border-2 flex items-center justify-center text-xs ${a.done ? 'bg-green-500 border-green-500 text-white' : 'border-gray-300'}`}>
+                  <div className={`w-4 h-4 rounded border-2 flex items-center justify-center text-xs ${a.done ? 'bg-green-500 border-green-500 text-white' : 'border-border'}`}>
                     {a.done && '\u2713'}
                   </div>
-                  <span className={`text-xs ${a.done ? 'text-gray-400 line-through' : 'text-gray-900'}`}>{a.title}</span>
+                  <span className={`text-xs ${a.done ? 'text-muted-foreground line-through' : 'text-foreground'}`}>{a.title}</span>
                 </div>
               ))}
             </div>
-            <div className="mt-3 text-xs text-[#470DA8] font-medium">+ Add Action</div>
+            <div className="mt-3 text-xs text-primary font-medium">+ Add Action</div>
           </MockScreen>
 
           <Steps items={[
@@ -284,11 +284,11 @@ export default function GuidePage() {
           ]} />
 
           <MockScreen label="Expanded Action View">
-            <div className="border border-gray-200 rounded p-3">
-              <div className="text-xs font-medium text-gray-900 mb-2">Update child observations template</div>
+            <div className="border border-border rounded p-3">
+              <div className="text-xs font-medium text-foreground mb-2">Update child observations template</div>
               <div className="text-xs text-gray-600 mb-2">Revise the observation template to align with the approved learning framework.</div>
               <div className="mb-2">
-                <div className="text-xs font-semibold text-gray-400 uppercase mb-1">Steps</div>
+                <div className="text-xs font-semibold text-muted-foreground uppercase mb-1">Steps</div>
                 <div className="text-xs text-gray-600 space-y-0.5">
                   <div>1. Review current template</div>
                   <div>2. Identify gaps against framework</div>
@@ -298,16 +298,16 @@ export default function GuidePage() {
               </div>
               <div className="flex gap-3">
                 <div>
-                  <div className="text-xs text-gray-400">Status</div>
-                  <div className="border border-gray-300 rounded px-2 py-0.5 text-xs mt-0.5">In Progress</div>
+                  <div className="text-xs text-muted-foreground">Status</div>
+                  <div className="border border-border rounded px-2 py-0.5 text-xs mt-0.5">In Progress</div>
                 </div>
                 <div>
-                  <div className="text-xs text-gray-400">Assigned</div>
-                  <div className="border border-gray-300 rounded px-2 py-0.5 text-xs mt-0.5">Jane Smith</div>
+                  <div className="text-xs text-muted-foreground">Assigned</div>
+                  <div className="border border-border rounded px-2 py-0.5 text-xs mt-0.5">Jane Smith</div>
                 </div>
                 <div>
-                  <div className="text-xs text-gray-400">Due</div>
-                  <div className="border border-gray-300 rounded px-2 py-0.5 text-xs mt-0.5">2026-04-10</div>
+                  <div className="text-xs text-muted-foreground">Due</div>
+                  <div className="border border-border rounded px-2 py-0.5 text-xs mt-0.5">2026-04-10</div>
                 </div>
               </div>
             </div>
@@ -318,8 +318,8 @@ export default function GuidePage() {
       </div>
 
       {/* Section 5: Task Board */}
-      <div id="task-board" className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden mb-8">
-        <div className="px-6 py-4 border-b border-gray-200 bg-[#470DA8]">
+      <div id="task-board" className="bg-card rounded-xl shadow-sm border border-border overflow-hidden mb-8">
+        <div className="px-6 py-4 border-b border-border bg-primary">
           <h2 className="font-semibold text-white text-lg">5. Task Board</h2>
         </div>
         <div className="p-6">
@@ -337,7 +337,7 @@ export default function GuidePage() {
                   <div className={`text-xs font-bold text-${col.color}-600 mb-2`} style={{ color: col.color === 'gray' ? '#666' : col.color === 'blue' ? '#3498db' : col.color === 'yellow' ? '#f0ad4e' : '#2ecc71' }}>{col.title}</div>
                   <div className="space-y-1">
                     {col.tasks.map(t => (
-                      <div key={t} className="bg-gray-50 border border-gray-200 rounded p-2 text-xs text-gray-700">{t}</div>
+                      <div key={t} className="bg-muted border border-border rounded p-2 text-xs text-foreground">{t}</div>
                     ))}
                   </div>
                 </div>
@@ -358,8 +358,8 @@ export default function GuidePage() {
       </div>
 
       {/* Section 6: Training */}
-      <div id="training" className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden mb-8">
-        <div className="px-6 py-4 border-b border-gray-200 bg-[#470DA8]">
+      <div id="training" className="bg-card rounded-xl shadow-sm border border-border overflow-hidden mb-8">
+        <div className="px-6 py-4 border-b border-border bg-primary">
           <h2 className="font-semibold text-white text-lg">6. Training</h2>
         </div>
         <div className="p-6">
@@ -372,18 +372,18 @@ export default function GuidePage() {
                 { title: 'Child Safe Standards', duration: '1.5 hrs', status: 'In Progress' },
                 { title: 'Documentation Best Practices', duration: '1 hr', status: 'Assigned' },
               ].map(m => (
-                <div key={m.title} className="flex items-center gap-3 border border-gray-200 rounded p-2">
-                  <div className="w-8 h-8 rounded bg-[#470DA8] flex items-center justify-center">
+                <div key={m.title} className="flex items-center gap-3 border border-border rounded p-2">
+                  <div className="w-8 h-8 rounded bg-primary flex items-center justify-center">
                     <span className="text-white text-xs">T</span>
                   </div>
                   <div className="flex-1">
-                    <div className="text-xs font-medium text-gray-900">{m.title}</div>
-                    <div className="text-xs text-gray-400">{m.duration}</div>
+                    <div className="text-xs font-medium text-foreground">{m.title}</div>
+                    <div className="text-xs text-muted-foreground">{m.duration}</div>
                   </div>
                   <span className={`text-xs px-2 py-0.5 rounded-full ${
                     m.status === 'Completed' ? 'bg-green-100 text-green-700' :
                     m.status === 'In Progress' ? 'bg-blue-100 text-blue-700' :
-                    'bg-gray-100 text-gray-600'
+                    'bg-muted text-gray-600'
                   }`}>{m.status}</span>
                 </div>
               ))}
@@ -402,8 +402,8 @@ export default function GuidePage() {
       </div>
 
       {/* Section 7: Documents */}
-      <div id="documents" className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden mb-8">
-        <div className="px-6 py-4 border-b border-gray-200 bg-[#470DA8]">
+      <div id="documents" className="bg-card rounded-xl shadow-sm border border-border overflow-hidden mb-8">
+        <div className="px-6 py-4 border-b border-border bg-primary">
           <h2 className="font-semibold text-white text-lg">7. Documents</h2>
         </div>
         <div className="p-6">
@@ -411,9 +411,9 @@ export default function GuidePage() {
 
           <MockScreen label="Document Library">
             <div className="flex gap-2 mb-3">
-              <div className="border border-gray-300 rounded px-2 py-1 text-xs text-gray-400 flex-1">Search documents...</div>
-              <div className="border border-gray-300 rounded px-2 py-1 text-xs text-gray-400">QA Area</div>
-              <div className="border border-gray-300 rounded px-2 py-1 text-xs text-gray-400">Category</div>
+              <div className="border border-border rounded px-2 py-1 text-xs text-muted-foreground flex-1">Search documents...</div>
+              <div className="border border-border rounded px-2 py-1 text-xs text-muted-foreground">QA Area</div>
+              <div className="border border-border rounded px-2 py-1 text-xs text-muted-foreground">Category</div>
             </div>
             <div className="space-y-2">
               {[
@@ -421,13 +421,13 @@ export default function GuidePage() {
                 { name: 'Observation_Template.docx', category: 'Template', qa: 'QA1', size: '156 KB' },
                 { name: 'Safety_Checklist.pdf', category: 'Checklist', qa: 'QA2', size: '89 KB' },
               ].map(d => (
-                <div key={d.name} className="flex items-center gap-3 border border-gray-200 rounded p-2">
+                <div key={d.name} className="flex items-center gap-3 border border-border rounded p-2">
                   <div className="w-8 h-8 rounded bg-blue-100 flex items-center justify-center">
                     <span className="text-blue-600 text-xs font-bold">{d.name.split('.').pop()?.toUpperCase()}</span>
                   </div>
                   <div className="flex-1">
-                    <div className="text-xs font-medium text-gray-900">{d.name}</div>
-                    <div className="text-xs text-gray-400">{d.category} | {d.qa} | {d.size}</div>
+                    <div className="text-xs font-medium text-foreground">{d.name}</div>
+                    <div className="text-xs text-muted-foreground">{d.category} | {d.qa} | {d.size}</div>
                   </div>
                 </div>
               ))}
@@ -446,8 +446,8 @@ export default function GuidePage() {
       </div>
 
       {/* Section 8: Forms */}
-      <div id="forms" className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden mb-8">
-        <div className="px-6 py-4 border-b border-gray-200 bg-[#470DA8]">
+      <div id="forms" className="bg-card rounded-xl shadow-sm border border-border overflow-hidden mb-8">
+        <div className="px-6 py-4 border-b border-border bg-primary">
           <h2 className="font-semibold text-white text-lg">8. Forms</h2>
         </div>
         <div className="p-6">
@@ -460,18 +460,18 @@ export default function GuidePage() {
                 { type: 'Incident Report', status: 'Submitted', room: 'Room 2' },
                 { type: 'Educator Reflection', status: 'Reviewed', room: '-' },
               ].map((f, i) => (
-                <div key={i} className="flex items-center gap-3 border border-gray-200 rounded p-2">
+                <div key={i} className="flex items-center gap-3 border border-border rounded p-2">
                   <div className="w-8 h-8 rounded bg-purple-100 flex items-center justify-center">
-                    <span className="text-[#470DA8] text-xs font-bold">F</span>
+                    <span className="text-primary text-xs font-bold">F</span>
                   </div>
                   <div className="flex-1">
-                    <div className="text-xs font-medium text-gray-900">{f.type}</div>
-                    <div className="text-xs text-gray-400">Room: {f.room}</div>
+                    <div className="text-xs font-medium text-foreground">{f.type}</div>
+                    <div className="text-xs text-muted-foreground">Room: {f.room}</div>
                   </div>
                   <span className={`text-xs px-2 py-0.5 rounded-full ${
                     f.status === 'Reviewed' ? 'bg-green-100 text-green-700' :
                     f.status === 'Submitted' ? 'bg-blue-100 text-blue-700' :
-                    'bg-gray-100 text-gray-600'
+                    'bg-muted text-gray-600'
                   }`}>{f.status}</span>
                 </div>
               ))}
@@ -491,8 +491,8 @@ export default function GuidePage() {
       </div>
 
       {/* Section 9: Reports */}
-      <div id="reports" className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden mb-8">
-        <div className="px-6 py-4 border-b border-gray-200 bg-[#470DA8]">
+      <div id="reports" className="bg-card rounded-xl shadow-sm border border-border overflow-hidden mb-8">
+        <div className="px-6 py-4 border-b border-border bg-primary">
           <h2 className="font-semibold text-white text-lg">9. Reports</h2>
         </div>
         <div className="p-6">
@@ -500,8 +500,8 @@ export default function GuidePage() {
 
           <MockScreen label="Reports Dashboard">
             <div className="grid grid-cols-2 gap-3 mb-3">
-              <div className="bg-gray-50 rounded p-3">
-                <div className="text-xs text-gray-400 mb-2">Rating Distribution</div>
+              <div className="bg-muted rounded p-3">
+                <div className="text-xs text-muted-foreground mb-2">Rating Distribution</div>
                 <div className="flex items-end gap-1 h-16">
                   <div className="flex-1 bg-red-400 rounded-t" style={{ height: '60%' }} />
                   <div className="flex-1 bg-yellow-400 rounded-t" style={{ height: '35%' }} />
@@ -509,14 +509,14 @@ export default function GuidePage() {
                   <div className="flex-1 bg-purple-400 rounded-t" style={{ height: '20%' }} />
                 </div>
                 <div className="flex gap-1 mt-1">
-                  <span className="flex-1 text-center text-xs text-gray-400">NM</span>
-                  <span className="flex-1 text-center text-xs text-gray-400">WT</span>
-                  <span className="flex-1 text-center text-xs text-gray-400">M</span>
-                  <span className="flex-1 text-center text-xs text-gray-400">E</span>
+                  <span className="flex-1 text-center text-xs text-muted-foreground">NM</span>
+                  <span className="flex-1 text-center text-xs text-muted-foreground">WT</span>
+                  <span className="flex-1 text-center text-xs text-muted-foreground">M</span>
+                  <span className="flex-1 text-center text-xs text-muted-foreground">E</span>
                 </div>
               </div>
-              <div className="bg-gray-50 rounded p-3">
-                <div className="text-xs text-gray-400 mb-2">Progress Over Time</div>
+              <div className="bg-muted rounded p-3">
+                <div className="text-xs text-muted-foreground mb-2">Progress Over Time</div>
                 <div className="h-16 flex items-end">
                   <svg viewBox="0 0 100 40" className="w-full h-full">
                     <polyline points="0,35 20,30 40,25 60,18 80,12 100,8" fill="none" stroke="#470DA8" strokeWidth="2" />
@@ -525,8 +525,8 @@ export default function GuidePage() {
               </div>
             </div>
             <div className="flex gap-2">
-              <div className="bg-[#470DA8] text-white text-xs px-3 py-1.5 rounded font-medium">Export CSV</div>
-              <div className="border border-gray-300 text-xs px-3 py-1.5 rounded text-gray-600">Print Report</div>
+              <div className="bg-primary text-white text-xs px-3 py-1.5 rounded font-medium">Export CSV</div>
+              <div className="border border-border text-xs px-3 py-1.5 rounded text-gray-600">Print Report</div>
             </div>
           </MockScreen>
 
@@ -543,8 +543,8 @@ export default function GuidePage() {
       </div>
 
       {/* Section 10: Admin */}
-      <div id="admin" className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden mb-8">
-        <div className="px-6 py-4 border-b border-gray-200 bg-[#470DA8]">
+      <div id="admin" className="bg-card rounded-xl shadow-sm border border-border overflow-hidden mb-8">
+        <div className="px-6 py-4 border-b border-border bg-primary">
           <h2 className="font-semibold text-white text-lg">10. Admin</h2>
         </div>
         <div className="p-6">
@@ -552,33 +552,33 @@ export default function GuidePage() {
 
           <MockScreen label="Admin Panel">
             <div className="grid grid-cols-3 gap-3 mb-3">
-              <div className="bg-gray-50 rounded p-3 text-center">
-                <div className="text-lg font-bold text-[#470DA8]">12</div>
-                <div className="text-xs text-gray-500">Users</div>
+              <div className="bg-muted rounded p-3 text-center">
+                <div className="text-lg font-bold text-primary">12</div>
+                <div className="text-xs text-muted-foreground">Users</div>
               </div>
-              <div className="bg-gray-50 rounded p-3 text-center">
-                <div className="text-lg font-bold text-[#470DA8]">8</div>
-                <div className="text-xs text-gray-500">Tags</div>
+              <div className="bg-muted rounded p-3 text-center">
+                <div className="text-lg font-bold text-primary">8</div>
+                <div className="text-xs text-muted-foreground">Tags</div>
               </div>
-              <div className="bg-gray-50 rounded p-3 text-center">
-                <div className="text-lg font-bold text-[#470DA8]">3</div>
-                <div className="text-xs text-gray-500">Notifications</div>
+              <div className="bg-muted rounded p-3 text-center">
+                <div className="text-lg font-bold text-primary">3</div>
+                <div className="text-xs text-muted-foreground">Notifications</div>
               </div>
             </div>
             <div className="space-y-2">
-              <div className="text-xs font-semibold text-gray-500 uppercase">Team Members</div>
+              <div className="text-xs font-semibold text-muted-foreground uppercase">Team Members</div>
               {[
                 { name: 'Sarah Johnson', role: 'Admin', email: 'sarah@example.com' },
                 { name: 'Mark Lee', role: 'NS', email: 'mark@example.com' },
                 { name: 'Emily Chen', role: 'Educator', email: 'emily@example.com' },
               ].map(u => (
-                <div key={u.name} className="flex items-center gap-3 border border-gray-200 rounded p-2">
-                  <div className="w-7 h-7 rounded-full bg-[#470DA8] flex items-center justify-center text-white text-xs font-bold">{u.name.charAt(0)}</div>
+                <div key={u.name} className="flex items-center gap-3 border border-border rounded p-2">
+                  <div className="w-7 h-7 rounded-full bg-primary flex items-center justify-center text-white text-xs font-bold">{u.name.charAt(0)}</div>
                   <div className="flex-1">
-                    <div className="text-xs font-medium text-gray-900">{u.name}</div>
-                    <div className="text-xs text-gray-400">{u.email}</div>
+                    <div className="text-xs font-medium text-foreground">{u.name}</div>
+                    <div className="text-xs text-muted-foreground">{u.email}</div>
                   </div>
-                  <span className="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-600">{u.role}</span>
+                  <span className="text-xs px-2 py-0.5 rounded-full bg-muted text-gray-600">{u.role}</span>
                 </div>
               ))}
             </div>
@@ -596,7 +596,7 @@ export default function GuidePage() {
       </div>
 
       {/* Footer */}
-      <div className="text-center py-8 text-sm text-gray-400">
+      <div className="text-center py-8 text-sm text-muted-foreground">
         <p>Kiros Quality Uplift Portal User Guide</p>
         <p className="mt-1">For additional support, contact your system administrator.</p>
       </div>

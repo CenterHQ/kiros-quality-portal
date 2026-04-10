@@ -407,7 +407,7 @@ export default function OwnaApiTestingPage() {
     return (
       <div className="max-w-4xl mx-auto py-12 text-center">
         <p className="text-4xl mb-3">🔒</p>
-        <p className="text-gray-500">This page is restricted to administrators.</p>
+        <p className="text-muted-foreground">This page is restricted to administrators.</p>
       </div>
     )
   }
@@ -419,17 +419,17 @@ export default function OwnaApiTestingPage() {
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold">OWNA API Testing</h1>
-          <p className="text-gray-500 text-sm mt-1">Interactive API explorer for OWNA childcare platform</p>
+          <p className="text-muted-foreground text-sm mt-1">Interactive API explorer for OWNA childcare platform</p>
         </div>
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-2">
-            <span className="text-xs text-gray-400">Centre ID:</span>
+            <span className="text-xs text-muted-foreground">Centre ID:</span>
             <input
               type="text"
               value={savedCentreId}
               onChange={e => saveCentreId(e.target.value)}
               placeholder="Save centre ID for quick use"
-              className="px-2 py-1 border border-gray-300 rounded text-xs w-64 focus:ring-1 focus:ring-[#470DA8]"
+              className="px-2 py-1 border border-border rounded text-xs w-64 focus:ring-1 focus:ring-primary"
             />
           </div>
           <span className="px-2 py-1 bg-green-50 text-green-700 rounded text-xs font-medium">API Connected</span>
@@ -439,30 +439,30 @@ export default function OwnaApiTestingPage() {
       <div className="grid grid-cols-12 gap-6">
         {/* Left sidebar - endpoint groups */}
         <div className="col-span-3">
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden sticky top-4">
-            <div className="p-3 bg-gray-50 border-b border-gray-200">
-              <p className="text-xs font-semibold text-gray-500 uppercase">API Endpoints</p>
+          <div className="bg-card rounded-xl shadow-sm border border-border overflow-hidden sticky top-4">
+            <div className="p-3 bg-muted border-b border-border">
+              <p className="text-xs font-semibold text-muted-foreground uppercase">API Endpoints</p>
             </div>
             <div className="max-h-[calc(100vh-200px)] overflow-y-auto">
               {ENDPOINT_GROUPS.map((g, gi) => (
                 <div key={gi}>
                   <button
                     onClick={() => { setSelectedGroup(gi); setSelectedEndpoint(0); setParamValues({}); setResponse(null) }}
-                    className={`w-full text-left px-3 py-2.5 text-sm flex items-center gap-2 transition border-b border-gray-100 ${selectedGroup === gi ? 'bg-purple-50 text-[#470DA8] font-medium' : 'text-gray-700 hover:bg-gray-50'}`}
+                    className={`w-full text-left px-3 py-2.5 text-sm flex items-center gap-2 transition border-b border-gray-100 ${selectedGroup === gi ? 'bg-purple-50 text-primary font-medium' : 'text-foreground hover:bg-muted'}`}
                   >
                     <span>{g.icon}</span>
                     <span>{g.name}</span>
-                    <span className="text-[10px] text-gray-400 ml-auto">{g.endpoints.length}</span>
+                    <span className="text-[10px] text-muted-foreground ml-auto">{g.endpoints.length}</span>
                   </button>
                   {selectedGroup === gi && (
-                    <div className="bg-gray-50">
+                    <div className="bg-muted">
                       {g.endpoints.map((ep, ei) => (
                         <button
                           key={ei}
                           onClick={() => { setSelectedEndpoint(ei); setParamValues({}); setResponse(null) }}
-                          className={`w-full text-left px-3 py-1.5 text-xs flex items-center gap-2 transition ${selectedEndpoint === ei ? 'bg-[#470DA8] text-white' : 'text-gray-600 hover:bg-gray-100'}`}
+                          className={`w-full text-left px-3 py-1.5 text-xs flex items-center gap-2 transition ${selectedEndpoint === ei ? 'bg-primary text-white' : 'text-gray-600 hover:bg-muted'}`}
                         >
-                          <span className={`px-1 py-0.5 rounded text-[9px] font-bold ${selectedEndpoint === ei ? 'bg-white/20 text-white' : METHOD_COLORS[ep.method]}`}>
+                          <span className={`px-1 py-0.5 rounded text-[9px] font-bold ${selectedEndpoint === ei ? 'bg-card/20 text-white' : METHOD_COLORS[ep.method]}`}>
                             {ep.method}
                           </span>
                           <span className="truncate">{ep.name}</span>
@@ -479,35 +479,35 @@ export default function OwnaApiTestingPage() {
         {/* Main content */}
         <div className="col-span-9 space-y-4">
           {/* Request builder */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
+          <div className="bg-card rounded-xl shadow-sm border border-border p-5">
             <div className="flex items-center gap-3 mb-4">
               <span className={`px-2 py-1 rounded text-xs font-bold ${METHOD_COLORS[endpoint.method]}`}>{endpoint.method}</span>
-              <h2 className="font-semibold text-gray-900">{endpoint.name}</h2>
+              <h2 className="font-semibold text-foreground">{endpoint.name}</h2>
             </div>
 
             {/* URL preview */}
             <div className="bg-gray-900 rounded-lg px-4 py-3 mb-4 font-mono text-sm text-green-400 overflow-x-auto">
-              <span className="text-gray-500">{API_BASE}</span>{buildUrl()}
+              <span className="text-muted-foreground">{API_BASE}</span>{buildUrl()}
             </div>
 
             {/* Parameters */}
             {endpoint.params.length > 0 && (
               <div className="space-y-3 mb-4">
-                <p className="text-xs font-semibold text-gray-500 uppercase">Parameters</p>
+                <p className="text-xs font-semibold text-muted-foreground uppercase">Parameters</p>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   {endpoint.params.map(param => (
                     <div key={param.name}>
                       <label className="block text-xs text-gray-600 mb-1">
                         {param.placeholder}
                         {param.required && <span className="text-red-400 ml-0.5">*</span>}
-                        <span className="text-gray-400 ml-1">({param.type})</span>
+                        <span className="text-muted-foreground ml-1">({param.type})</span>
                       </label>
                       <div className="flex gap-1">
                         {param.inputType === 'select' ? (
                           <select
                             value={paramValues[param.name] || param.default || ''}
                             onChange={e => setParamValues({ ...paramValues, [param.name]: e.target.value })}
-                            className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#470DA8] focus:border-transparent"
+                            className="flex-1 px-3 py-2 border border-border rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent"
                           >
                             {param.options?.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
                           </select>
@@ -517,11 +517,11 @@ export default function OwnaApiTestingPage() {
                             value={paramValues[param.name] || ''}
                             onChange={e => setParamValues({ ...paramValues, [param.name]: e.target.value })}
                             placeholder={param.placeholder}
-                            className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#470DA8] focus:border-transparent"
+                            className="flex-1 px-3 py-2 border border-border rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent"
                           />
                         )}
                         {param.name === 'centreId' && savedCentreId && (
-                          <button onClick={autofillCentreId} className="px-2 py-2 border border-gray-300 rounded-lg text-xs text-gray-500 hover:bg-gray-50" title="Use saved Centre ID">
+                          <button onClick={autofillCentreId} className="px-2 py-2 border border-border rounded-lg text-xs text-muted-foreground hover:bg-muted" title="Use saved Centre ID">
                             Fill
                           </button>
                         )}
@@ -536,7 +536,7 @@ export default function OwnaApiTestingPage() {
             <button
               onClick={executeRequest}
               disabled={loading || endpoint.params.some(p => p.required && !paramValues[p.name])}
-              className="px-6 py-2.5 bg-[#470DA8] text-white rounded-lg text-sm font-medium hover:opacity-90 disabled:opacity-50 transition"
+              className="px-6 py-2.5 bg-primary text-white rounded-lg text-sm font-medium hover:opacity-90 disabled:opacity-50 transition"
             >
               {loading ? 'Sending...' : `Send ${endpoint.method} Request`}
             </button>
@@ -544,31 +544,31 @@ export default function OwnaApiTestingPage() {
 
           {/* Response */}
           {(response !== null || loading) && (
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-              <div className="flex items-center justify-between px-5 py-3 bg-gray-50 border-b border-gray-200">
+            <div className="bg-card rounded-xl shadow-sm border border-border overflow-hidden">
+              <div className="flex items-center justify-between px-5 py-3 bg-muted border-b border-border">
                 <div className="flex items-center gap-3">
-                  <p className="text-xs font-semibold text-gray-500 uppercase">Response</p>
+                  <p className="text-xs font-semibold text-muted-foreground uppercase">Response</p>
                   {responseStatus !== null && (
                     <span className={`px-2 py-0.5 rounded text-xs font-medium ${responseStatus >= 200 && responseStatus < 300 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
                       {responseStatus}
                     </span>
                   )}
-                  {response && <span className="text-[10px] text-gray-400">{responseLines} lines</span>}
+                  {response && <span className="text-[10px] text-muted-foreground">{responseLines} lines</span>}
                 </div>
                 {response && (
-                  <button onClick={() => navigator.clipboard.writeText(response)} className="px-3 py-1 border border-gray-300 rounded text-xs text-gray-600 hover:bg-gray-100">
+                  <button onClick={() => navigator.clipboard.writeText(response)} className="px-3 py-1 border border-border rounded text-xs text-gray-600 hover:bg-muted">
                     Copy
                   </button>
                 )}
               </div>
               <div className="max-h-[500px] overflow-auto">
                 {loading ? (
-                  <div className="p-8 text-center text-gray-400">
-                    <div className="inline-block w-6 h-6 border-2 border-gray-300 border-t-[#470DA8] rounded-full animate-spin mb-2" />
+                  <div className="p-8 text-center text-muted-foreground">
+                    <div className="inline-block w-6 h-6 border-2 border-border border-t-primary rounded-full animate-spin mb-2" />
                     <p className="text-sm">Calling OWNA API...</p>
                   </div>
                 ) : (
-                  <pre className="p-4 text-xs font-mono text-gray-700 whitespace-pre-wrap">{response}</pre>
+                  <pre className="p-4 text-xs font-mono text-foreground whitespace-pre-wrap">{response}</pre>
                 )}
               </div>
             </div>
@@ -576,12 +576,12 @@ export default function OwnaApiTestingPage() {
 
           {/* Request history */}
           {history.length > 0 && (
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
-              <p className="text-xs font-semibold text-gray-500 uppercase mb-3">Request History</p>
+            <div className="bg-card rounded-xl shadow-sm border border-border p-5">
+              <p className="text-xs font-semibold text-muted-foreground uppercase mb-3">Request History</p>
               <div className="space-y-1 max-h-48 overflow-y-auto">
                 {history.map((h, i) => (
                   <div key={i} className="flex items-center gap-3 text-xs py-1.5 border-b border-gray-100 last:border-0">
-                    <span className="text-gray-400 w-16">{h.time}</span>
+                    <span className="text-muted-foreground w-16">{h.time}</span>
                     <span className={`px-1 py-0.5 rounded text-[9px] font-bold ${METHOD_COLORS[h.method]}`}>{h.method}</span>
                     <span className="text-gray-600 font-mono truncate flex-1">{h.url}</span>
                     <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${h.status >= 200 && h.status < 300 ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-600'}`}>{h.status}</span>

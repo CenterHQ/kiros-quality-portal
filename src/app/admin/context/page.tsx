@@ -182,8 +182,8 @@ export default function ContextManagementPage() {
   if (!['admin', 'ns'].includes(profile.role)) {
     return (
       <div className="max-w-4xl mx-auto py-12 text-center">
-        <h1 className="text-xl font-bold text-gray-900 mb-2">Access Restricted</h1>
-        <p className="text-sm text-gray-500">Only the Approved Provider and Nominated Supervisor can manage centre context.</p>
+        <h1 className="text-xl font-bold text-foreground mb-2">Access Restricted</h1>
+        <p className="text-sm text-muted-foreground">Only the Approved Provider and Nominated Supervisor can manage centre context.</p>
       </div>
     )
   }
@@ -193,15 +193,14 @@ export default function ContextManagementPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Centre Context Management</h1>
-          <p className="text-sm text-gray-500">
+          <h1 className="text-2xl font-bold text-foreground">Centre Context Management</h1>
+          <p className="text-sm text-muted-foreground">
             This is what the AI knows about your centre. Edit, add, or remove items to make responses accurate and specific to Kiros.
           </p>
         </div>
         <button
           onClick={() => setEditing({ ...EMPTY_ITEM })}
-          className="px-4 py-2 text-sm font-medium text-white rounded-lg transition-colors flex items-center gap-2"
-          style={{ backgroundColor: '#470DA8' }}
+          className="px-4 py-2 text-sm font-medium text-white rounded-lg transition-colors flex items-center gap-2 bg-primary"
         >
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -219,29 +218,29 @@ export default function ContextManagementPage() {
 
       {/* Stats */}
       <div className="grid grid-cols-3 gap-4">
-        <div className="bg-white rounded-xl shadow-sm p-4 border border-gray-200">
-          <div className="text-xs text-gray-500">Total Items</div>
-          <div className="text-2xl font-bold text-gray-800">{items.length}</div>
+        <div className="bg-card rounded-xl shadow-sm p-4 border border-border">
+          <div className="text-xs text-muted-foreground">Total Items</div>
+          <div className="text-2xl font-bold text-foreground">{items.length}</div>
         </div>
-        <div className="bg-white rounded-xl shadow-sm p-4 border border-gray-200">
-          <div className="text-xs text-gray-500">Active (AI Uses)</div>
+        <div className="bg-card rounded-xl shadow-sm p-4 border border-border">
+          <div className="text-xs text-muted-foreground">Active (AI Uses)</div>
           <div className="text-2xl font-bold text-green-600">{activeCount}</div>
         </div>
-        <div className="bg-white rounded-xl shadow-sm p-4 border border-gray-200">
-          <div className="text-xs text-gray-500">Inactive</div>
-          <div className="text-2xl font-bold text-gray-400">{inactiveCount}</div>
+        <div className="bg-card rounded-xl shadow-sm p-4 border border-border">
+          <div className="text-xs text-muted-foreground">Inactive</div>
+          <div className="text-2xl font-bold text-muted-foreground">{inactiveCount}</div>
         </div>
       </div>
 
       {/* Filters */}
-      <div className="bg-white rounded-xl shadow-sm p-4 border border-gray-200 space-y-3">
+      <div className="bg-card rounded-xl shadow-sm p-4 border border-border space-y-3">
         <div className="flex items-center gap-2">
           <input
             type="text"
             value={search}
             onChange={e => setSearch(e.target.value)}
             placeholder="Search context items..."
-            className="flex-1 px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-200"
+            className="flex-1 px-3 py-2 text-sm border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-200"
           />
         </div>
 
@@ -249,8 +248,7 @@ export default function ContextManagementPage() {
         <div className="flex flex-wrap gap-1.5">
           <button
             onClick={() => setFilterType('all')}
-            className={`px-2.5 py-1 text-xs font-medium rounded-lg transition-colors ${filterType === 'all' ? 'text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
-            style={filterType === 'all' ? { backgroundColor: '#470DA8' } : undefined}
+            className={`px-2.5 py-1 text-xs font-medium rounded-lg transition-colors ${filterType === 'all' ? 'text-white bg-primary' : 'bg-muted text-foreground hover:bg-accent'}`}
           >
             All ({typeCounts.all || 0})
           </button>
@@ -272,12 +270,12 @@ export default function ContextManagementPage() {
 
         {/* QA filter */}
         <div className="flex flex-wrap gap-1.5">
-          <span className="text-xs text-gray-400 py-1">QA:</span>
+          <span className="text-xs text-muted-foreground py-1">QA:</span>
           {[1, 2, 3, 4, 5, 6, 7].map(qa => (
             <button
               key={qa}
               onClick={() => setFilterQA(filterQA === qa ? null : qa)}
-              className={`px-2 py-1 text-xs font-medium rounded transition-colors ${filterQA === qa ? 'text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
+              className={`px-2 py-1 text-xs font-medium rounded transition-colors ${filterQA === qa ? 'text-white' : 'bg-muted text-foreground hover:bg-accent'}`}
               style={filterQA === qa ? { backgroundColor: QA_COLORS[qa] } : undefined}
             >
               QA{qa}
@@ -289,12 +287,12 @@ export default function ContextManagementPage() {
       {/* Edit/Add Modal */}
       {editing && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+          <div className="bg-card rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
             <div className="p-6 space-y-4">
               <div className="flex items-center justify-between">
-                <h2 className="text-lg font-semibold text-gray-900">{editing.id ? 'Edit Context Item' : 'Add New Context Item'}</h2>
-                <button onClick={() => setEditing(null)} className="p-1 rounded-lg hover:bg-gray-100">
-                  <svg className="w-5 h-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <h2 className="text-lg font-semibold text-foreground">{editing.id ? 'Edit Context Item' : 'Add New Context Item'}</h2>
+                <button onClick={() => setEditing(null)} className="p-1 rounded-lg hover:bg-accent">
+                  <svg className="w-5 h-5 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                   </svg>
                 </button>
@@ -302,17 +300,17 @@ export default function ContextManagementPage() {
 
               {/* Context Type */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Context Type</label>
+                <label className="block text-sm font-medium text-foreground mb-1">Context Type</label>
                 <select
                   value={editing.context_type}
                   onChange={e => setEditing({ ...editing, context_type: e.target.value as CentreContextType })}
-                  className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-200"
+                  className="w-full px-3 py-2 text-sm border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-200"
                 >
                   {ALL_CONTEXT_TYPES.map(type => (
                     <option key={type} value={type}>{CONTEXT_TYPE_LABELS[type]}</option>
                   ))}
                 </select>
-                <p className="text-xs text-gray-400 mt-1">
+                <p className="text-xs text-muted-foreground mt-1">
                   {editing.context_type === 'qip_goal' && 'A specific improvement goal from your Quality Improvement Plan'}
                   {editing.context_type === 'qip_strategy' && 'A strategy or approach for achieving a QIP goal'}
                   {editing.context_type === 'philosophy_principle' && 'A core principle from your K.I.R.O.S philosophy'}
@@ -330,32 +328,32 @@ export default function ContextManagementPage() {
 
               {/* Title */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Title</label>
+                <label className="block text-sm font-medium text-foreground mb-1">Title</label>
                 <input
                   type="text"
                   value={editing.title}
                   onChange={e => setEditing({ ...editing, title: e.target.value })}
                   placeholder="Short descriptive title (e.g., 'Embed complete planning cycle across all rooms')"
-                  className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-200"
+                  className="w-full px-3 py-2 text-sm border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-200"
                 />
               </div>
 
               {/* Content */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Content</label>
+                <label className="block text-sm font-medium text-foreground mb-1">Content</label>
                 <textarea
                   value={editing.content}
                   onChange={e => setEditing({ ...editing, content: e.target.value })}
                   placeholder="Detailed description that the AI will reference when answering questions. Be specific — include actual practices, names, procedures, and standards used at your centre."
                   rows={5}
-                  className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-200 resize-y"
+                  className="w-full px-3 py-2 text-sm border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-200 resize-y"
                 />
-                <p className="text-xs text-gray-400 mt-1">The more specific and accurate this is, the better the AI&apos;s responses will be.</p>
+                <p className="text-xs text-muted-foreground mt-1">The more specific and accurate this is, the better the AI&apos;s responses will be.</p>
               </div>
 
               {/* Related QA Areas */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Related Quality Areas</label>
+                <label className="block text-sm font-medium text-foreground mb-1">Related Quality Areas</label>
                 <div className="flex flex-wrap gap-2">
                   {[1, 2, 3, 4, 5, 6, 7].map(qa => (
                     <button
@@ -368,7 +366,7 @@ export default function ContextManagementPage() {
                         setEditing({ ...editing, related_qa: qas })
                       }}
                       className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
-                        editing.related_qa.includes(qa) ? 'text-white' : 'bg-gray-100 text-gray-600'
+                        editing.related_qa.includes(qa) ? 'text-white' : 'bg-muted text-foreground'
                       }`}
                       style={editing.related_qa.includes(qa) ? { backgroundColor: QA_COLORS[qa] } : undefined}
                     >
@@ -380,26 +378,26 @@ export default function ContextManagementPage() {
 
               {/* Element Codes */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Related NQS Element Codes</label>
+                <label className="block text-sm font-medium text-foreground mb-1">Related NQS Element Codes</label>
                 <input
                   type="text"
                   value={editing.related_element_codes.join(', ')}
                   onChange={e => setEditing({ ...editing, related_element_codes: e.target.value.split(',').map(c => c.trim()) })}
                   placeholder="e.g., 1.1.1, 1.3.2, 2.2.3"
-                  className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-200"
+                  className="w-full px-3 py-2 text-sm border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-200"
                 />
-                <p className="text-xs text-gray-400 mt-1">Comma-separated NQS element codes this item relates to</p>
+                <p className="text-xs text-muted-foreground mt-1">Comma-separated NQS element codes this item relates to</p>
               </div>
 
               {/* Source Quote */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Source Quote (optional)</label>
+                <label className="block text-sm font-medium text-foreground mb-1">Source Quote (optional)</label>
                 <textarea
                   value={editing.source_quote}
                   onChange={e => setEditing({ ...editing, source_quote: e.target.value })}
                   placeholder="A direct quote from a policy, QIP, or other document that supports this context item"
                   rows={2}
-                  className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-200 resize-y"
+                  className="w-full px-3 py-2 text-sm border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-200 resize-y"
                 />
               </div>
 
@@ -412,22 +410,21 @@ export default function ContextManagementPage() {
                 >
                   <span className={`inline-block h-4 w-4 rounded-full bg-white transition-transform ${editing.is_active ? 'translate-x-6' : 'translate-x-1'}`} />
                 </button>
-                <span className="text-sm text-gray-700">{editing.is_active ? 'Active — AI will use this' : 'Inactive — AI will ignore this'}</span>
+                <span className="text-sm text-foreground">{editing.is_active ? 'Active — AI will use this' : 'Inactive — AI will ignore this'}</span>
               </div>
 
               {/* Actions */}
-              <div className="flex items-center justify-end gap-3 pt-2 border-t border-gray-100">
+              <div className="flex items-center justify-end gap-3 pt-2 border-t border-border">
                 <button
                   onClick={() => setEditing(null)}
-                  className="px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                  className="px-4 py-2 text-sm text-foreground hover:bg-accent rounded-lg transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleSave}
                   disabled={saving || !editing.title.trim() || !editing.content.trim()}
-                  className="px-4 py-2 text-sm font-medium text-white rounded-lg transition-colors disabled:opacity-50"
-                  style={{ backgroundColor: '#470DA8' }}
+                  className="px-4 py-2 text-sm font-medium text-white rounded-lg transition-colors disabled:opacity-50 bg-primary"
                 >
                   {saving ? 'Saving...' : editing.id ? 'Update' : 'Create'}
                 </button>
@@ -438,10 +435,10 @@ export default function ContextManagementPage() {
       )}
 
       {/* Items List */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200">
-        <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
-          <span className="text-sm font-medium text-gray-700">{filteredItems.length} items</span>
-          <span className="text-xs text-gray-400">Click to expand &middot; The AI reads all active items when responding</span>
+      <div className="bg-card rounded-xl shadow-sm border border-border">
+        <div className="px-4 py-3 border-b border-border flex items-center justify-between">
+          <span className="text-sm font-medium text-foreground">{filteredItems.length} items</span>
+          <span className="text-xs text-muted-foreground">Click to expand &middot; The AI reads all active items when responding</span>
         </div>
 
         {loading ? (
@@ -451,14 +448,14 @@ export default function ContextManagementPage() {
               <div className="w-2 h-2 rounded-full bg-purple-400 animate-bounce" style={{ animationDelay: '150ms' }} />
               <div className="w-2 h-2 rounded-full bg-purple-400 animate-bounce" style={{ animationDelay: '300ms' }} />
             </div>
-            <p className="text-sm text-gray-400 mt-2">Loading context...</p>
+            <p className="text-sm text-muted-foreground mt-2">Loading context...</p>
           </div>
         ) : filteredItems.length === 0 ? (
           <div className="p-8 text-center">
-            <p className="text-sm text-gray-400">No items match your filters</p>
+            <p className="text-sm text-muted-foreground">No items match your filters</p>
           </div>
         ) : (
-          <div className="divide-y divide-gray-50">
+          <div className="divide-y divide-border">
             {filteredItems.map(item => {
               const colors = CONTEXT_TYPE_COLORS[item.context_type]
               const isExpanded = expandedId === item.id
@@ -467,7 +464,7 @@ export default function ContextManagementPage() {
                 <div key={item.id} className={`${!item.is_active ? 'opacity-50' : ''}`}>
                   <button
                     onClick={() => setExpandedId(isExpanded ? null : item.id)}
-                    className="w-full text-left px-4 py-3 hover:bg-gray-50 transition-colors"
+                    className="w-full text-left px-4 py-3 hover:bg-accent transition-colors"
                   >
                     <div className="flex items-start gap-3">
                       <span
@@ -477,8 +474,8 @@ export default function ContextManagementPage() {
                         {CONTEXT_TYPE_LABELS[item.context_type]}
                       </span>
                       <div className="flex-1 min-w-0">
-                        <div className="text-sm font-medium text-gray-800">{item.title}</div>
-                        <div className="text-xs text-gray-400 mt-0.5 truncate">{item.content.substring(0, 120)}...</div>
+                        <div className="text-sm font-medium text-foreground">{item.title}</div>
+                        <div className="text-xs text-muted-foreground mt-0.5 truncate">{item.content.substring(0, 120)}...</div>
                       </div>
                       <div className="flex items-center gap-1.5 flex-shrink-0">
                         {item.related_qa?.map(qa => (
@@ -487,28 +484,28 @@ export default function ContextManagementPage() {
                           </span>
                         ))}
                         {!item.is_active && (
-                          <span className="text-[10px] px-1.5 py-0.5 rounded bg-gray-200 text-gray-500">Inactive</span>
+                          <span className="text-[10px] px-1.5 py-0.5 rounded bg-muted text-muted-foreground">Inactive</span>
                         )}
                       </div>
                     </div>
                   </button>
 
                   {isExpanded && (
-                    <div className="px-4 pb-4 space-y-3 bg-gray-50/50">
+                    <div className="px-4 pb-4 space-y-3 bg-muted/50">
                       <div className="pl-[calc(theme(spacing.2)+theme(spacing.0.5))]">
-                        <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">{item.content}</p>
+                        <p className="text-sm text-foreground leading-relaxed whitespace-pre-wrap">{item.content}</p>
 
                         {item.source_quote && (
-                          <blockquote className="mt-2 text-xs text-gray-500 italic border-l-2 border-purple-300 pl-3 py-1 bg-purple-50/50 rounded-r">
+                          <blockquote className="mt-2 text-xs text-muted-foreground italic border-l-2 border-purple-300 pl-3 py-1 bg-purple-50/50 rounded-r">
                             &ldquo;{item.source_quote}&rdquo;
                           </blockquote>
                         )}
 
                         {item.related_element_codes?.length > 0 && (
                           <div className="mt-2 flex flex-wrap gap-1">
-                            <span className="text-xs text-gray-400">Elements:</span>
+                            <span className="text-xs text-muted-foreground">Elements:</span>
                             {item.related_element_codes.map(code => (
-                              <span key={code} className="text-xs px-2 py-0.5 bg-gray-100 text-gray-600 rounded">{code}</span>
+                              <span key={code} className="text-xs px-2 py-0.5 bg-muted text-foreground rounded">{code}</span>
                             ))}
                           </div>
                         )}
@@ -516,7 +513,7 @@ export default function ContextManagementPage() {
                         <div className="mt-3 flex items-center gap-2">
                           <button
                             onClick={(e) => { e.stopPropagation(); startEditing(item) }}
-                            className="px-3 py-1.5 text-xs font-medium rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-100 transition-colors"
+                            className="px-3 py-1.5 text-xs font-medium rounded-lg border border-border text-foreground hover:bg-accent transition-colors"
                           >
                             Edit
                           </button>

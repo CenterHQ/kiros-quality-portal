@@ -10,6 +10,9 @@ import {
 } from '@/lib/types'
 import { useProfile } from '@/lib/ProfileContext'
 import CentreContextPanel from '@/components/CentreContextPanel'
+import { PageHeader } from '@/components/ui/page-header'
+import { StatusBadge } from '@/components/ui/status-badge'
+import { EmptyState } from '@/components/ui/empty-state'
 
 const COMPLIANCE_STATUSES: ComplianceItem['status'][] = [
   'action_required',
@@ -76,7 +79,7 @@ export default function CompliancePage() {
     return (
       <div className="max-w-7xl mx-auto">
         <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#470DA8]" />
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
         </div>
       </div>
     )
@@ -84,21 +87,21 @@ export default function CompliancePage() {
 
   return (
     <div className="max-w-7xl mx-auto">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Compliance Tracking</h1>
-        <p className="text-gray-500 text-sm mt-1">
-          Monitor and manage regulatory compliance items
-        </p>
-      </div>
+      <PageHeader
+        title="Compliance Tracking"
+        description="Monitor and manage regulatory compliance items"
+        className="mb-6"
+      />
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6 animate-fade-in">
         {COMPLIANCE_STATUSES.map(status => {
           const count = items.filter(i => i.status === status).length
           return (
-            <div key={status} className="bg-white rounded-xl shadow-sm border border-gray-200 px-4 py-3">
-              <p className="text-xs text-gray-400 uppercase tracking-wider">{status.replace(/_/g, ' ')}</p>
-              <p className="text-2xl font-bold mt-1" style={{ color: STATUS_COLORS[status]?.text }}>
+            <div key={status} className="bg-card rounded-xl shadow-sm border border-border px-4 py-3">
+              <p className="text-xs text-muted-foreground uppercase tracking-wider">{status.replace(/_/g, ' ')}</p>
+              <p className="text-2xl font-bold mt-1 flex items-center gap-2">
+                <StatusBadge status={status} size="sm" />
                 {count}
               </p>
             </div>
@@ -107,32 +110,32 @@ export default function CompliancePage() {
       </div>
 
       {/* Compliance Table */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+      <div className="animate-fade-in bg-card rounded-xl shadow-sm border border-border overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
-              <tr className="border-b border-gray-200 bg-gray-50">
-                <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Regulation</th>
-                <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
-                <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider w-40">Status</th>
-                <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider w-44">Assigned To</th>
-                <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Notes</th>
+              <tr className="border-b border-border bg-muted">
+                <th className="text-left px-4 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">Regulation</th>
+                <th className="text-left px-4 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">Description</th>
+                <th className="text-left px-4 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider w-40">Status</th>
+                <th className="text-left px-4 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider w-44">Assigned To</th>
+                <th className="text-left px-4 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">Notes</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100">
+            <tbody className="divide-y divide-border/50">
               {items.map(item => (
-                <tr key={item.id} className="hover:bg-gray-50 transition">
+                <tr key={item.id} className="hover:bg-accent transition">
                   <td className="px-4 py-3">
-                    <span className="text-sm font-medium text-gray-900">{item.regulation}</span>
+                    <span className="text-sm font-medium text-foreground">{item.regulation}</span>
                   </td>
                   <td className="px-4 py-3">
-                    <span className="text-sm text-gray-600">{item.description}</span>
+                    <span className="text-sm text-foreground/80">{item.description}</span>
                   </td>
                   <td className="px-4 py-3">
                     <select
                       value={item.status}
                       onChange={(e) => updateField(item.id, 'status', e.target.value)}
-                      className="px-2 py-1 rounded-lg text-xs font-medium border-0 cursor-pointer focus:ring-2 focus:ring-[#470DA8] outline-none"
+                      className="px-2 py-1 rounded-lg text-xs font-medium border-0 cursor-pointer focus:ring-2 focus:ring-primary outline-none"
                       style={{
                         backgroundColor: STATUS_COLORS[item.status]?.bg,
                         color: STATUS_COLORS[item.status]?.text,
@@ -147,7 +150,7 @@ export default function CompliancePage() {
                     <select
                       value={item.assigned_to || ''}
                       onChange={(e) => updateField(item.id, 'assigned_to', e.target.value || null)}
-                      className="px-2 py-1 rounded-lg text-xs border border-gray-200 cursor-pointer focus:ring-2 focus:ring-[#470DA8] outline-none bg-white text-gray-700 w-full"
+                      className="px-2 py-1 rounded-lg text-xs border border-border cursor-pointer focus:ring-2 focus:ring-primary outline-none bg-card text-foreground w-full"
                     >
                       <option value="">Unassigned</option>
                       {profiles.map(p => (
@@ -161,7 +164,7 @@ export default function CompliancePage() {
                         <textarea
                           value={notesValue}
                           onChange={(e) => setNotesValue(e.target.value)}
-                          className="flex-1 px-2 py-1 border border-gray-300 rounded-lg text-xs focus:ring-2 focus:ring-[#470DA8] focus:border-transparent outline-none resize-none"
+                          className="flex-1 px-2 py-1 border border-border rounded-lg text-xs focus:ring-2 focus:ring-primary focus:border-transparent outline-none resize-none"
                           rows={2}
                           autoFocus
                           onKeyDown={(e) => {
@@ -174,7 +177,7 @@ export default function CompliancePage() {
                         />
                         <button
                           onClick={() => handleNotesSave(item.id)}
-                          className="px-2 py-1 bg-[#470DA8] text-white text-xs rounded-lg hover:bg-[#350A7E] transition self-start"
+                          className="px-2 py-1 bg-primary text-white text-xs rounded-lg hover:bg-primary/90 transition self-start"
                         >
                           Save
                         </button>
@@ -182,7 +185,7 @@ export default function CompliancePage() {
                     ) : (
                       <span
                         onClick={() => handleNotesClick(item)}
-                        className="text-xs text-gray-500 cursor-pointer hover:text-gray-700 transition block min-h-[20px]"
+                        className="text-xs text-muted-foreground cursor-pointer hover:text-foreground transition block min-h-[20px]"
                         title="Click to edit"
                       >
                         {item.notes || 'Click to add notes...'}
@@ -203,10 +206,11 @@ export default function CompliancePage() {
         </div>
 
         {items.length === 0 && (
-          <div className="text-center py-12 text-gray-400">
-            <p className="text-lg font-medium">No compliance items</p>
-            <p className="text-sm mt-1">Compliance items will appear here once added.</p>
-          </div>
+          <EmptyState
+            title="No compliance items"
+            description="Compliance items will appear here once added."
+            className="my-8"
+          />
         )}
       </div>
     </div>

@@ -161,7 +161,7 @@ export default function LearningHubPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#470DA8]" />
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
       </div>
     )
   }
@@ -171,12 +171,12 @@ export default function LearningHubPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Learning Hub</h1>
-          <p className="text-gray-500 mt-1">Track your professional development and compliance training</p>
+          <h1 className="text-2xl font-bold text-foreground">Learning Hub</h1>
+          <p className="text-muted-foreground mt-1">Track your professional development and compliance training</p>
         </div>
         <Link
           href="/learning/library"
-          className="px-4 py-2 bg-[#470DA8] text-white rounded-lg hover:bg-[#350A7E] transition-colors text-sm font-medium"
+          className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors text-sm font-medium"
         >
           Browse Module Library
         </Link>
@@ -184,32 +184,32 @@ export default function LearningHubPage() {
 
       {/* My Progress Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
-          <p className="text-sm text-gray-500">Completed</p>
+        <div className="bg-card rounded-xl shadow-sm border border-border p-5">
+          <p className="text-sm text-muted-foreground">Completed</p>
           <p className="text-3xl font-bold text-green-600 mt-1">{completedEnrollments.length}</p>
-          <p className="text-xs text-gray-400 mt-1">modules finished</p>
+          <p className="text-xs text-muted-foreground mt-1">modules finished</p>
         </div>
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
-          <p className="text-sm text-gray-500">In Progress</p>
+        <div className="bg-card rounded-xl shadow-sm border border-border p-5">
+          <p className="text-sm text-muted-foreground">In Progress</p>
           <p className="text-3xl font-bold text-blue-600 mt-1">{activeEnrollments.length}</p>
-          <p className="text-xs text-gray-400 mt-1">modules active</p>
+          <p className="text-xs text-muted-foreground mt-1">modules active</p>
         </div>
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
-          <p className="text-sm text-gray-500">Overdue</p>
+        <div className="bg-card rounded-xl shadow-sm border border-border p-5">
+          <p className="text-sm text-muted-foreground">Overdue</p>
           <p className="text-3xl font-bold text-red-600 mt-1">{overdueEnrollments.length}</p>
-          <p className="text-xs text-gray-400 mt-1">past due date</p>
+          <p className="text-xs text-muted-foreground mt-1">past due date</p>
         </div>
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
-          <p className="text-sm text-gray-500">Total Hours</p>
-          <p className="text-3xl font-bold text-[#470DA8] mt-1">{totalHours.toFixed(1)}</p>
-          <p className="text-xs text-gray-400 mt-1">learning hours</p>
+        <div className="bg-card rounded-xl shadow-sm border border-border p-5">
+          <p className="text-sm text-muted-foreground">Total Hours</p>
+          <p className="text-3xl font-bold text-primary mt-1">{totalHours.toFixed(1)}</p>
+          <p className="text-xs text-muted-foreground mt-1">learning hours</p>
         </div>
       </div>
 
       {/* Compliance Alerts */}
       {qualifications.length > 0 && (
         <div>
-          <h2 className="text-lg font-semibold text-gray-900 mb-3">Compliance Alerts</h2>
+          <h2 className="text-lg font-semibold text-foreground mb-3">Compliance Alerts</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             {qualifications.map(q => {
               const isExpired = q.status === 'expired'
@@ -224,9 +224,9 @@ export default function LearningHubPage() {
                     <span className={`w-2.5 h-2.5 rounded-full ${dotColor}`} />
                     <span className={`text-sm font-semibold ${textColor}`}>{statusLabel}</span>
                   </div>
-                  <p className="font-medium text-gray-900 text-sm">{QUALIFICATION_LABELS[q.qualification_type] || q.qualification_type}</p>
+                  <p className="font-medium text-foreground text-sm">{QUALIFICATION_LABELS[q.qualification_type] || q.qualification_type}</p>
                   {q.expiry_date && (
-                    <p className="text-xs text-gray-500 mt-1">
+                    <p className="text-xs text-muted-foreground mt-1">
                       {isExpired ? 'Expired' : 'Expires'}: {new Date(q.expiry_date).toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' })}
                     </p>
                   )}
@@ -239,10 +239,10 @@ export default function LearningHubPage() {
 
       {/* My Current Modules */}
       <div>
-        <h2 className="text-lg font-semibold text-gray-900 mb-3">My Current Modules</h2>
+        <h2 className="text-lg font-semibold text-foreground mb-3">My Current Modules</h2>
         {activeEnrollments.length === 0 ? (
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8 text-center">
-            <p className="text-gray-500">No active modules. Browse the <Link href="/learning/library" className="text-[#470DA8] underline">Module Library</Link> to enrol.</p>
+          <div className="bg-card rounded-xl shadow-sm border border-border p-8 text-center">
+            <p className="text-muted-foreground">No active modules. Browse the <Link href="/learning/library" className="text-primary underline">Module Library</Link> to enrol.</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -255,7 +255,7 @@ export default function LearningHubPage() {
                 <Link
                   key={enrollment.id}
                   href={`/learning/modules/${mod.id}`}
-                  className="bg-white rounded-xl shadow-sm border border-gray-200 p-5 hover:shadow-md transition-shadow block"
+                  className="bg-card rounded-xl shadow-sm border border-border p-5 hover:shadow-md transition-shadow block"
                 >
                   <div className="flex items-start justify-between mb-2">
                     <span
@@ -265,12 +265,12 @@ export default function LearningHubPage() {
                       {LMS_TIER_LABELS[mod.tier]}
                     </span>
                     <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
-                      enrollment.status === 'in_progress' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-600'
+                      enrollment.status === 'in_progress' ? 'bg-blue-100 text-blue-700' : 'bg-muted text-muted-foreground'
                     }`}>
                       {LMS_ENROLLMENT_STATUS_LABELS[enrollment.status]}
                     </span>
                   </div>
-                  <h3 className="font-semibold text-gray-900 text-sm mb-2 line-clamp-2">{mod.title}</h3>
+                  <h3 className="font-semibold text-foreground text-sm mb-2 line-clamp-2">{mod.title}</h3>
                   <div className="flex flex-wrap gap-1 mb-3">
                     {mod.related_qa?.map(qa => (
                       <span
@@ -282,7 +282,7 @@ export default function LearningHubPage() {
                       </span>
                     ))}
                   </div>
-                  <div className="flex items-center gap-3 text-xs text-gray-500">
+                  <div className="flex items-center gap-3 text-xs text-muted-foreground">
                     <span>{mod.duration_minutes} min</span>
                     {enrollment.due_date && (
                       <span className={isOverdue ? 'text-red-600 font-semibold' : ''}>
@@ -309,7 +309,7 @@ export default function LearningHubPage() {
       {/* My Pathways */}
       {pathwayEnrollments.length > 0 && (
         <div>
-          <h2 className="text-lg font-semibold text-gray-900 mb-3">My Pathways</h2>
+          <h2 className="text-lg font-semibold text-foreground mb-3">My Pathways</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {pathwayEnrollments.map(pe => {
               const pathway = pe.lms_pathways
@@ -317,19 +317,19 @@ export default function LearningHubPage() {
               const counts = pathwayModuleCounts[pe.pathway_id]
               const progress = counts && counts.total > 0 ? Math.round((counts.completed / counts.total) * 100) : 0
               return (
-                <div key={pe.id} className="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
+                <div key={pe.id} className="bg-card rounded-xl shadow-sm border border-border p-5">
                   <div className="flex items-start justify-between mb-2">
-                    <h3 className="font-semibold text-gray-900 text-sm">{pathway.title}</h3>
+                    <h3 className="font-semibold text-foreground text-sm">{pathway.title}</h3>
                     <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
                       pe.status === 'completed' ? 'bg-green-100 text-green-700' :
                       pe.status === 'in_progress' ? 'bg-blue-100 text-blue-700' :
-                      'bg-gray-100 text-gray-600'
+                      'bg-muted text-muted-foreground'
                     }`}>
                       {pe.status === 'completed' ? 'Completed' : pe.status === 'in_progress' ? 'In Progress' : 'Not Started'}
                     </span>
                   </div>
                   {pathway.description && (
-                    <p className="text-xs text-gray-500 mb-3 line-clamp-2">{pathway.description}</p>
+                    <p className="text-xs text-muted-foreground mb-3 line-clamp-2">{pathway.description}</p>
                   )}
                   <div className="flex flex-wrap gap-1 mb-3">
                     {pathway.related_qa?.map(qa => (
@@ -344,20 +344,20 @@ export default function LearningHubPage() {
                   </div>
                   {counts && (
                     <div>
-                      <div className="flex items-center justify-between text-xs text-gray-500 mb-1">
+                      <div className="flex items-center justify-between text-xs text-muted-foreground mb-1">
                         <span>{counts.completed} of {counts.total} modules</span>
                         <span>{progress}%</span>
                       </div>
-                      <div className="w-full bg-gray-200 rounded-full h-2">
+                      <div className="w-full bg-muted rounded-full h-2">
                         <div
-                          className="h-2 rounded-full transition-all bg-[#470DA8]"
+                          className="h-2 rounded-full transition-all bg-primary"
                           style={{ width: `${progress}%` }}
                         />
                       </div>
                     </div>
                   )}
                   {pathway.estimated_hours && (
-                    <p className="text-xs text-gray-400 mt-2">Estimated: {pathway.estimated_hours}h</p>
+                    <p className="text-xs text-muted-foreground mt-2">Estimated: {pathway.estimated_hours}h</p>
                   )}
                 </div>
               )
@@ -369,8 +369,8 @@ export default function LearningHubPage() {
       {/* Recently Completed */}
       {recentlyCompleted.length > 0 && (
         <div>
-          <h2 className="text-lg font-semibold text-gray-900 mb-3">Recently Completed</h2>
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 divide-y divide-gray-100">
+          <h2 className="text-lg font-semibold text-foreground mb-3">Recently Completed</h2>
+          <div className="bg-card rounded-xl shadow-sm border border-border divide-y divide-border/50">
             {recentlyCompleted.map(enrollment => {
               const mod = enrollment.lms_modules
               if (!mod) return null
@@ -381,14 +381,14 @@ export default function LearningHubPage() {
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
                     </span>
                     <div>
-                      <p className="text-sm font-medium text-gray-900">{mod.title}</p>
-                      <p className="text-xs text-gray-500">
+                      <p className="text-sm font-medium text-foreground">{mod.title}</p>
+                      <p className="text-xs text-muted-foreground">
                         Completed: {enrollment.completed_at ? new Date(enrollment.completed_at).toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' }) : 'N/A'}
                       </p>
                     </div>
                   </div>
                   {enrollment.score !== null && enrollment.score !== undefined && (
-                    <span className="text-sm font-semibold text-[#470DA8]">{enrollment.score}%</span>
+                    <span className="text-sm font-semibold text-primary">{enrollment.score}%</span>
                   )}
                 </div>
               )
@@ -400,22 +400,22 @@ export default function LearningHubPage() {
       {/* Team Overview - Privileged roles only */}
       {isPrivileged && teamStats && (
         <div>
-          <h2 className="text-lg font-semibold text-gray-900 mb-3">Team Overview</h2>
+          <h2 className="text-lg font-semibold text-foreground mb-3">Team Overview</h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
-              <p className="text-sm text-gray-500">Total Staff</p>
-              <p className="text-3xl font-bold text-gray-900 mt-1">{teamStats.totalStaff}</p>
+            <div className="bg-card rounded-xl shadow-sm border border-border p-5">
+              <p className="text-sm text-muted-foreground">Total Staff</p>
+              <p className="text-3xl font-bold text-foreground mt-1">{teamStats.totalStaff}</p>
             </div>
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
-              <p className="text-sm text-gray-500">Completed This Month</p>
+            <div className="bg-card rounded-xl shadow-sm border border-border p-5">
+              <p className="text-sm text-muted-foreground">Completed This Month</p>
               <p className="text-3xl font-bold text-green-600 mt-1">{teamStats.completedThisMonth}</p>
             </div>
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
-              <p className="text-sm text-gray-500">Overdue Assignments</p>
+            <div className="bg-card rounded-xl shadow-sm border border-border p-5">
+              <p className="text-sm text-muted-foreground">Overdue Assignments</p>
               <p className="text-3xl font-bold text-red-600 mt-1">{teamStats.overdueCount}</p>
             </div>
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
-              <p className="text-sm text-gray-500">Compliance Gaps</p>
+            <div className="bg-card rounded-xl shadow-sm border border-border p-5">
+              <p className="text-sm text-muted-foreground">Compliance Gaps</p>
               <p className="text-3xl font-bold text-amber-600 mt-1">{teamStats.complianceGaps}</p>
             </div>
           </div>
@@ -425,26 +425,26 @@ export default function LearningHubPage() {
       {/* Staff Compliance Summary - Privileged roles only */}
       {isPrivileged && staffComplianceMap && staffComplianceMap.length > 0 && (
         <div>
-          <h2 className="text-lg font-semibold text-gray-900 mb-3">Staff Compliance Summary</h2>
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-x-auto">
+          <h2 className="text-lg font-semibold text-foreground mb-3">Staff Compliance Summary</h2>
+          <div className="bg-card rounded-xl shadow-sm border border-border overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-gray-200 bg-gray-50">
-                  <th className="text-left px-4 py-3 font-medium text-gray-700">Staff Member</th>
-                  <th className="text-left px-4 py-3 font-medium text-gray-700">Role</th>
-                  <th className="text-center px-4 py-3 font-medium text-gray-700">Qualifications</th>
-                  <th className="text-center px-4 py-3 font-medium text-gray-700">Status</th>
+                <tr className="border-b border-border bg-muted">
+                  <th className="text-left px-4 py-3 font-medium text-foreground">Staff Member</th>
+                  <th className="text-left px-4 py-3 font-medium text-foreground">Role</th>
+                  <th className="text-center px-4 py-3 font-medium text-foreground">Qualifications</th>
+                  <th className="text-center px-4 py-3 font-medium text-foreground">Status</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-100">
+              <tbody className="divide-y divide-border/50">
                 {staffComplianceMap.map((entry, idx) => {
                   const expired = entry.qualifications.filter(q => q.status === 'expired').length
                   const expiring = entry.qualifications.filter(q => q.status === 'expiring_soon').length
                   const current = entry.qualifications.filter(q => q.status === 'current').length
                   return (
-                    <tr key={idx} className="hover:bg-gray-50">
-                      <td className="px-4 py-3 font-medium text-gray-900">{entry.profile.full_name}</td>
-                      <td className="px-4 py-3 text-gray-500">{ROLE_LABELS[entry.profile.role] || entry.profile.role}</td>
+                    <tr key={idx} className="hover:bg-accent">
+                      <td className="px-4 py-3 font-medium text-foreground">{entry.profile.full_name}</td>
+                      <td className="px-4 py-3 text-muted-foreground">{ROLE_LABELS[entry.profile.role] || entry.profile.role}</td>
                       <td className="px-4 py-3">
                         <div className="flex items-center justify-center gap-1 flex-wrap">
                           {entry.qualifications.map(q => {

@@ -99,7 +99,7 @@ const DOC_TYPE_COLORS: Record<DocumentType, string> = {
   handbook: 'bg-amber-100 text-amber-700',
   programming: 'bg-green-100 text-green-700',
   procedure: 'bg-cyan-100 text-cyan-700',
-  other: 'bg-gray-100 text-gray-700',
+  other: 'bg-muted text-foreground',
 }
 
 const QA_COLORS: Record<number, string> = {
@@ -136,12 +136,12 @@ function Spinner({ className = 'h-4 w-4' }: { className?: string }) {
 function SectionHeader({ step, title, subtitle }: { step: number; title: string; subtitle: string }) {
   return (
     <div className="flex items-start gap-4 mb-6">
-      <div className="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold" style={{ backgroundColor: '#470DA8' }}>
+      <div className="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold bg-primary">
         {step}
       </div>
       <div>
-        <h2 className="text-lg font-semibold text-gray-900">{title}</h2>
-        <p className="text-sm text-gray-500">{subtitle}</p>
+        <h2 className="text-lg font-semibold text-foreground">{title}</h2>
+        <p className="text-sm text-muted-foreground">{subtitle}</p>
       </div>
     </div>
   )
@@ -485,10 +485,10 @@ export default function SharePointAdminPage() {
   if (!isAllowed) {
     return (
       <div className="p-8">
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-12 text-center">
+        <div className="bg-card rounded-xl shadow-sm border border-border p-12 text-center">
           <div className="text-4xl mb-4">🔒</div>
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">Access Restricted</h2>
-          <p className="text-gray-500">Only admin and manager roles can access the SharePoint integration settings.</p>
+          <h2 className="text-xl font-semibold text-foreground mb-2">Access Restricted</h2>
+          <p className="text-muted-foreground">Only admin and manager roles can access the SharePoint integration settings.</p>
         </div>
       </div>
     )
@@ -502,8 +502,8 @@ export default function SharePointAdminPage() {
     <div className="p-4 md:p-8 max-w-7xl mx-auto space-y-8">
       {/* Page header */}
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">SharePoint Integration</h1>
-        <p className="text-gray-500 mt-1">
+        <h1 className="text-2xl font-bold text-foreground">SharePoint Integration</h1>
+        <p className="text-muted-foreground mt-1">
           Connect your SharePoint document library to sync centre documents and contextualise learning modules.
         </p>
       </div>
@@ -525,17 +525,17 @@ export default function SharePointAdminPage() {
       {/* ═══════════════════════════════════════════════════════════════════════
           SECTION 1: Connection Status
           ═══════════════════════════════════════════════════════════════════════ */}
-      <section className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+      <section className="bg-card rounded-xl shadow-sm border border-border p-6">
         <SectionHeader step={1} title="Connection Status" subtitle="Connect to your Microsoft 365 SharePoint site" />
 
         {connectionLoading ? (
-          <div className="flex items-center gap-3 text-gray-500">
+          <div className="flex items-center gap-3 text-muted-foreground">
             <Spinner /> Checking connection...
           </div>
         ) : !connection || connection.status === 'disconnected' || connection.status === 'error' ? (
           <div className="text-center py-8">
-            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gray-100 mb-4">
-              <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-muted mb-4">
+              <svg className="w-8 h-8 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
                   d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
               </svg>
@@ -548,10 +548,7 @@ export default function SharePointAdminPage() {
             <p className="text-gray-600 mb-6">No SharePoint connection active.</p>
             <a
               href="/api/sharepoint/auth"
-              className="inline-flex items-center gap-2 px-6 py-3 rounded-lg text-white font-medium transition-colors"
-              style={{ backgroundColor: '#470DA8' }}
-              onMouseEnter={e => (e.currentTarget.style.backgroundColor = '#350A7E')}
-              onMouseLeave={e => (e.currentTarget.style.backgroundColor = '#470DA8')}
+              className="inline-flex items-center gap-2 px-6 py-3 rounded-lg text-white font-medium transition-colors bg-primary hover:bg-primary/90"
             >
               <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M11.5 1L2 6v12l9.5 5L22 18V6L11.5 1zm0 2.18L20 7.74v9.52l-8.5 4.56L3 17.26V7.74l8.5-4.56z" />
@@ -575,19 +572,19 @@ export default function SharePointAdminPage() {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 text-sm">
               <div className="min-w-0">
-                <span className="text-gray-500 block">Site URL</span>
+                <span className="text-muted-foreground block">Site URL</span>
                 <a href={connection.site_url} target="_blank" rel="noopener noreferrer"
-                  className="font-medium hover:underline break-all" style={{ color: '#470DA8' }}>
+                  className="font-medium hover:underline break-all text-primary">
                   {connection.site_url}
                 </a>
               </div>
               <div>
-                <span className="text-gray-500 block">Connected By</span>
-                <span className="font-medium text-gray-900">{connection.connected_by}</span>
+                <span className="text-muted-foreground block">Connected By</span>
+                <span className="font-medium text-foreground">{connection.connected_by}</span>
               </div>
               <div>
-                <span className="text-gray-500 block">Last Synced</span>
-                <span className="font-medium text-gray-900">{formatDate(connection.last_synced_at)}</span>
+                <span className="text-muted-foreground block">Last Synced</span>
+                <span className="font-medium text-foreground">{formatDate(connection.last_synced_at)}</span>
               </div>
             </div>
 
@@ -611,7 +608,7 @@ export default function SharePointAdminPage() {
           {/* ═══════════════════════════════════════════════════════════════════
               SECTION 2: File Browser
               ═══════════════════════════════════════════════════════════════════ */}
-          <section className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+          <section className="bg-card rounded-xl shadow-sm border border-border p-6">
             <SectionHeader step={2} title="File Browser" subtitle="Browse and select documents to sync from SharePoint" />
 
             {/* Breadcrumbs */}
@@ -621,8 +618,8 @@ export default function SharePointAdminPage() {
                   {idx > 0 && <span className="text-gray-300">/</span>}
                   <button
                     onClick={() => navigateToBreadcrumb(idx)}
-                    className={`px-1.5 py-0.5 rounded hover:bg-gray-100 transition-colors ${
-                      idx === breadcrumbs.length - 1 ? 'font-medium text-gray-900' : 'text-gray-500'
+                    className={`px-1.5 py-0.5 rounded hover:bg-muted transition-colors ${
+                      idx === breadcrumbs.length - 1 ? 'font-medium text-foreground' : 'text-muted-foreground'
                     }`}
                   >
                     {crumb.name}
@@ -632,16 +629,16 @@ export default function SharePointAdminPage() {
             </nav>
 
             {filesLoading ? (
-              <div className="flex items-center gap-3 text-gray-500 py-8 justify-center">
+              <div className="flex items-center gap-3 text-muted-foreground py-8 justify-center">
                 <Spinner /> Loading files...
               </div>
             ) : files.length === 0 ? (
-              <p className="text-gray-500 text-center py-8">No files found in this folder.</p>
+              <p className="text-muted-foreground text-center py-8">No files found in this folder.</p>
             ) : (
-              <div className="border border-gray-200 rounded-lg overflow-hidden">
+              <div className="border border-border rounded-lg overflow-hidden">
                 <table className="w-full text-sm">
                   <thead>
-                    <tr className="bg-gray-50 border-b border-gray-200">
+                    <tr className="bg-muted border-b border-border">
                       <th className="text-left px-4 py-2.5 font-medium text-gray-600">Name</th>
                       <th className="text-left px-4 py-2.5 font-medium text-gray-600 hidden sm:table-cell">Size</th>
                       <th className="text-left px-4 py-2.5 font-medium text-gray-600 hidden md:table-cell">Modified</th>
@@ -649,19 +646,18 @@ export default function SharePointAdminPage() {
                       <th className="text-right px-4 py-2.5 font-medium text-gray-600">Action</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-gray-100">
+                  <tbody className="divide-y divide-border">
                     {files.map(file => {
                       const isFolder = !!file.folder
                       const isSynced = syncedItemIds.has(file.id)
                       const isSyncing = syncingFiles.has(file.id)
                       return (
-                        <tr key={file.id} className="hover:bg-gray-50 transition-colors">
+                        <tr key={file.id} className="hover:bg-muted transition-colors">
                           <td className="px-4 py-3">
                             {isFolder ? (
                               <button
                                 onClick={() => navigateToFolder(file.id, file.name)}
-                                className="flex items-center gap-2 font-medium hover:underline"
-                                style={{ color: '#470DA8' }}
+                                className="flex items-center gap-2 font-medium hover:underline text-primary"
                               >
                                 <svg className="w-5 h-5 text-amber-500 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                                   <path d="M2 6a2 2 0 012-2h5l2 2h5a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" />
@@ -670,10 +666,10 @@ export default function SharePointAdminPage() {
                               </button>
                             ) : (
                               <div className="flex items-center gap-2">
-                                <svg className="w-5 h-5 text-gray-400 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                <svg className="w-5 h-5 text-muted-foreground flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                                   <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clipRule="evenodd" />
                                 </svg>
-                                <span className="text-gray-900">{file.name}</span>
+                                <span className="text-foreground">{file.name}</span>
                                 {isSynced && (
                                   <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs bg-green-100 text-green-700 font-medium">
                                     Synced
@@ -682,10 +678,10 @@ export default function SharePointAdminPage() {
                               </div>
                             )}
                           </td>
-                          <td className="px-4 py-3 text-gray-500 hidden sm:table-cell">
+                          <td className="px-4 py-3 text-muted-foreground hidden sm:table-cell">
                             {isFolder ? '--' : formatBytes(file.size)}
                           </td>
-                          <td className="px-4 py-3 text-gray-500 hidden md:table-cell">
+                          <td className="px-4 py-3 text-muted-foreground hidden md:table-cell">
                             {formatDate(file.lastModifiedDateTime)}
                           </td>
                           <td className="px-4 py-3">
@@ -693,7 +689,7 @@ export default function SharePointAdminPage() {
                               <select
                                 value={selectedDocTypes[file.id] || ''}
                                 onChange={e => setSelectedDocTypes(prev => ({ ...prev, [file.id]: e.target.value as DocumentType }))}
-                                className="text-sm border border-gray-300 rounded-md px-2 py-1 focus:outline-none focus:ring-2 focus:ring-opacity-50"
+                                className="text-sm border border-border rounded-md px-2 py-1 focus:outline-none focus:ring-2 focus:ring-opacity-50"
                                 style={{ focusRingColor: '#470DA8' } as React.CSSProperties}
                               >
                                 <option value="">Select type...</option>
@@ -708,8 +704,7 @@ export default function SharePointAdminPage() {
                               <button
                                 onClick={() => handleSync(file.id)}
                                 disabled={isSyncing || !selectedDocTypes[file.id]}
-                                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium text-white transition-colors disabled:opacity-40"
-                                style={{ backgroundColor: '#470DA8' }}
+                                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium text-white transition-colors disabled:opacity-40 bg-primary"
                               >
                                 {isSyncing ? <Spinner className="h-3 w-3" /> : null}
                                 Sync & Monitor
@@ -728,22 +723,22 @@ export default function SharePointAdminPage() {
           {/* ═══════════════════════════════════════════════════════════════════
               SECTION 3: Synced Documents
               ═══════════════════════════════════════════════════════════════════ */}
-          <section className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+          <section className="bg-card rounded-xl shadow-sm border border-border p-6">
             <SectionHeader step={3} title="Synced Documents" subtitle="Manage monitored documents and extract context with AI" />
 
             {documentsLoading ? (
-              <div className="flex items-center gap-3 text-gray-500 py-8 justify-center">
+              <div className="flex items-center gap-3 text-muted-foreground py-8 justify-center">
                 <Spinner /> Loading documents...
               </div>
             ) : documents.length === 0 ? (
-              <p className="text-gray-500 text-center py-8">
+              <p className="text-muted-foreground text-center py-8">
                 No synced documents yet. Browse and sync files from SharePoint above.
               </p>
             ) : (
-              <div className="border border-gray-200 rounded-lg overflow-x-auto">
+              <div className="border border-border rounded-lg overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
-                    <tr className="bg-gray-50 border-b border-gray-200">
+                    <tr className="bg-muted border-b border-border">
                       <th className="text-left px-4 py-2.5 font-medium text-gray-600">File Name</th>
                       <th className="text-left px-4 py-2.5 font-medium text-gray-600">Type</th>
                       <th className="text-left px-4 py-2.5 font-medium text-gray-600 hidden sm:table-cell">Size</th>
@@ -753,18 +748,18 @@ export default function SharePointAdminPage() {
                       <th className="text-right px-4 py-2.5 font-medium text-gray-600">Actions</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-gray-100">
+                  <tbody className="divide-y divide-border">
                     {documents.map(doc => {
                       const isProcessing = processingDocs.has(doc.id)
                       const isResyncing = resyncingDocs.has(doc.id)
                       return (
-                        <tr key={doc.id} className="hover:bg-gray-50 transition-colors">
+                        <tr key={doc.id} className="hover:bg-muted transition-colors">
                           <td className="px-4 py-3">
                             <div className="flex items-center gap-2">
-                              <svg className="w-4 h-4 text-gray-400 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                              <svg className="w-4 h-4 text-muted-foreground flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                                 <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clipRule="evenodd" />
                               </svg>
-                              <span className="font-medium text-gray-900 truncate max-w-[200px]">{doc.file_name}</span>
+                              <span className="font-medium text-foreground truncate max-w-[200px]">{doc.file_name}</span>
                             </div>
                           </td>
                           <td className="px-4 py-3">
@@ -772,17 +767,17 @@ export default function SharePointAdminPage() {
                               {doc.document_type.toUpperCase()}
                             </span>
                           </td>
-                          <td className="px-4 py-3 text-gray-500 hidden sm:table-cell">{formatBytes(doc.file_size)}</td>
-                          <td className="px-4 py-3 text-gray-500 hidden md:table-cell">{formatDate(doc.last_synced_at)}</td>
+                          <td className="px-4 py-3 text-muted-foreground hidden sm:table-cell">{formatBytes(doc.file_size)}</td>
+                          <td className="px-4 py-3 text-muted-foreground hidden md:table-cell">{formatDate(doc.last_synced_at)}</td>
                           <td className="px-4 py-3 hidden lg:table-cell">
                             {doc.last_processed_at ? (
                               <span className="text-green-700 text-xs">{formatDate(doc.last_processed_at)}</span>
                             ) : (
-                              <span className="text-gray-400 text-xs">Not processed</span>
+                              <span className="text-muted-foreground text-xs">Not processed</span>
                             )}
                           </td>
                           <td className="px-4 py-3 hidden lg:table-cell">
-                            <span className="text-gray-700 text-xs font-medium">{contextCounts[doc.id] || 0}</span>
+                            <span className="text-foreground text-xs font-medium">{contextCounts[doc.id] || 0}</span>
                           </td>
                           <td className="px-4 py-3 text-right">
                             <div className="flex items-center gap-2 justify-end">
@@ -803,7 +798,7 @@ export default function SharePointAdminPage() {
                               <button
                                 onClick={() => handleResync(doc)}
                                 disabled={isResyncing}
-                                className="inline-flex items-center gap-1 px-3 py-1.5 rounded-md text-xs font-medium border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors disabled:opacity-50"
+                                className="inline-flex items-center gap-1 px-3 py-1.5 rounded-md text-xs font-medium border border-border text-foreground hover:bg-muted transition-colors disabled:opacity-50"
                                 title="Re-sync from SharePoint"
                               >
                                 {isResyncing ? <Spinner className="h-3 w-3" /> : (
@@ -827,38 +822,38 @@ export default function SharePointAdminPage() {
           {/* ═══════════════════════════════════════════════════════════════════
               SECTION 4: Centre Context
               ═══════════════════════════════════════════════════════════════════ */}
-          <section className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+          <section className="bg-card rounded-xl shadow-sm border border-border p-6">
             <SectionHeader step={4} title="Centre Context" subtitle="Extracted context from your documents, used to personalise learning" />
 
             {/* Stats bar */}
             {contextItems.length > 0 && (
               <div className="flex flex-wrap gap-3 mb-6">
-                <div className="px-3 py-1.5 rounded-lg bg-gray-50 border border-gray-200 text-sm">
-                  <span className="text-gray-500">Total: </span>
-                  <span className="font-semibold text-gray-900">{contextItems.length}</span>
+                <div className="px-3 py-1.5 rounded-lg bg-muted border border-border text-sm">
+                  <span className="text-muted-foreground">Total: </span>
+                  <span className="font-semibold text-foreground">{contextItems.length}</span>
                 </div>
                 {Object.entries(contextByType).map(([type, items]) => (
-                  <div key={type} className="px-3 py-1.5 rounded-lg bg-gray-50 border border-gray-200 text-sm">
-                    <span className="text-gray-500 capitalize">{type.replace(/_/g, ' ')}: </span>
-                    <span className="font-semibold text-gray-900">{items.length}</span>
+                  <div key={type} className="px-3 py-1.5 rounded-lg bg-muted border border-border text-sm">
+                    <span className="text-muted-foreground capitalize">{type.replace(/_/g, ' ')}: </span>
+                    <span className="font-semibold text-foreground">{items.length}</span>
                   </div>
                 ))}
               </div>
             )}
 
             {contextLoading ? (
-              <div className="flex items-center gap-3 text-gray-500 py-8 justify-center">
+              <div className="flex items-center gap-3 text-muted-foreground py-8 justify-center">
                 <Spinner /> Loading context...
               </div>
             ) : contextItems.length === 0 ? (
-              <p className="text-gray-500 text-center py-8">
+              <p className="text-muted-foreground text-center py-8">
                 No context extracted yet. Process synced documents with AI to generate context.
               </p>
             ) : (
               <div className="space-y-6">
                 {Object.entries(contextByType).map(([type, items]) => (
                   <div key={type}>
-                    <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wider mb-3 capitalize">
+                    <h3 className="text-sm font-semibold text-foreground uppercase tracking-wider mb-3 capitalize">
                       {type.replace(/_/g, ' ')}
                     </h3>
                     <div className="space-y-3">
@@ -866,13 +861,13 @@ export default function SharePointAdminPage() {
                         <div
                           key={item.id}
                           className={`border rounded-lg p-4 transition-colors ${
-                            item.is_active ? 'border-gray-200 bg-white' : 'border-gray-100 bg-gray-50 opacity-60'
+                            item.is_active ? 'border-border bg-card' : 'border-border bg-muted opacity-60'
                           }`}
                         >
                           <div className="flex items-start justify-between gap-3">
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center gap-2 flex-wrap mb-1">
-                                <h4 className="font-medium text-gray-900 text-sm">{item.title}</h4>
+                                <h4 className="font-medium text-foreground text-sm">{item.title}</h4>
                                 {item.related_qa?.map(qa => (
                                   <span
                                     key={qa}
@@ -883,12 +878,12 @@ export default function SharePointAdminPage() {
                                   </span>
                                 ))}
                                 {!item.is_active && (
-                                  <span className="text-xs text-gray-400 italic">Inactive</span>
+                                  <span className="text-xs text-muted-foreground italic">Inactive</span>
                                 )}
                               </div>
                               <p className="text-sm text-gray-600 line-clamp-2">{item.content}</p>
                               {item.source_quote && (
-                                <p className="text-xs text-gray-400 mt-2 italic border-l-2 border-gray-200 pl-2">
+                                <p className="text-xs text-muted-foreground mt-2 italic border-l-2 border-border pl-2">
                                   &ldquo;{item.source_quote}&rdquo;
                                 </p>
                               )}
@@ -898,13 +893,12 @@ export default function SharePointAdminPage() {
                                 onClick={() => handleToggleContext(item)}
                                 disabled={togglingContext.has(item.id)}
                                 className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${
-                                  item.is_active ? '' : 'bg-gray-300'
+                                  item.is_active ? 'bg-primary' : 'bg-gray-300'
                                 }`}
-                                style={item.is_active ? { backgroundColor: '#470DA8' } : undefined}
                                 title={item.is_active ? 'Deactivate' : 'Activate'}
                               >
                                 <span
-                                  className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${
+                                  className={`inline-block h-3.5 w-3.5 transform rounded-full bg-card transition-transform ${
                                     item.is_active ? 'translate-x-4' : 'translate-x-1'
                                   }`}
                                 />
@@ -912,7 +906,7 @@ export default function SharePointAdminPage() {
                               <button
                                 onClick={() => handleDeleteContext(item.id)}
                                 disabled={deletingContext.has(item.id)}
-                                className="p-1 text-gray-400 hover:text-red-600 transition-colors disabled:opacity-50"
+                                className="p-1 text-muted-foreground hover:text-red-600 transition-colors disabled:opacity-50"
                                 title="Delete"
                               >
                                 {deletingContext.has(item.id) ? (
@@ -938,15 +932,14 @@ export default function SharePointAdminPage() {
           {/* ═══════════════════════════════════════════════════════════════════
               SECTION 5: Module Contextualisation
               ═══════════════════════════════════════════════════════════════════ */}
-          <section className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+          <section className="bg-card rounded-xl shadow-sm border border-border p-6">
             <SectionHeader step={5} title="Module Contextualisation" subtitle="Generate centre-specific content for learning modules using extracted context" />
 
             <div className="flex flex-wrap items-center gap-4 mb-6">
               <button
                 onClick={handleContextualiseAll}
                 disabled={contextualisingAll || contextItems.length === 0}
-                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-white font-medium transition-colors disabled:opacity-50"
-                style={{ backgroundColor: '#470DA8' }}
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-white font-medium transition-colors disabled:opacity-50 bg-primary"
               >
                 {contextualisingAll ? <Spinner className="h-4 w-4" /> : (
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -956,31 +949,31 @@ export default function SharePointAdminPage() {
                 Contextualise All Modules
               </button>
               {contextualisingAll && (
-                <span className="text-sm text-gray-500">Processing all modules... this may take a minute.</span>
+                <span className="text-sm text-muted-foreground">Processing all modules... this may take a minute.</span>
               )}
               {contextItems.length === 0 && (
-                <span className="text-sm text-gray-400">Extract centre context first (Step 3-4).</span>
+                <span className="text-sm text-muted-foreground">Extract centre context first (Step 3-4).</span>
               )}
             </div>
 
             {modulesLoading ? (
-              <div className="flex items-center gap-3 text-gray-500 py-8 justify-center">
+              <div className="flex items-center gap-3 text-muted-foreground py-8 justify-center">
                 <Spinner /> Loading modules...
               </div>
             ) : modules.length === 0 ? (
-              <p className="text-gray-500 text-center py-8">No learning modules found.</p>
+              <p className="text-muted-foreground text-center py-8">No learning modules found.</p>
             ) : (
-              <div className="border border-gray-200 rounded-lg overflow-hidden">
+              <div className="border border-border rounded-lg overflow-hidden">
                 <table className="w-full text-sm">
                   <thead>
-                    <tr className="bg-gray-50 border-b border-gray-200">
+                    <tr className="bg-muted border-b border-border">
                       <th className="text-left px-4 py-2.5 font-medium text-gray-600">Module</th>
                       <th className="text-left px-4 py-2.5 font-medium text-gray-600 hidden sm:table-cell">QA</th>
                       <th className="text-left px-4 py-2.5 font-medium text-gray-600">Centre Content</th>
                       <th className="text-right px-4 py-2.5 font-medium text-gray-600">Actions</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-gray-100">
+                  <tbody className="divide-y divide-border">
                     {modules.map(mod => {
                       const content = contentByModule[mod.id] || []
                       const hasContent = content.length > 0
@@ -988,9 +981,9 @@ export default function SharePointAdminPage() {
                       const isExpanded = expandedModules.has(mod.id)
                       return (
                         <Fragment key={mod.id}>
-                          <tr className="hover:bg-gray-50 transition-colors">
+                          <tr className="hover:bg-muted transition-colors">
                             <td className="px-4 py-3">
-                              <span className="font-medium text-gray-900">{mod.title}</span>
+                              <span className="font-medium text-foreground">{mod.title}</span>
                             </td>
                             <td className="px-4 py-3 hidden sm:table-cell">
                               <div className="flex items-center gap-1 flex-wrap">
@@ -1009,8 +1002,7 @@ export default function SharePointAdminPage() {
                               {hasContent ? (
                                 <button
                                   onClick={() => toggleExpandModule(mod.id)}
-                                  className="inline-flex items-center gap-1 text-xs font-medium px-2 py-1 rounded hover:bg-gray-100 transition-colors"
-                                  style={{ color: '#470DA8' }}
+                                  className="inline-flex items-center gap-1 text-xs font-medium px-2 py-1 rounded hover:bg-muted transition-colors text-primary"
                                 >
                                   <svg
                                     className={`w-3.5 h-3.5 transition-transform ${isExpanded ? 'rotate-90' : ''}`}
@@ -1021,7 +1013,7 @@ export default function SharePointAdminPage() {
                                   {content.length} item{content.length !== 1 ? 's' : ''}
                                 </button>
                               ) : (
-                                <span className="text-xs text-gray-400">None</span>
+                                <span className="text-xs text-muted-foreground">None</span>
                               )}
                             </td>
                             <td className="px-4 py-3 text-right">
@@ -1043,19 +1035,19 @@ export default function SharePointAdminPage() {
                           {/* Expanded content preview */}
                           {isExpanded && hasContent && (
                             <tr>
-                              <td colSpan={4} className="px-4 py-3 bg-gray-50">
+                              <td colSpan={4} className="px-4 py-3 bg-muted">
                                 <div className="space-y-3 max-h-96 overflow-y-auto">
                                   {content.map(c => (
-                                    <div key={c.id} className="bg-white border border-gray-200 rounded-lg p-3">
+                                    <div key={c.id} className="bg-card border border-border rounded-lg p-3">
                                       <div className="flex items-center justify-between mb-1">
-                                        <h5 className="text-xs font-semibold text-gray-700">{c.title}</h5>
+                                        <h5 className="text-xs font-semibold text-foreground">{c.title}</h5>
                                         <div className="flex items-center gap-2">
-                                          <span className="text-xs text-gray-400 capitalize">{c.content_type.replace(/_/g, ' ')}</span>
+                                          <span className="text-xs text-muted-foreground capitalize">{c.content_type.replace(/_/g, ' ')}</span>
                                           <span className={`w-2 h-2 rounded-full ${c.is_active ? 'bg-green-500' : 'bg-gray-300'}`} />
                                         </div>
                                       </div>
                                       <p className="text-xs text-gray-600 whitespace-pre-wrap line-clamp-4">{c.content}</p>
-                                      <p className="text-xs text-gray-400 mt-1">Generated: {formatDate(c.generated_at)}</p>
+                                      <p className="text-xs text-muted-foreground mt-1">Generated: {formatDate(c.generated_at)}</p>
                                     </div>
                                   ))}
                                 </div>

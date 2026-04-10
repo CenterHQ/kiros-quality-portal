@@ -407,7 +407,7 @@ export default function ChatPage() {
   ]
 
   return (
-    <div className="flex h-full w-full overflow-hidden bg-gray-50">
+    <div className="flex h-full w-full overflow-hidden bg-muted">
       {/* Mobile sidebar backdrop */}
       {sidebarOpen && (
         <div
@@ -420,7 +420,7 @@ export default function ChatPage() {
       {/* Sidebar - fixed on mobile, relative on desktop */}
       <div
         className={`
-          flex-shrink-0 flex flex-col bg-white border-r border-gray-200 transition-all duration-200
+          flex-shrink-0 flex flex-col bg-card border-r border-border transition-all duration-200
           ${sidebarOpen
             ? 'w-70 max-sm:fixed max-sm:inset-y-0 max-sm:left-0 max-sm:z-50 max-sm:w-80 max-sm:shadow-xl'
             : 'w-0'
@@ -429,11 +429,10 @@ export default function ChatPage() {
         `}
       >
         {/* Sidebar header */}
-        <div className="flex-shrink-0 p-3 border-b border-gray-100 flex items-center gap-2">
+        <div className="flex-shrink-0 p-3 border-b border-border/50 flex items-center gap-2">
           <button
             onClick={startNewConversation}
-            className="flex-1 flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm font-medium text-white transition-colors"
-            style={{ backgroundColor: '#470DA8' }}
+            className="flex-1 flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm font-medium bg-primary text-primary-foreground transition-colors"
             aria-label="Start new conversation"
           >
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -443,10 +442,10 @@ export default function ChatPage() {
           </button>
           <button
             onClick={() => setSidebarOpen(false)}
-            className="p-2 rounded-lg hover:bg-gray-100 transition-colors sm:hidden"
+            className="p-2 rounded-lg hover:bg-accent transition-colors sm:hidden"
             aria-label="Close sidebar"
           >
-            <svg className="w-5 h-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg className="w-5 h-5 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
@@ -460,14 +459,14 @@ export default function ChatPage() {
                 onClick={() => loadConversation(conv.id)}
                 className={`w-full text-left px-3 py-2.5 rounded-lg text-sm transition-colors ${
                   conv.id === conversationId
-                    ? 'bg-purple-50 text-purple-800 font-medium'
-                    : 'text-gray-600 hover:bg-gray-50'
+                    ? 'bg-primary/10 text-primary font-medium'
+                    : 'text-muted-foreground hover:bg-accent'
                 }`}
               >
                 <div className="truncate pr-6">{conv.title || 'Untitled'}</div>
-                <div className="text-[10px] text-gray-400 mt-0.5 flex items-center gap-1.5">
+                <div className="text-[10px] text-muted-foreground mt-0.5 flex items-center gap-1.5">
                   <span>{new Date(conv.updated_at).toLocaleDateString('en-AU', { day: 'numeric', month: 'short' })}</span>
-                  <span className="inline-block w-0.5 h-0.5 rounded-full bg-gray-300" />
+                  <span className="inline-block w-0.5 h-0.5 rounded-full bg-muted-foreground/40" />
                   <span className="truncate">{conv.title ? conv.title.slice(0, 30) : 'No preview'}</span>
                 </div>
               </button>
@@ -477,25 +476,25 @@ export default function ChatPage() {
                 title="Delete"
                 aria-label={`Delete conversation: ${conv.title || 'Untitled'}`}
               >
-                <svg className="w-3.5 h-3.5 text-gray-400 group-hover:text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg className="w-3.5 h-3.5 text-muted-foreground group-hover:text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                 </svg>
               </button>
             </div>
           ))}
           {conversations.length === 0 && (
-            <div className="flex flex-col items-center justify-center text-gray-400 py-12 px-4">
-              <svg className="w-10 h-10 text-gray-300 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <div className="flex flex-col items-center justify-center text-muted-foreground py-12 px-4">
+              <svg className="w-10 h-10 text-muted-foreground/50 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
               </svg>
-              <p className="text-xs font-medium text-gray-400">No conversations yet</p>
-              <p className="text-[10px] text-gray-300 mt-1">Start a new chat to get going</p>
+              <p className="text-xs font-medium text-muted-foreground">No conversations yet</p>
+              <p className="text-[10px] text-muted-foreground/60 mt-1">Start a new chat to get going</p>
             </div>
           )}
         </div>
 
         {/* Sidebar footer */}
-        <div className="flex-shrink-0 p-3 border-t border-gray-100 text-[10px] text-gray-400 text-center">
+        <div className="flex-shrink-0 p-3 border-t border-border/50 text-[10px] text-muted-foreground text-center">
           Powered by Anthropic Claude
         </div>
       </div>
@@ -503,22 +502,22 @@ export default function ChatPage() {
       {/* Main chat area */}
       <div className="flex-1 flex flex-col min-w-0 min-h-0">
         {/* Chat header - fixed height, never shrinks */}
-        <div className="flex-shrink-0 px-4 py-2.5 border-b border-gray-200 bg-white flex items-center justify-between">
+        <div className="flex-shrink-0 px-4 py-2.5 border-b border-border bg-card flex items-center justify-between">
           <div className="flex items-center gap-3">
             <button
               onClick={() => setSidebarOpen(!sidebarOpen)}
-              className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors"
+              className="p-1.5 rounded-lg hover:bg-accent transition-colors"
               aria-label={sidebarOpen ? 'Close sidebar' : 'Open sidebar'}
             >
-              <svg className="w-5 h-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg className="w-5 h-5 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
               </svg>
             </button>
             <div className="flex items-center gap-2">
-              <div className="w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-bold" style={{ backgroundColor: '#470DA8' }}>K</div>
+              <div className="w-7 h-7 rounded-full flex items-center justify-center bg-primary text-primary-foreground text-xs font-bold">K</div>
               <div>
-                <div className="text-sm font-semibold text-gray-800">Kiros AI</div>
-                <div className="text-[10px] text-gray-400 hidden sm:block">ECEC Operations Expert &middot; {roleLabel}</div>
+                <div className="text-sm font-semibold text-foreground">Kiros AI</div>
+                <div className="text-[10px] text-muted-foreground hidden sm:block">ECEC Operations Expert &middot; {roleLabel}</div>
               </div>
             </div>
           </div>
@@ -550,9 +549,9 @@ export default function ChatPage() {
             {/* Empty state */}
             {messages.length === 0 && !conversationLoading && (
               <div className="flex flex-col items-center justify-center py-16 bg-gradient-to-b from-purple-50/40 via-transparent to-transparent rounded-3xl">
-                <div className="w-16 h-16 rounded-full flex items-center justify-center text-white text-2xl font-bold mb-4" style={{ backgroundColor: '#470DA8' }}>K</div>
-                <h2 className="text-lg font-semibold text-gray-800 mb-1">Kiros AI Assistant</h2>
-                <p className="text-sm text-gray-500 mb-6 text-center max-w-md px-4">
+                <div className="w-16 h-16 rounded-full flex items-center justify-center bg-primary text-primary-foreground text-2xl font-bold mb-4">K</div>
+                <h2 className="text-lg font-semibold text-foreground mb-1">Kiros AI Assistant</h2>
+                <p className="text-sm text-muted-foreground mb-6 text-center max-w-md px-4">
                   Your ECEC operations expert. Ask about policies, QIP goals, compliance, programming, or ask me to generate documents.
                 </p>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 w-full max-w-lg px-4">
@@ -560,7 +559,7 @@ export default function ChatPage() {
                     <button
                       key={i}
                       onClick={() => setInput(prompt)}
-                      className="text-left px-4 py-3 rounded-xl border border-gray-200 text-sm text-gray-600 hover:bg-gray-50 hover:border-gray-300 transition-colors"
+                      className="text-left px-4 py-3 rounded-xl border border-border text-sm text-muted-foreground hover:bg-accent hover:border-border transition-colors"
                     >
                       {prompt}
                     </button>
@@ -573,18 +572,18 @@ export default function ChatPage() {
             {messages.map(msg => (
               <div key={msg.id} className={`flex gap-3 ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                 {msg.role === 'assistant' && (
-                  <div className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0 mt-1" style={{ backgroundColor: '#470DA8' }}>K</div>
+                  <div className="w-8 h-8 rounded-full flex items-center justify-center bg-primary text-primary-foreground text-xs font-bold flex-shrink-0 mt-1">K</div>
                 )}
 
                 <div className={`max-w-[90%] sm:max-w-[80%] group relative ${msg.role === 'user' ? 'order-first' : ''}`}>
                   {msg.role === 'user' ? (
-                    <div className="rounded-2xl rounded-tr-md px-4 py-3 text-sm text-white" style={{ backgroundColor: '#470DA8' }}>
+                    <div className="rounded-2xl rounded-tr-md px-4 py-3 text-sm bg-primary text-primary-foreground">
                       <div className="whitespace-pre-wrap">{msg.content}</div>
                     </div>
                   ) : (
                     <div className="space-y-3">
                       {/* Markdown rendered content */}
-                      <div className="prose prose-sm max-w-none text-gray-800 [&_h1]:text-base [&_h1]:font-bold [&_h2]:text-sm [&_h2]:font-semibold [&_h3]:text-sm [&_h3]:font-medium [&_p]:text-sm [&_p]:leading-relaxed [&_li]:text-sm [&_table]:text-xs [&_th]:bg-gray-50 [&_th]:px-3 [&_th]:py-1.5 [&_td]:px-3 [&_td]:py-1.5 [&_blockquote]:border-l-purple-400 [&_blockquote]:bg-purple-50/50 [&_code]:text-xs [&_code]:bg-gray-100 [&_code]:px-1 [&_code]:rounded [&_pre]:bg-gray-900 [&_pre]:text-gray-100 [&_pre]:rounded-lg [&_pre]:text-xs">
+                      <div className="prose prose-sm max-w-none text-foreground [&_h1]:text-base [&_h1]:font-bold [&_h2]:text-sm [&_h2]:font-semibold [&_h3]:text-sm [&_h3]:font-medium [&_p]:text-sm [&_p]:leading-relaxed [&_li]:text-sm [&_table]:text-xs [&_th]:bg-gray-50 [&_th]:px-3 [&_th]:py-1.5 [&_td]:px-3 [&_td]:py-1.5 [&_blockquote]:border-l-purple-400 [&_blockquote]:bg-purple-50/50 [&_code]:text-xs [&_code]:bg-gray-100 [&_code]:px-1 [&_code]:rounded [&_pre]:bg-gray-900 [&_pre]:text-gray-100 [&_pre]:rounded-lg [&_pre]:text-xs">
                         <ReactMarkdown remarkPlugins={[remarkGfm]}>
                           {msg.content}
                         </ReactMarkdown>
@@ -616,7 +615,7 @@ export default function ChatPage() {
                                 </button>
                                 <button
                                   onClick={() => handleConfirmAction(actionId, action, false)}
-                                  className="px-4 py-1.5 text-xs font-medium text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+                                  className="px-4 py-1.5 text-xs font-medium text-muted-foreground bg-card border border-border rounded-lg hover:bg-accent transition-colors"
                                 >
                                   Cancel
                                 </button>
@@ -628,7 +627,7 @@ export default function ChatPage() {
 
                       {/* Confirmed/Cancelled action results */}
                       {Object.entries(pendingActions).filter(([, v]) => v.status !== 'pending').map(([actionId, { action, status, result }]) => (
-                        <div key={actionId} className={`rounded-xl px-4 py-2 text-xs ${status === 'confirmed' ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-gray-50 text-gray-500 border border-gray-200'}`}>
+                        <div key={actionId} className={`rounded-xl px-4 py-2 text-xs ${status === 'confirmed' ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-muted text-muted-foreground border border-border'}`}>
                           {status === 'confirmed' ? '✓' : '✗'} {action.description} — {result || (status === 'confirmed' ? 'Done' : 'Cancelled')}
                         </div>
                       ))}
@@ -673,7 +672,7 @@ export default function ChatPage() {
                       <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                         <button
                           onClick={() => copyToClipboard(msg.content, msg.id)}
-                          className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors"
+                          className="p-1.5 rounded-lg hover:bg-accent transition-colors"
                           title="Copy"
                           aria-label="Copy message to clipboard"
                         >
@@ -682,7 +681,7 @@ export default function ChatPage() {
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                             </svg>
                           ) : (
-                            <svg className="w-3.5 h-3.5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <svg className="w-3.5 h-3.5 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
                             </svg>
                           )}
@@ -693,7 +692,7 @@ export default function ChatPage() {
                 </div>
 
                 {msg.role === 'user' && (
-                  <div className="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center text-gray-600 text-xs font-bold flex-shrink-0 mt-1">
+                  <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-muted-foreground text-xs font-bold flex-shrink-0 mt-1">
                     {profile.full_name?.charAt(0) || 'U'}
                   </div>
                 )}
@@ -703,9 +702,9 @@ export default function ChatPage() {
             {/* Streaming response — shows text as it arrives */}
             {streamingMessage?.isStreaming && streamingMessage.text && (
               <div className="flex gap-3 justify-start">
-                <div className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0 mt-1" style={{ backgroundColor: '#470DA8' }}>K</div>
+                <div className="w-8 h-8 rounded-full flex items-center justify-center bg-primary text-primary-foreground text-xs font-bold flex-shrink-0 mt-1">K</div>
                 <div className="max-w-[90%] sm:max-w-[80%] space-y-3">
-                  <div className="prose prose-sm max-w-none text-gray-800 [&_h1]:text-base [&_h1]:font-bold [&_h2]:text-sm [&_h2]:font-semibold [&_h3]:text-sm [&_h3]:font-medium [&_p]:text-sm [&_p]:leading-relaxed [&_li]:text-sm [&_table]:text-xs [&_th]:bg-gray-50 [&_th]:px-3 [&_th]:py-1.5 [&_td]:px-3 [&_td]:py-1.5 [&_blockquote]:border-l-purple-400 [&_blockquote]:bg-purple-50/50 [&_code]:text-xs [&_code]:bg-gray-100 [&_code]:px-1 [&_code]:rounded [&_pre]:bg-gray-900 [&_pre]:text-gray-100 [&_pre]:rounded-lg [&_pre]:text-xs">
+                  <div className="prose prose-sm max-w-none text-foreground [&_h1]:text-base [&_h1]:font-bold [&_h2]:text-sm [&_h2]:font-semibold [&_h3]:text-sm [&_h3]:font-medium [&_p]:text-sm [&_p]:leading-relaxed [&_li]:text-sm [&_table]:text-xs [&_th]:bg-gray-50 [&_th]:px-3 [&_th]:py-1.5 [&_td]:px-3 [&_td]:py-1.5 [&_blockquote]:border-l-purple-400 [&_blockquote]:bg-purple-50/50 [&_code]:text-xs [&_code]:bg-gray-100 [&_code]:px-1 [&_code]:rounded [&_pre]:bg-gray-900 [&_pre]:text-gray-100 [&_pre]:rounded-lg [&_pre]:text-xs">
                     <ReactMarkdown remarkPlugins={[remarkGfm]}>
                       {streamingMessage.text}
                     </ReactMarkdown>
@@ -725,7 +724,7 @@ export default function ChatPage() {
 
                   {/* Model badge */}
                   {activeModel && (
-                    <div className="text-[10px] text-gray-400">
+                    <div className="text-[10px] text-muted-foreground">
                       {activeModel.includes('opus') ? 'Deep analysis mode' : 'Fast mode'}
                     </div>
                   )}
@@ -733,7 +732,7 @@ export default function ChatPage() {
                   {/* Stop button */}
                   <button
                     onClick={abortStream}
-                    className="text-xs text-gray-400 hover:text-red-500 transition-colors"
+                    className="text-xs text-muted-foreground hover:text-red-500 transition-colors"
                   >
                     Stop generating
                   </button>
@@ -744,7 +743,7 @@ export default function ChatPage() {
             {/* Loading indicator — waiting for first tokens or uploading */}
             {loading && (!streamingMessage?.text) && (
               <div className="flex gap-3">
-                <div className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0" style={{ backgroundColor: '#470DA8' }}>K</div>
+                <div className="w-8 h-8 rounded-full flex items-center justify-center bg-primary text-primary-foreground text-xs font-bold flex-shrink-0">K</div>
                 <div className="space-y-2 py-3">
                   <div className="flex items-center gap-2">
                     <div className="flex gap-1">
@@ -752,7 +751,7 @@ export default function ChatPage() {
                       <div className="w-2 h-2 rounded-full bg-purple-400 animate-bounce" style={{ animationDelay: '150ms' }} />
                       <div className="w-2 h-2 rounded-full bg-purple-400 animate-bounce" style={{ animationDelay: '300ms' }} />
                     </div>
-                    <span className="text-xs text-gray-400">
+                    <span className="text-xs text-muted-foreground">
                       {uploading ? 'Uploading files...' : 'Kiros AI is thinking...'}
                     </span>
                   </div>
@@ -777,7 +776,7 @@ export default function ChatPage() {
         </div>
 
         {/* Input area - never shrinks, always visible at bottom */}
-        <div className="flex-shrink-0 border-t border-gray-200 bg-white px-4 py-3">
+        <div className="flex-shrink-0 border-t border-border bg-card px-4 py-3">
           <div className="max-w-full sm:max-w-3xl mx-auto">
             <input
               ref={fileInputRef}
@@ -805,10 +804,10 @@ export default function ChatPage() {
                 ))}
               </div>
             )}
-            <div className={`flex items-end gap-3 rounded-2xl border transition-all px-4 py-2 ${loading ? 'bg-gray-100 border-gray-200 opacity-60' : 'bg-gray-50 border-gray-200 focus-within:border-purple-400 focus-within:ring-2 focus-within:ring-purple-200'}`}>
+            <div className={`flex items-end gap-3 rounded-2xl border transition-all px-4 py-2 ${loading ? 'bg-muted border-border opacity-60' : 'bg-muted border-border focus-within:border-primary/50 focus-within:ring-2 focus-within:ring-primary/20'}`}>
               <button
                 onClick={() => fileInputRef.current?.click()}
-                className="p-2 rounded-lg text-gray-400 hover:text-purple-600 hover:bg-purple-50 transition-colors flex-shrink-0"
+                className="p-2 rounded-lg text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors flex-shrink-0"
                 aria-label="Attach file"
                 disabled={loading}
               >
@@ -822,7 +821,7 @@ export default function ChatPage() {
                 onChange={handleInputChange}
                 onKeyDown={handleKeyDown}
                 placeholder={loading ? 'Waiting for response...' : 'Ask about operations, policies, QIP... or ask me to generate a document'}
-                className="flex-1 resize-none bg-transparent text-sm focus:outline-none placeholder:text-gray-400 py-1 disabled:cursor-not-allowed"
+                className="flex-1 resize-none bg-transparent text-sm focus:outline-none placeholder:text-muted-foreground py-1 disabled:cursor-not-allowed"
                 rows={1}
                 style={{ maxHeight: '200px' }}
                 disabled={loading}
@@ -831,8 +830,7 @@ export default function ChatPage() {
               <button
                 onClick={sendMessage}
                 disabled={!input.trim() || loading}
-                className="p-2 rounded-xl text-white disabled:opacity-30 disabled:cursor-not-allowed transition-all hover:scale-105 flex-shrink-0"
-                style={{ backgroundColor: '#470DA8' }}
+                className="p-2 rounded-xl bg-primary text-primary-foreground disabled:opacity-30 disabled:cursor-not-allowed transition-all hover:scale-105 flex-shrink-0"
                 aria-label="Send message"
               >
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -845,7 +843,7 @@ export default function ChatPage() {
                   className={`p-2 rounded-xl transition-all flex-shrink-0 ${
                     isRecording
                       ? 'bg-red-500 text-white animate-pulse'
-                      : 'text-gray-400 hover:text-purple-600 hover:bg-purple-50'
+                      : 'text-muted-foreground hover:text-primary hover:bg-primary/10'
                   }`}
                   aria-label={isRecording ? 'Stop recording' : 'Voice input'}
                   disabled={loading}
@@ -856,7 +854,7 @@ export default function ChatPage() {
                 </button>
               )}
             </div>
-            <div className="text-[10px] text-gray-400 text-center mt-2">
+            <div className="text-[10px] text-muted-foreground text-center mt-2">
               Kiros AI is grounded in your centre&apos;s policies, QIP, and the NQS. It can create tasks, assign training, and generate documents.
             </div>
           </div>

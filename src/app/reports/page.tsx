@@ -101,7 +101,7 @@ export default function ReportsPage() {
     if (sel) downloadCSV(sel.data, sel.name)
   }
 
-  if (loading) return <div className="flex items-center justify-center h-64"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#470DA8]" /></div>
+  if (loading) return <div className="flex items-center justify-center h-64"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" /></div>
 
   // Calculate stats
   const notMetCount = elements.filter(e => e.current_rating === 'not_met').length
@@ -134,41 +134,41 @@ export default function ReportsPage() {
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold">Reports & Analytics</h1>
-          <p className="text-gray-500 text-sm mt-1">Track progress, export data, and monitor uplift status</p>
+          <p className="text-muted-foreground text-sm mt-1">Track progress, export data, and monitor uplift status</p>
         </div>
-        <button onClick={() => window.print()} className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-200">Print Report</button>
+        <button onClick={() => window.print()} className="px-4 py-2 bg-muted text-foreground rounded-lg text-sm font-medium hover:bg-accent">Print Report</button>
       </div>
 
       {/* Progress Overview */}
       <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 mb-6">
-        <div className="bg-white rounded-xl shadow-sm border p-4 text-center">
+        <div className="bg-card rounded-xl shadow-sm border border-border p-4 text-center">
           <p className="text-3xl font-bold text-red-500">{notMetCount}</p>
-          <p className="text-xs text-gray-500 mt-1">Not Met</p>
+          <p className="text-xs text-muted-foreground mt-1">Not Met</p>
         </div>
-        <div className="bg-white rounded-xl shadow-sm border p-4 text-center">
+        <div className="bg-card rounded-xl shadow-sm border border-border p-4 text-center">
           <p className="text-3xl font-bold text-green-500">{metCount}</p>
-          <p className="text-xs text-gray-500 mt-1">Met</p>
+          <p className="text-xs text-muted-foreground mt-1">Met</p>
         </div>
-        <div className="bg-white rounded-xl shadow-sm border p-4 text-center">
+        <div className="bg-card rounded-xl shadow-sm border border-border p-4 text-center">
           <p className="text-3xl font-bold text-green-600">{meetingCount}</p>
-          <p className="text-xs text-gray-500 mt-1">Meeting</p>
+          <p className="text-xs text-muted-foreground mt-1">Meeting</p>
         </div>
-        <div className="bg-white rounded-xl shadow-sm border p-4 text-center">
+        <div className="bg-card rounded-xl shadow-sm border border-border p-4 text-center">
           <p className="text-3xl font-bold text-purple-600">{exceedingCount}</p>
-          <p className="text-xs text-gray-500 mt-1">Exceeding</p>
+          <p className="text-xs text-muted-foreground mt-1">Exceeding</p>
         </div>
-        <div className="bg-white rounded-xl shadow-sm border p-4 text-center">
-          <p className="text-3xl font-bold text-[#470DA8]">{actionPct}%</p>
-          <p className="text-xs text-gray-500 mt-1">Actions Done</p>
+        <div className="bg-card rounded-xl shadow-sm border border-border p-4 text-center">
+          <p className="text-3xl font-bold text-primary">{actionPct}%</p>
+          <p className="text-xs text-muted-foreground mt-1">Actions Done</p>
         </div>
-        <div className="bg-white rounded-xl shadow-sm border p-4 text-center">
+        <div className="bg-card rounded-xl shadow-sm border border-border p-4 text-center">
           <p className="text-3xl font-bold text-red-500">{complianceOpen}</p>
-          <p className="text-xs text-gray-500 mt-1">Compliance Open</p>
+          <p className="text-xs text-muted-foreground mt-1">Compliance Open</p>
         </div>
       </div>
 
       {/* Per-QA Progress */}
-      <div className="bg-white rounded-xl shadow-sm border mb-6">
+      <div className="bg-card rounded-xl shadow-sm border border-border mb-6">
         <div className="px-6 py-4 border-b"><h2 className="font-semibold">Progress by Quality Area</h2></div>
         <div className="p-6 space-y-4">
           {qaProgress.map(qp => (
@@ -176,10 +176,10 @@ export default function ReportsPage() {
               <div className="w-10 h-10 rounded-lg flex items-center justify-center text-white font-bold text-xs flex-shrink-0" style={{ backgroundColor: QA_COLORS[qp.qa] }}>QA{qp.qa}</div>
               <div className="flex-1">
                 <div className="flex items-center justify-between mb-1">
-                  <span className="text-sm font-medium text-gray-700 truncate">{qp.name}</span>
-                  <span className="text-xs text-gray-500">{qp.done}/{qp.total} actions ({qp.pct}%)</span>
+                  <span className="text-sm font-medium text-foreground truncate">{qp.name}</span>
+                  <span className="text-xs text-muted-foreground">{qp.done}/{qp.total} actions ({qp.pct}%)</span>
                 </div>
-                <div className="w-full bg-gray-200 rounded-full h-2">
+                <div className="w-full bg-muted rounded-full h-2">
                   <div className="h-2 rounded-full transition-all" style={{ width: `${qp.pct}%`, backgroundColor: QA_COLORS[qp.qa] }} />
                 </div>
               </div>
@@ -190,16 +190,16 @@ export default function ReportsPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
         {/* Overdue Items */}
-        <div className="bg-white rounded-xl shadow-sm border">
+        <div className="bg-card rounded-xl shadow-sm border border-border">
           <div className="px-6 py-4 border-b"><h2 className="font-semibold text-red-600">Overdue Items ({overdueActions.length})</h2></div>
           <div className="p-4 max-h-64 overflow-y-auto">
-            {overdueActions.length === 0 ? <p className="text-sm text-gray-400 text-center py-4">No overdue items</p> : (
+            {overdueActions.length === 0 ? <p className="text-sm text-muted-foreground text-center py-4">No overdue items</p> : (
               <div className="space-y-2">
                 {overdueActions.map(a => (
                   <div key={a.id} className="flex items-center gap-3 p-2 bg-red-50 rounded-lg">
                     <span className="text-xs text-red-600 font-medium whitespace-nowrap">{a.due_date}</span>
-                    <span className="text-sm text-gray-700 truncate flex-1">{a.title}</span>
-                    {a.profiles && <span className="text-xs text-gray-400">{a.profiles.full_name}</span>}
+                    <span className="text-sm text-foreground truncate flex-1">{a.title}</span>
+                    {a.profiles && <span className="text-xs text-muted-foreground">{a.profiles.full_name}</span>}
                   </div>
                 ))}
               </div>
@@ -208,15 +208,15 @@ export default function ReportsPage() {
         </div>
 
         {/* Upcoming (Next 14 Days) */}
-        <div className="bg-white rounded-xl shadow-sm border">
+        <div className="bg-card rounded-xl shadow-sm border border-border">
           <div className="px-6 py-4 border-b"><h2 className="font-semibold text-amber-600">Due Next 14 Days ({upcomingActions.length})</h2></div>
           <div className="p-4 max-h-64 overflow-y-auto">
-            {upcomingActions.length === 0 ? <p className="text-sm text-gray-400 text-center py-4">No upcoming items</p> : (
+            {upcomingActions.length === 0 ? <p className="text-sm text-muted-foreground text-center py-4">No upcoming items</p> : (
               <div className="space-y-2">
                 {upcomingActions.map(a => (
                   <div key={a.id} className="flex items-center gap-3 p-2 bg-amber-50 rounded-lg">
                     <span className="text-xs text-amber-600 font-medium whitespace-nowrap">{a.due_date}</span>
-                    <span className="text-sm text-gray-700 truncate flex-1">{a.title}</span>
+                    <span className="text-sm text-foreground truncate flex-1">{a.title}</span>
                   </div>
                 ))}
               </div>
@@ -226,12 +226,12 @@ export default function ReportsPage() {
       </div>
 
       {/* Training Matrix */}
-      <div className="bg-white rounded-xl shadow-sm border mb-6">
+      <div className="bg-card rounded-xl shadow-sm border border-border mb-6">
         <div className="px-6 py-4 border-b"><h2 className="font-semibold">Training Completion Matrix</h2></div>
         <div className="overflow-x-auto">
           <table className="w-full text-xs">
             <thead>
-              <tr className="bg-gray-50">
+              <tr className="bg-muted">
                 <th className="text-left px-4 py-2 font-semibold text-gray-500">Educator</th>
                 {modules.map(m => (
                   <th key={m.id} className="text-center px-2 py-2 font-semibold text-gray-500 whitespace-nowrap">M{m.sort_order}</th>
@@ -240,13 +240,13 @@ export default function ReportsPage() {
             </thead>
             <tbody>
               {profiles.filter(p => p.role !== 'admin').map(p => (
-                <tr key={p.id} className="border-t border-gray-100">
-                  <td className="px-4 py-2 font-medium text-gray-700">{p.full_name}</td>
+                <tr key={p.id} className="border-t border-border">
+                  <td className="px-4 py-2 font-medium text-foreground">{p.full_name}</td>
                   {modules.map(m => {
                     const assignment = training.find(t => t.module_id === m.id && t.user_id === p.id)
                     return (
                       <td key={m.id} className="text-center px-2 py-2">
-                        {!assignment ? <span className="text-gray-300">&mdash;</span> :
+                        {!assignment ? <span className="text-muted-foreground">&mdash;</span> :
                          assignment.status === 'completed' ? <span className="text-green-500 font-bold">&#10003;</span> :
                          assignment.status === 'in_progress' ? <span className="text-amber-500">&#9679;</span> :
                          <span className="text-blue-500">&#9675;</span>}
@@ -258,23 +258,23 @@ export default function ReportsPage() {
             </tbody>
           </table>
         </div>
-        <div className="px-6 py-3 border-t bg-gray-50 flex gap-4 text-xs text-gray-500">
+        <div className="px-6 py-3 border-t bg-muted flex gap-4 text-xs text-muted-foreground">
           <span><span className="text-green-500 font-bold">&#10003;</span> Completed</span>
           <span><span className="text-amber-500">&#9679;</span> In Progress</span>
           <span><span className="text-blue-500">&#9675;</span> Assigned</span>
-          <span><span className="text-gray-300">&mdash;</span> Not Assigned</span>
+          <span><span className="text-muted-foreground">&mdash;</span> Not Assigned</span>
         </div>
       </div>
 
       {/* CSV Export */}
-      <div className="bg-white rounded-xl shadow-sm border">
+      <div className="bg-card rounded-xl shadow-sm border border-border">
         <div className="px-6 py-4 border-b"><h2 className="font-semibold">Export Data</h2></div>
         <div className="p-6">
           <div className="flex gap-3 items-end flex-wrap">
             <div>
-              <label className="block text-xs text-gray-500 mb-1">Data to Export</label>
+              <label className="block text-xs text-muted-foreground mb-1">Data to Export</label>
               <select value={exportType} onChange={e => setExportType(e.target.value)}
-                className="px-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#470DA8] outline-none">
+                className="px-4 py-2 border border-border rounded-lg text-sm focus:ring-2 focus:ring-primary outline-none">
                 <option value="elements">QA Elements ({elements.length} rows)</option>
                 <option value="actions">Element Actions ({actions.length} rows)</option>
                 <option value="tasks">Tasks ({tasks.length} rows)</option>
@@ -287,7 +287,7 @@ export default function ReportsPage() {
               </select>
             </div>
             <button onClick={handleExport}
-              className="px-6 py-2 bg-[#470DA8] text-white rounded-lg text-sm font-medium hover:opacity-90 transition">
+              className="px-6 py-2 bg-primary text-white rounded-lg text-sm font-medium hover:opacity-90 transition">
               Download CSV
             </button>
           </div>

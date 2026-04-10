@@ -89,7 +89,7 @@ export default function ActivityPage() {
     return (
       <div className="max-w-7xl mx-auto">
         <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#470DA8]" />
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
         </div>
       </div>
     )
@@ -98,8 +98,8 @@ export default function ActivityPage() {
   return (
     <div className="max-w-4xl mx-auto">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Activity Feed</h1>
-        <p className="text-gray-500 text-sm mt-1">
+        <h1 className="text-2xl font-bold text-foreground">Activity Feed</h1>
+        <p className="text-muted-foreground text-sm mt-1">
           Recent actions and changes across the portal
         </p>
       </div>
@@ -109,7 +109,7 @@ export default function ActivityPage() {
         <button
           onClick={() => setFilter(null)}
           className={`px-3 py-1 rounded-full text-xs font-medium transition ${
-            !filter ? 'bg-[#470DA8] text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+            !filter ? 'bg-primary text-white' : 'bg-muted text-muted-foreground hover:bg-accent'
           }`}
         >
           All
@@ -131,9 +131,9 @@ export default function ActivityPage() {
       </div>
 
       {/* Timeline */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+      <div className="bg-card rounded-xl shadow-sm border border-border overflow-hidden">
         {filtered.length > 0 ? (
-          <div className="divide-y divide-gray-100">
+          <div className="divide-y divide-border">
             {filtered.map(activity => {
               const profile = activity.profiles as unknown as Profile
               const entityColor = ENTITY_COLORS[activity.entity_type || ''] || '#999'
@@ -153,10 +153,10 @@ export default function ActivityPage() {
                   {/* Content */}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span className="text-sm font-medium text-gray-900">
+                      <span className="text-sm font-medium text-foreground">
                         {profile?.full_name || 'System'}
                       </span>
-                      <span className="text-sm text-gray-600">
+                      <span className="text-sm text-muted-foreground">
                         {formatAction(activity.action)}
                       </span>
                       {activity.entity_type && (
@@ -168,19 +168,19 @@ export default function ActivityPage() {
                         </span>
                       )}
                       {activity.entity_id && (
-                        <span className="text-xs text-gray-400 font-mono">
+                        <span className="text-xs text-muted-foreground font-mono">
                           #{activity.entity_id.slice(0, 8)}
                         </span>
                       )}
                     </div>
                     {activity.details && (
-                      <p className="text-xs text-gray-500 mt-0.5">{activity.details}</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">{activity.details}</p>
                     )}
                   </div>
 
                   {/* Timestamp */}
                   <div className="flex-shrink-0">
-                    <span className="text-xs text-gray-400" title={new Date(activity.created_at).toLocaleString()}>
+                    <span className="text-xs text-muted-foreground" title={new Date(activity.created_at).toLocaleString()}>
                       {timeAgo(activity.created_at)}
                     </span>
                   </div>
@@ -189,7 +189,7 @@ export default function ActivityPage() {
             })}
           </div>
         ) : (
-          <div className="text-center py-12 text-gray-400">
+          <div className="text-center py-12 text-muted-foreground">
             <p className="text-lg font-medium">No activity yet</p>
             <p className="text-sm mt-1">Actions and changes will appear here as they happen.</p>
           </div>

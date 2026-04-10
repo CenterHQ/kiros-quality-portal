@@ -134,7 +134,7 @@ export default function DocumentsPage() {
     return (
       <div className="max-w-7xl mx-auto">
         <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#470DA8]" />
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
         </div>
       </div>
     )
@@ -144,13 +144,13 @@ export default function DocumentsPage() {
     <div className="max-w-7xl mx-auto">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Documents</h1>
-          <p className="text-gray-500 text-sm mt-1">Upload and manage documents for quality assessment</p>
+          <h1 className="text-2xl font-bold text-foreground">Documents</h1>
+          <p className="text-muted-foreground text-sm mt-1">Upload and manage documents for quality assessment</p>
         </div>
         <button
           onClick={() => fileInputRef.current?.click()}
           disabled={uploading}
-          className="px-4 py-2 bg-[#470DA8] text-white text-sm rounded-lg hover:bg-[#350A7E] transition font-medium disabled:opacity-50"
+          className="px-4 py-2 bg-primary text-white text-sm rounded-lg hover:opacity-90 transition font-medium disabled:opacity-50"
         >
           {uploading ? 'Uploading...' : 'Upload File'}
         </button>
@@ -172,18 +172,18 @@ export default function DocumentsPage() {
         onClick={() => fileInputRef.current?.click()}
         className={`mb-6 border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition ${
           dragActive
-            ? 'border-[#470DA8] bg-purple-50'
-            : 'border-gray-300 hover:border-gray-400 bg-gray-50'
+            ? 'border-primary bg-purple-50'
+            : 'border-border hover:border-muted-foreground bg-muted'
         }`}
       >
-        <div className="text-gray-400">
+        <div className="text-muted-foreground">
           <svg className="mx-auto h-10 w-10 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
           </svg>
           <p className="text-sm font-medium">
             {dragActive ? 'Drop files here' : 'Drag and drop files here, or click to browse'}
           </p>
-          <p className="text-xs mt-1 text-gray-400">PDF, Word, Excel, images, and more</p>
+          <p className="text-xs mt-1 text-muted-foreground">PDF, Word, Excel, images, and more</p>
         </div>
       </div>
 
@@ -192,7 +192,7 @@ export default function DocumentsPage() {
         <button
           onClick={() => setFilterQA(null)}
           className={`px-3 py-1 rounded-full text-xs font-medium transition ${
-            filterQA === null ? 'bg-[#470DA8] text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+            filterQA === null ? 'bg-primary text-white' : 'bg-muted text-muted-foreground hover:bg-accent'
           }`}
         >
           All
@@ -214,23 +214,23 @@ export default function DocumentsPage() {
       </div>
 
       {/* Documents List */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+      <div className="bg-card rounded-xl shadow-sm border border-border overflow-hidden">
         {filtered.length > 0 ? (
-          <div className="divide-y divide-gray-100">
+          <div className="divide-y divide-border">
             {filtered.map(doc => (
-              <div key={doc.id} className="flex items-center gap-4 px-6 py-4 hover:bg-gray-50 transition">
+              <div key={doc.id} className="flex items-center gap-4 px-6 py-4 hover:bg-accent transition">
                 <span className="text-2xl flex-shrink-0">{fileTypeIcon(doc.file_type)}</span>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-gray-900 truncate">{doc.name}</p>
+                  <p className="text-sm font-medium text-foreground truncate">{doc.name}</p>
                   <div className="flex items-center gap-3 mt-0.5">
-                    <span className="text-xs text-gray-400">{formatFileSize(doc.file_size)}</span>
-                    <span className="text-xs text-gray-400">{doc.file_type || '--'}</span>
+                    <span className="text-xs text-muted-foreground">{formatFileSize(doc.file_size)}</span>
+                    <span className="text-xs text-muted-foreground">{doc.file_type || '--'}</span>
                     {doc.profiles && (
-                      <span className="text-xs text-gray-400">
+                      <span className="text-xs text-muted-foreground">
                         by {(doc.profiles as unknown as Profile).full_name}
                       </span>
                     )}
-                    <span className="text-xs text-gray-400">
+                    <span className="text-xs text-muted-foreground">
                       {new Date(doc.created_at).toLocaleDateString()}
                     </span>
                   </div>
@@ -255,7 +255,7 @@ export default function DocumentsPage() {
             ))}
           </div>
         ) : (
-          <div className="text-center py-12 text-gray-400">
+          <div className="text-center py-12 text-muted-foreground">
             <p className="text-lg font-medium">No documents found</p>
             <p className="text-sm mt-1">Upload documents using the drop zone above.</p>
           </div>

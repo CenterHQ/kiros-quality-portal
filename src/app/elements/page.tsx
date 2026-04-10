@@ -3,8 +3,11 @@
 import { useEffect, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import { QA_COLORS, STATUS_COLORS, type QAElement } from '@/lib/types'
+import { QA_COLORS, type QAElement } from '@/lib/types'
 import CentreContextPanel from '@/components/CentreContextPanel'
+import { PageHeader } from '@/components/ui/page-header'
+import { StatusBadge } from '@/components/ui/status-badge'
+import { QABadge } from '@/components/ui/qa-badge'
 
 export default function ElementsPage() {
   const [elements, setElements] = useState<QAElement[]>([])
@@ -37,26 +40,25 @@ export default function ElementsPage() {
 
   return (
     <div className="max-w-7xl mx-auto">
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-2xl font-bold">QA Elements</h1>
-          <p className="text-gray-500 text-sm mt-1">Track progress across all 40 NQS elements</p>
-        </div>
-      </div>
+      <PageHeader
+        title="QA Elements"
+        description="Track progress across all 40 NQS elements"
+        className="mb-6"
+      />
 
       {/* Filters */}
-      <div className="flex gap-3 mb-6 flex-wrap">
+      <div className="flex gap-3 mb-6 flex-wrap animate-fade-in">
         <input
           type="text"
           placeholder="Search elements..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="px-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#470DA8] focus:border-transparent outline-none"
+          className="px-4 py-2 border border-border rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent outline-none"
         />
         <div className="flex gap-1">
           <button
             onClick={() => setFilterQA(null)}
-            className={`px-3 py-1 rounded-full text-xs font-medium transition ${!filterQA ? 'bg-[#470DA8] text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
+            className={`px-3 py-1 rounded-full text-xs font-medium transition ${!filterQA ? 'bg-primary text-white' : 'bg-muted text-muted-foreground hover:bg-accent'}`}
           >All</button>
           {[1,2,3,4,5,6,7].map(n => (
             <button
@@ -84,30 +86,22 @@ export default function ElementsPage() {
         {Object.entries(qaGroups).map(([qaNum, qa]) => {
           const num = parseInt(qaNum)
           return (
-            <div key={qaNum} className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-              <div className="flex items-center gap-3 px-6 py-4 border-b border-gray-200">
-                <div className="w-10 h-10 rounded-lg flex items-center justify-center text-white font-bold text-sm" style={{ backgroundColor: QA_COLORS[num] }}>
-                  QA{qaNum}
-                </div>
+            <div key={qaNum} className="animate-fade-in bg-card rounded-xl shadow-sm border border-border overflow-hidden">
+              <div className="flex items-center gap-3 px-6 py-4 border-b border-border">
+                <QABadge qaNumber={num} showLabel size="lg" />
                 <div>
-                  <h2 className="font-semibold text-gray-900">{qa.name}</h2>
-                  <p className="text-xs text-gray-500">{qa.elements.length} elements</p>
+                  <h2 className="font-semibold text-foreground">{qa.name}</h2>
+                  <p className="text-xs text-muted-foreground">{qa.elements.length} elements</p>
                 </div>
               </div>
-              <div className="divide-y divide-gray-100">
+              <div className="divide-y divide-border/50">
                 {qa.elements.map(el => (
-                  <a key={el.id} href={`/elements/${el.id}`} className="flex items-center gap-4 px-6 py-3 hover:bg-gray-50 transition">
-                    <span className="text-sm font-mono font-bold text-gray-900 w-12">{el.element_code}</span>
-                    <span className="flex-1 text-sm text-gray-700">{el.element_name}</span>
-                    <span className="px-2 py-1 rounded-full text-xs font-medium" style={{
-                      backgroundColor: STATUS_COLORS[el.current_rating]?.bg,
-                      color: STATUS_COLORS[el.current_rating]?.text
-                    }}>{el.current_rating.replace(/_/g, ' ')}</span>
-                    <span className="px-2 py-1 rounded-full text-xs font-medium" style={{
-                      backgroundColor: STATUS_COLORS[el.status]?.bg,
-                      color: STATUS_COLORS[el.status]?.text
-                    }}>{el.status.replace(/_/g, ' ')}</span>
-                    {el.profiles && <span className="text-xs text-gray-400">{(el.profiles as any).full_name}</span>}
+                  <a key={el.id} href={`/elements/${el.id}`} className="flex items-center gap-4 px-6 py-3 hover:bg-accent transition">
+                    <span className="text-sm font-mono font-bold text-foreground w-12">{el.element_code}</span>
+                    <span className="flex-1 text-sm text-foreground/80">{el.element_name}</span>
+                    <StatusBadge status={el.current_rating} size="sm" />
+                    <StatusBadge status={el.status} size="sm" />
+                    {el.profiles && <span className="text-xs text-muted-foreground">{(el.profiles as any).full_name}</span>}
                   </a>
                 ))}
               </div>

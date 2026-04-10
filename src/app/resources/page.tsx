@@ -52,7 +52,7 @@ export default function ResourcesPage() {
     return (
       <div className="max-w-7xl mx-auto">
         <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#470DA8]" />
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
         </div>
       </div>
     )
@@ -61,8 +61,8 @@ export default function ResourcesPage() {
   return (
     <div className="max-w-7xl mx-auto">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Resources</h1>
-        <p className="text-gray-500 text-sm mt-1">
+        <h1 className="text-2xl font-bold text-foreground">Resources</h1>
+        <p className="text-muted-foreground text-sm mt-1">
           Useful links and resources organized by quality area
         </p>
       </div>
@@ -84,10 +84,10 @@ export default function ResourcesPage() {
                     {area === 0 ? 'G' : `QA${area}`}
                   </div>
                   <div>
-                    <h2 className="font-semibold text-gray-900">
+                    <h2 className="font-semibold text-foreground">
                       {QA_SECTION_LABELS[area] || `QA${area}`}
                     </h2>
-                    <p className="text-xs text-gray-500">{areaResources.length} resource{areaResources.length !== 1 ? 's' : ''}</p>
+                    <p className="text-xs text-muted-foreground">{areaResources.length} resource{areaResources.length !== 1 ? 's' : ''}</p>
                   </div>
                 </div>
 
@@ -99,14 +99,14 @@ export default function ResourcesPage() {
                       href={res.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="bg-white rounded-xl shadow-sm border border-gray-200 p-5 hover:shadow-md hover:border-gray-300 transition group"
+                      className="bg-card rounded-xl shadow-sm border border-border p-5 hover:shadow-md hover:border-border transition group"
                     >
                       <div className="flex items-start justify-between">
-                        <h3 className="text-sm font-semibold text-gray-900 group-hover:text-[#470DA8] transition">
+                        <h3 className="text-sm font-semibold text-foreground group-hover:text-primary transition">
                           {res.title}
                         </h3>
                         <svg
-                          className="w-4 h-4 text-gray-300 group-hover:text-[#470DA8] transition flex-shrink-0 mt-0.5 ml-2"
+                          className="w-4 h-4 text-muted-foreground group-hover:text-primary transition flex-shrink-0 mt-0.5 ml-2"
                           fill="none"
                           viewBox="0 0 24 24"
                           stroke="currentColor"
@@ -115,7 +115,7 @@ export default function ResourcesPage() {
                         </svg>
                       </div>
                       {res.description && (
-                        <p className="text-xs text-gray-500 mt-2 line-clamp-3">{res.description}</p>
+                        <p className="text-xs text-muted-foreground mt-2 line-clamp-3">{res.description}</p>
                       )}
                       <div className="flex items-center gap-2 mt-3">
                         <span
@@ -133,7 +133,7 @@ export default function ResourcesPage() {
           })}
         </div>
       ) : (
-        <div className="text-center py-12 text-gray-400">
+        <div className="text-center py-12 text-muted-foreground">
           <p className="text-lg font-medium">No resources available</p>
           <p className="text-sm mt-1">Resources will appear here once added.</p>
         </div>

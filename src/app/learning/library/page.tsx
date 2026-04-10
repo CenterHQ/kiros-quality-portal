@@ -202,7 +202,7 @@ export default function ModuleLibraryPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#470DA8]" />
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
       </div>
     )
   }
@@ -212,12 +212,12 @@ export default function ModuleLibraryPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Module Library</h1>
-          <p className="text-gray-500 mt-1">Browse and enrol in training modules</p>
+          <h1 className="text-2xl font-bold text-foreground">Module Library</h1>
+          <p className="text-muted-foreground mt-1">Browse and enrol in training modules</p>
         </div>
         <Link
           href="/learning"
-          className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-sm font-medium"
+          className="px-4 py-2 border border-border text-foreground rounded-lg hover:bg-accent transition-colors text-sm font-medium"
         >
           Back to Learning Hub
         </Link>
@@ -225,9 +225,9 @@ export default function ModuleLibraryPage() {
 
       {/* Stats Bar */}
       <div className="flex flex-wrap gap-3">
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 px-4 py-3 flex items-center gap-2">
-          <span className="text-sm text-gray-500">Total:</span>
-          <span className="text-lg font-bold text-gray-900">{modules.length}</span>
+        <div className="bg-card rounded-xl shadow-sm border border-border px-4 py-3 flex items-center gap-2">
+          <span className="text-sm text-muted-foreground">Total:</span>
+          <span className="text-lg font-bold text-foreground">{modules.length}</span>
         </div>
         {(Object.entries(tierCounts) as [LmsModuleTier, number][]).map(([tier, count]) => (
           <div
@@ -242,10 +242,10 @@ export default function ModuleLibraryPage() {
       </div>
 
       {/* Search and Filters */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 space-y-4">
+      <div className="bg-card rounded-xl shadow-sm border border-border p-4 space-y-4">
         {/* Search */}
         <div className="relative">
-          <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
           </svg>
           <input
@@ -253,17 +253,17 @@ export default function ModuleLibraryPage() {
             placeholder="Search modules by title or description..."
             value={search}
             onChange={e => setSearch(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#470DA8] focus:border-[#470DA8] outline-none"
+            className="w-full pl-10 pr-4 py-2.5 border border-border rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none"
           />
         </div>
 
         {/* Tier Filters */}
         <div className="flex flex-wrap gap-2">
-          <span className="text-xs text-gray-500 py-1.5">Tier:</span>
+          <span className="text-xs text-muted-foreground py-1.5">Tier:</span>
           <button
             onClick={() => setTierFilter('all')}
             className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
-              tierFilter === 'all' ? 'bg-[#470DA8] text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+              tierFilter === 'all' ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground hover:bg-accent'
             }`}
           >
             All
@@ -285,7 +285,7 @@ export default function ModuleLibraryPage() {
 
         {/* QA Filters */}
         <div className="flex flex-wrap gap-2">
-          <span className="text-xs text-gray-500 py-1.5">QA Area:</span>
+          <span className="text-xs text-muted-foreground py-1.5">QA Area:</span>
           {[1, 2, 3, 4, 5, 6, 7].map(qa => (
             <button
               key={qa}
@@ -303,7 +303,7 @@ export default function ModuleLibraryPage() {
           {qaFilter !== null && (
             <button
               onClick={() => setQaFilter(null)}
-              className="px-3 py-1.5 rounded-full text-xs font-medium bg-gray-100 text-gray-500 hover:bg-gray-200"
+              className="px-3 py-1.5 rounded-full text-xs font-medium bg-muted text-muted-foreground hover:bg-accent"
             >
               Clear
             </button>
@@ -313,11 +313,11 @@ export default function ModuleLibraryPage() {
         {/* Category Filter */}
         {categories.length > 0 && (
           <div className="flex items-center gap-2">
-            <span className="text-xs text-gray-500">Category:</span>
+            <span className="text-xs text-muted-foreground">Category:</span>
             <select
               value={categoryFilter}
               onChange={e => setCategoryFilter(e.target.value)}
-              className="border border-gray-300 rounded-lg text-sm px-3 py-1.5 focus:ring-2 focus:ring-[#470DA8] focus:border-[#470DA8] outline-none"
+              className="border border-border rounded-lg text-sm px-3 py-1.5 focus:ring-2 focus:ring-primary focus:border-primary outline-none"
             >
               <option value="all">All Categories</option>
               {categories.map(cat => (
@@ -329,12 +329,12 @@ export default function ModuleLibraryPage() {
       </div>
 
       {/* Results count */}
-      <p className="text-sm text-gray-500">{filteredModules.length} module{filteredModules.length !== 1 ? 's' : ''} found</p>
+      <p className="text-sm text-muted-foreground">{filteredModules.length} module{filteredModules.length !== 1 ? 's' : ''} found</p>
 
       {/* Module Grid */}
       {filteredModules.length === 0 ? (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-12 text-center">
-          <p className="text-gray-500">No modules match your filters. Try adjusting your search.</p>
+        <div className="bg-card rounded-xl shadow-sm border border-border p-12 text-center">
+          <p className="text-muted-foreground">No modules match your filters. Try adjusting your search.</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -346,7 +346,7 @@ export default function ModuleLibraryPage() {
             const isAssigning = assignModule === mod.id
 
             return (
-              <div key={mod.id} className="bg-white rounded-xl shadow-sm border border-gray-200 p-5 flex flex-col">
+              <div key={mod.id} className="bg-card rounded-xl shadow-sm border border-border p-5 flex flex-col">
                 {/* Tier Badge */}
                 <div className="flex items-start justify-between mb-2">
                   <span
@@ -360,7 +360,7 @@ export default function ModuleLibraryPage() {
                       userEnrollment.status === 'completed' ? 'bg-green-100 text-green-700' :
                       userEnrollment.status === 'in_progress' ? 'bg-blue-100 text-blue-700' :
                       userEnrollment.status === 'expired' ? 'bg-red-100 text-red-700' :
-                      'bg-gray-100 text-gray-600'
+                      'bg-muted text-muted-foreground'
                     }`}>
                       {LMS_ENROLLMENT_STATUS_LABELS[userEnrollment.status]}
                     </span>
@@ -369,12 +369,12 @@ export default function ModuleLibraryPage() {
 
                 {/* Title */}
                 <Link href={`/learning/modules/${mod.id}`} className="hover:underline">
-                  <h3 className="font-semibold text-gray-900 text-sm mb-1">{mod.title}</h3>
+                  <h3 className="font-semibold text-foreground text-sm mb-1">{mod.title}</h3>
                 </Link>
 
                 {/* Description */}
                 {mod.description && (
-                  <p className="text-xs text-gray-500 mb-3 line-clamp-2">{mod.description}</p>
+                  <p className="text-xs text-muted-foreground mb-3 line-clamp-2">{mod.description}</p>
                 )}
 
                 {/* QA Badges */}
@@ -391,7 +391,7 @@ export default function ModuleLibraryPage() {
                 </div>
 
                 {/* Meta info */}
-                <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-gray-500 mb-3">
+                <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground mb-3">
                   <span>{mod.duration_minutes} min</span>
                   {mod.category && <span>{LMS_CATEGORY_LABELS[mod.category] || mod.category}</span>}
                   {mod.renewal_frequency && mod.renewal_frequency !== 'once' && (
@@ -401,7 +401,7 @@ export default function ModuleLibraryPage() {
 
                 {/* Enrollment stats */}
                 {stats && (
-                  <p className="text-xs text-gray-400 mb-3">
+                  <p className="text-xs text-muted-foreground mb-3">
                     {stats.enrolled} enrolled &middot; {stats.completed} completed
                   </p>
                 )}
@@ -412,7 +412,7 @@ export default function ModuleLibraryPage() {
                     <button
                       onClick={() => handleSelfEnroll(mod.id)}
                       disabled={isEnrolling}
-                      className="flex-1 px-3 py-2 bg-[#470DA8] text-white rounded-lg text-xs font-medium hover:bg-[#350A7E] transition-colors disabled:opacity-50"
+                      className="flex-1 px-3 py-2 bg-primary text-primary-foreground rounded-lg text-xs font-medium hover:bg-primary/90 transition-colors disabled:opacity-50"
                     >
                       {isEnrolling ? 'Enrolling...' : 'Enrol'}
                     </button>
@@ -420,7 +420,7 @@ export default function ModuleLibraryPage() {
                   {userEnrollment && userEnrollment.status !== 'completed' && (
                     <Link
                       href={`/learning/modules/${mod.id}`}
-                      className="flex-1 px-3 py-2 bg-[#6B3FCE] text-white rounded-lg text-xs font-medium text-center hover:bg-[#470DA8] transition-colors"
+                      className="flex-1 px-3 py-2 bg-primary/80 text-primary-foreground rounded-lg text-xs font-medium text-center hover:bg-primary transition-colors"
                     >
                       Continue
                     </Link>
@@ -428,7 +428,7 @@ export default function ModuleLibraryPage() {
                   {userEnrollment && userEnrollment.status === 'completed' && (
                     <Link
                       href={`/learning/modules/${mod.id}`}
-                      className="flex-1 px-3 py-2 bg-gray-100 text-gray-700 rounded-lg text-xs font-medium text-center hover:bg-gray-200 transition-colors"
+                      className="flex-1 px-3 py-2 bg-muted text-foreground rounded-lg text-xs font-medium text-center hover:bg-accent transition-colors"
                     >
                       Review
                     </Link>
@@ -437,7 +437,7 @@ export default function ModuleLibraryPage() {
                   {isPrivileged && (
                     <button
                       onClick={() => setAssignModule(isAssigning ? null : mod.id)}
-                      className="px-3 py-2 border border-[#470DA8] text-[#470DA8] rounded-lg text-xs font-medium hover:bg-[#470DA8] hover:text-white transition-colors"
+                      className="px-3 py-2 border border-primary text-primary rounded-lg text-xs font-medium hover:bg-primary hover:text-primary-foreground transition-colors"
                     >
                       Assign
                     </button>
@@ -446,11 +446,11 @@ export default function ModuleLibraryPage() {
 
                 {/* Assign dropdown */}
                 {isAssigning && isPrivileged && (
-                  <div className="mt-3 p-3 bg-gray-50 rounded-lg border border-gray-200 space-y-2">
+                  <div className="mt-3 p-3 bg-muted rounded-lg border border-border space-y-2">
                     <select
                       value={assignUserId}
                       onChange={e => setAssignUserId(e.target.value)}
-                      className="w-full border border-gray-300 rounded-lg text-xs px-2 py-1.5 focus:ring-2 focus:ring-[#470DA8] focus:border-[#470DA8] outline-none"
+                      className="w-full border border-border rounded-lg text-xs px-2 py-1.5 focus:ring-2 focus:ring-primary focus:border-primary outline-none"
                     >
                       <option value="">Select staff member...</option>
                       {profiles.map(p => (
@@ -462,19 +462,19 @@ export default function ModuleLibraryPage() {
                       value={assignDueDate}
                       onChange={e => setAssignDueDate(e.target.value)}
                       placeholder="Due date (optional)"
-                      className="w-full border border-gray-300 rounded-lg text-xs px-2 py-1.5 focus:ring-2 focus:ring-[#470DA8] focus:border-[#470DA8] outline-none"
+                      className="w-full border border-border rounded-lg text-xs px-2 py-1.5 focus:ring-2 focus:ring-primary focus:border-primary outline-none"
                     />
                     <div className="flex gap-2">
                       <button
                         onClick={() => handleAssign(mod.id)}
                         disabled={!assignUserId || assignLoading}
-                        className="flex-1 px-3 py-1.5 bg-[#470DA8] text-white rounded-lg text-xs font-medium hover:bg-[#350A7E] transition-colors disabled:opacity-50"
+                        className="flex-1 px-3 py-1.5 bg-primary text-primary-foreground rounded-lg text-xs font-medium hover:bg-primary/90 transition-colors disabled:opacity-50"
                       >
                         {assignLoading ? 'Assigning...' : 'Confirm'}
                       </button>
                       <button
                         onClick={() => { setAssignModule(null); setAssignUserId(''); setAssignDueDate('') }}
-                        className="px-3 py-1.5 bg-gray-200 text-gray-600 rounded-lg text-xs font-medium hover:bg-gray-300 transition-colors"
+                        className="px-3 py-1.5 bg-muted text-muted-foreground rounded-lg text-xs font-medium hover:bg-accent transition-colors"
                       >
                         Cancel
                       </button>

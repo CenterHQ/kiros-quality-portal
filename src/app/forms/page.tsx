@@ -27,31 +27,31 @@ export default function FormsPage() {
   return (
     <div className="max-w-5xl mx-auto">
       <h1 className="text-2xl font-bold mb-2">Forms & Templates</h1>
-      <p className="text-gray-500 text-sm mb-6">Create, submit, and review digital forms</p>
+      <p className="text-muted-foreground text-sm mb-6">Create, submit, and review digital forms</p>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {FORM_TYPES.map(ft => {
           const ftSubmissions = submissions.filter(s => s.form_type === ft.id)
           return (
-            <div key={ft.id} className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+            <div key={ft.id} className="bg-card rounded-xl shadow-sm border border-border overflow-hidden">
               <div className="p-5">
                 <div className="flex items-start gap-3">
                   <span className="text-2xl">{ft.icon}</span>
                   <div className="flex-1">
-                    <h3 className="font-semibold text-gray-900">{ft.name}</h3>
-                    <p className="text-xs text-gray-500 mt-1">{ft.description}</p>
+                    <h3 className="font-semibold text-foreground">{ft.name}</h3>
+                    <p className="text-xs text-muted-foreground mt-1">{ft.description}</p>
                   </div>
-                  <a href={`/forms/new?type=${ft.id}`} className="px-3 py-1 bg-[#470DA8] text-white rounded-lg text-xs font-medium hover:opacity-90 transition whitespace-nowrap">
+                  <a href={`/forms/new?type=${ft.id}`} className="px-3 py-1 bg-primary text-white rounded-lg text-xs font-medium hover:opacity-90 transition whitespace-nowrap">
                     + New
                   </a>
                 </div>
                 {ftSubmissions.length > 0 && (
-                  <div className="mt-3 border-t border-gray-100 pt-3">
-                    <p className="text-xs text-gray-400 mb-2">{ftSubmissions.length} submission(s)</p>
+                  <div className="mt-3 border-t border-border pt-3">
+                    <p className="text-xs text-muted-foreground mb-2">{ftSubmissions.length} submission(s)</p>
                     {ftSubmissions.slice(0, 3).map(s => (
                       <div key={s.id} className="flex items-center justify-between py-1">
-                        <span className="text-xs text-gray-600">{new Date(s.created_at).toLocaleDateString()} — {(s as any).profiles?.full_name || 'Unknown'}</span>
-                        <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${s.status === 'submitted' ? 'bg-blue-50 text-blue-600' : s.status === 'reviewed' ? 'bg-green-50 text-green-600' : 'bg-gray-100 text-gray-500'}`}>{s.status}</span>
+                        <span className="text-xs text-muted-foreground">{new Date(s.created_at).toLocaleDateString()} — {(s as any).profiles?.full_name || 'Unknown'}</span>
+                        <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${s.status === 'submitted' ? 'bg-blue-50 text-blue-600' : s.status === 'reviewed' ? 'bg-green-50 text-green-600' : 'bg-muted text-muted-foreground'}`}>{s.status}</span>
                       </div>
                     ))}
                   </div>
