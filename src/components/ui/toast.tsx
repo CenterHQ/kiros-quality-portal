@@ -186,7 +186,8 @@ function ToastProvider({ children }: { children: React.ReactNode }) {
 function useToast(): ToastContextValue {
   const ctx = React.useContext(ToastContext)
   if (!ctx) {
-    throw new Error('useToast must be used within a <ToastProvider />')
+    // Fallback: return a no-op toast to prevent crashes if provider is missing
+    return { toast: () => {} }
   }
   return ctx
 }
