@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect, useCallback } from 'react'
+import { createClient } from '@/lib/supabase/client'
 import { useProfile } from '@/lib/ProfileContext'
 import { ROLE_LABELS } from '@/lib/types'
 import ReactMarkdown from 'react-markdown'
@@ -57,6 +58,48 @@ export default function ChatPage() {
 
   useEffect(() => {
     if (inputRef.current) inputRef.current.focus()
+  }, [conversationId])
+
+  // Realtime subscription: watch for new assistant messages in active conversation
+  // This enables background processing — response arrives even if user navigated away
+  useEffect(() => {
+    if (!conversationId) return
+
+    const supabase = createClient()
+    const channel = supabase
+      .channel(`chat-${conversationId}`)
+      .on('postgres_changes', {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'chat_messages',
+        filter: `conversation_id=eq.${conversationId}`,
+      }, (payload) => {
+        const msg = payload.new as { id: string; role: string; content: string; metadata?: Record<string, unknown>; created_at: string }
+        if (msg.role === 'assistant') {
+          // Extract documents from metadata
+          const docs = msg.metadata && 'documents' in msg.metadata
+            ? msg.metadata.documents as GeneratedDocument[]
+            : undefined
+
+          setMessages(prev => {
+            // Avoid duplicates (in case we already have this from the API response)
+            if (prev.some(m => m.id === msg.id)) return prev
+            return [...prev, {
+              id: msg.id,
+              role: 'assistant',
+              content: msg.content,
+              documents: docs || [],
+              timestamp: new Date(msg.created_at),
+            }]
+          })
+          setLoading(false)
+        }
+      })
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(channel)
+    }
   }, [conversationId])
 
   const loadConversations = async () => {
@@ -121,12 +164,17 @@ export default function ChatPage() {
     setLoading(true)
 
     try {
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 55000) // 55s client timeout (under Vercel's 60s)
+
       const res = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ conversationId, message: userMessage }),
+        signal: controller.signal,
       })
 
+      clearTimeout(timeoutId)
       const data = await res.json()
 
       if (data.error) {
@@ -136,14 +184,12 @@ export default function ChatPage() {
           content: `I encountered an error: ${data.error}`,
           timestamp: new Date(),
         }])
+        setLoading(false)
       } else {
         if (!conversationId && data.conversationId) {
           setConversationId(data.conversationId)
           loadConversations()
         }
-
-        // Check if response contains document references
-        const docs = data.documents || []
 
         // Capture pending actions from the response
         if (data.pending_actions) {
@@ -154,24 +200,38 @@ export default function ChatPage() {
           setPendingActions(prev => ({ ...prev, ...newActions }))
         }
 
+        // Add assistant message (realtime subscription may also deliver this — dedup by checking)
+        const docs = data.documents || []
+        setMessages(prev => {
+          // If realtime already delivered this response, skip
+          const lastMsg = prev[prev.length - 1]
+          if (lastMsg?.role === 'assistant' && lastMsg.content === data.message) return prev
+          return [...prev, {
+            id: `assistant-${Date.now()}`,
+            role: 'assistant',
+            content: data.message,
+            documents: docs,
+            timestamp: new Date(),
+          }]
+        })
+        setLoading(false)
+      }
+    } catch (err) {
+      // If request was aborted (timeout), the realtime subscription will still catch the response
+      if (err instanceof DOMException && err.name === 'AbortError') {
+        // Don't show error — processing continues in background
+        // Realtime subscription will deliver the response
+        console.log('Request timed out — waiting for background response via realtime')
+      } else {
         setMessages(prev => [...prev, {
-          id: `assistant-${Date.now()}`,
+          id: `error-${Date.now()}`,
           role: 'assistant',
-          content: data.message,
-          documents: docs,
+          content: 'I couldn\'t connect to the server. Please try again.',
           timestamp: new Date(),
         }])
+        setLoading(false)
       }
-    } catch {
-      setMessages(prev => [...prev, {
-        id: `error-${Date.now()}`,
-        role: 'assistant',
-        content: 'I couldn\'t connect to the server. Please try again.',
-        timestamp: new Date(),
-      }])
     }
-
-    setLoading(false)
   }
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -562,7 +622,7 @@ export default function ChatPage() {
                     <div className="w-2 h-2 rounded-full bg-purple-400 animate-bounce" style={{ animationDelay: '150ms' }} />
                     <div className="w-2 h-2 rounded-full bg-purple-400 animate-bounce" style={{ animationDelay: '300ms' }} />
                   </div>
-                  <span className="text-xs text-gray-400">Thinking...</span>
+                  <span className="text-xs text-gray-400">Kiros AI is working... you can navigate away and come back</span>
                 </div>
               </div>
             )}

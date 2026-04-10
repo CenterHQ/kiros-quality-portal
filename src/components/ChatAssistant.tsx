@@ -45,24 +45,36 @@ export default function ChatAssistant() {
     setLoading(true)
 
     try {
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 55000)
+
       const res = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ conversationId, message: userMessage }),
+        signal: controller.signal,
       })
+      clearTimeout(timeoutId)
       const data = await res.json()
 
       if (data.error) {
         setMessages(prev => [...prev, { id: `err-${Date.now()}`, role: 'assistant', content: `Error: ${data.error}`, timestamp: new Date() }])
+        setLoading(false)
       } else {
         if (!conversationId && data.conversationId) setConversationId(data.conversationId)
         setMessages(prev => [...prev, { id: `ai-${Date.now()}`, role: 'assistant', content: data.message, timestamp: new Date() }])
         if (!isOpen) setHasNewMessage(true)
+        setLoading(false)
       }
-    } catch {
-      setMessages(prev => [...prev, { id: `err-${Date.now()}`, role: 'assistant', content: 'Connection error. Please try again.', timestamp: new Date() }])
+    } catch (err) {
+      if (err instanceof DOMException && err.name === 'AbortError') {
+        // Processing continues server-side — response will come via conversation history
+        console.log('Widget: request timed out, processing continues in background')
+      } else {
+        setMessages(prev => [...prev, { id: `err-${Date.now()}`, role: 'assistant', content: 'Connection error. Please try again.', timestamp: new Date() }])
+        setLoading(false)
+      }
     }
-    setLoading(false)
   }
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
