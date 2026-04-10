@@ -94,7 +94,7 @@ export default async function APDashboardPage() {
         </div>
         <div className="space-y-3 max-h-96 overflow-y-auto">
           {qipGoals.map((goal) => (
-            <div key={goal.id} className="flex items-center gap-4 py-2 border-b border-gray-50 last:border-0">
+            <div key={goal.id} className="flex items-center gap-4 py-2 border-b border-border/50 last:border-0">
               <div className="flex-1 min-w-0">
                 <div className="text-sm font-medium text-foreground truncate">{goal.title}</div>
                 <div className="flex items-center gap-3 mt-1">
@@ -114,7 +114,7 @@ export default async function APDashboardPage() {
                 <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
                   <div className="h-full rounded-full transition-all bg-primary" style={{ width: `${goal.progress}%` }} />
                 </div>
-                <span className="text-xs font-medium text-gray-600 w-8 text-right">{goal.progress}%</span>
+                <span className="text-xs font-medium text-muted-foreground w-8 text-right">{goal.progress}%</span>
               </div>
             </div>
           ))}
@@ -146,7 +146,7 @@ export default async function APDashboardPage() {
           </div>
           <div className="space-y-2 max-h-48 sm:max-h-64 overflow-y-auto">
             {staffCompliance.staff.map(s => (
-              <div key={s.id} className="flex items-center justify-between text-sm py-1 border-b border-gray-50">
+              <div key={s.id} className="flex items-center justify-between text-sm py-1 border-b border-border/50">
                 <div>
                   <span className="text-foreground">{s.name}</span>
                   <span className="text-xs text-muted-foreground ml-2">{ROLE_LABELS[s.role] || s.role}</span>
@@ -167,7 +167,7 @@ export default async function APDashboardPage() {
           <h2 className="text-lg font-semibold text-foreground mb-4">Operational Health</h2>
           <div className="grid grid-cols-2 gap-3 mb-4">
             <div className="bg-muted rounded-lg p-3">
-              <div className="text-xs text-gray-600">Checklists Today</div>
+              <div className="text-xs text-muted-foreground">Checklists Today</div>
               <div className="text-xl font-bold text-foreground">
                 {operations.checklistsToday.completed}/{operations.checklistsToday.total}
               </div>
@@ -188,9 +188,9 @@ export default async function APDashboardPage() {
           <div className="space-y-2">
             <div className="text-xs font-medium text-muted-foreground mb-2">Recent Activity</div>
             {operations.recentActivity.slice(0, 5).map((act: Record<string, unknown>, i: number) => (
-              <div key={i} className="flex items-start gap-2 text-xs py-1 border-b border-gray-50">
-                <div className="w-1.5 h-1.5 rounded-full bg-gray-300 mt-1.5 flex-shrink-0" />
-                <div className="text-gray-600">
+              <div key={i} className="flex items-start gap-2 text-xs py-1 border-b border-border/50">
+                <div className="w-1.5 h-1.5 rounded-full bg-muted-foreground/40 mt-1.5 flex-shrink-0" />
+                <div className="text-muted-foreground">
                   <span className="font-medium">{(act.profiles as Record<string, unknown>)?.full_name as string || 'System'}</span>
                   {' '}{act.action as string}
                 </div>
@@ -205,7 +205,7 @@ export default async function APDashboardPage() {
         <h2 className="text-lg font-semibold text-foreground mb-4">Quality Area Breakdown</h2>
         <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
           {qaBreakdown.map(qa => (
-            <a key={qa.qa} href={`/elements?qa=${qa.qa}`} className="block rounded-lg border border-gray-100 p-4 hover:shadow-md transition-shadow focus:ring-2 focus:ring-purple-300 focus:outline-none">
+            <a key={qa.qa} href={`/elements?qa=${qa.qa}`} className="block rounded-lg border border-border p-4 hover:shadow-md transition-shadow focus:ring-2 focus:ring-ring focus:outline-none">
               <div className="flex items-center gap-2 mb-2">
                 <span className="text-xs px-2 py-0.5 rounded text-white font-medium" style={{ backgroundColor: QA_COLORS[qa.qa] || '#999' }}>
                   QA{qa.qa}

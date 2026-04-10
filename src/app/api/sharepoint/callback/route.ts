@@ -26,6 +26,7 @@ export async function GET(request: NextRequest) {
     // Store connection in database
     const supabase = await createServerSupabaseClient()
     const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return NextResponse.redirect(new URL('/admin/sharepoint?error=not_authenticated', request.url))
 
     // Upsert connection (only one active connection)
     // Store app token instead of user token - it's more reliable for background access

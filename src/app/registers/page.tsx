@@ -299,7 +299,7 @@ export default function RegistersPage() {
                   {reg.columns.slice(0, 5).map((col: RegisterColumnDef) => (
                     <span key={col.id} className="px-2 py-0.5 bg-muted text-muted-foreground rounded text-xs">{col.name}</span>
                   ))}
-                  {reg.columns.length > 5 && <span className="px-2 py-0.5 bg-gray-100 text-gray-400 rounded text-xs">+{reg.columns.length - 5} more</span>}
+                  {reg.columns.length > 5 && <span className="px-2 py-0.5 bg-muted text-muted-foreground rounded text-xs">+{reg.columns.length - 5} more</span>}
                 </div>
 
                 <div className="flex gap-2">
