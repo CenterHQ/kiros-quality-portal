@@ -1087,6 +1087,7 @@ export const ALL_APP_PAGES: { href: string; label: string; section: string }[] =
   { href: '/resources', label: 'Resources', section: 'Main' },
   { href: '/activity', label: 'Activity', section: 'Main' },
   { href: '/reports', label: 'Reports', section: 'Main' },
+  { href: '/reports/extract', label: 'Data Extract', section: 'Main' },
   { href: '/guide', label: 'User Guide', section: 'Main' },
   // OWNA Integration
   { href: '/owna/children', label: 'Children & Rooms', section: 'OWNA Integration' },
