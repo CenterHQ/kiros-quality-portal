@@ -158,6 +158,7 @@ export default function SharePointAdminPage() {
   const [connection, setConnection] = useState<SharePointConnection | null>(null)
   const [connectionLoading, setConnectionLoading] = useState(true)
   const [disconnecting, setDisconnecting] = useState(false)
+  const [refreshingToken, setRefreshingToken] = useState(false)
 
   // Flash messages
   const [flashMessage, setFlashMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
@@ -232,6 +233,38 @@ export default function SharePointAdminPage() {
   }, [supabase])
 
   useEffect(() => { loadConnection() }, [loadConnection])
+
+  // ─── Token refresh ─────────────────────────────────────────────────────────
+
+  const refreshToken = useCallback(async () => {
+    if (!connection || connection.status !== 'connected') return
+    setRefreshingToken(true)
+    try {
+      const res = await fetch('/api/sharepoint/refresh-token', { method: 'POST' })
+      if (!res.ok) throw new Error('Failed to refresh token')
+      const data = await res.json()
+      setConnection(prev => prev ? { ...prev, token_expires_at: data.token_expires_at } : prev)
+    } catch {
+      setFlashMessage({ type: 'error', text: 'Failed to refresh SharePoint token.' })
+    }
+    setRefreshingToken(false)
+  }, [connection])
+
+  // Auto-refresh token every 50 minutes (tokens expire after 60 min)
+  useEffect(() => {
+    if (!connection || connection.status !== 'connected') return
+    const interval = setInterval(() => {
+      refreshToken()
+    }, 50 * 60 * 1000)
+    return () => clearInterval(interval)
+  }, [connection, refreshToken])
+
+  // Auto-refresh on load if token is expired
+  useEffect(() => {
+    if (connection?.status === 'connected' && connection.token_expires_at && new Date(connection.token_expires_at) < new Date()) {
+      refreshToken()
+    }
+  }, [connection?.id]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // ─── Load files ─────────────────────────────────────────────────────────────
 
@@ -581,6 +614,18 @@ export default function SharePointAdminPage() {
                   Token expired
                 </span>
               )}
+              <button
+                onClick={refreshToken}
+                disabled={refreshingToken}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border border-border text-muted-foreground hover:bg-muted transition-colors disabled:opacity-50"
+              >
+                {refreshingToken ? <Spinner /> : (
+                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                  </svg>
+                )}
+                Refresh Token
+              </button>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 text-sm">
