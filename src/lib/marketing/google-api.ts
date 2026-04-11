@@ -89,7 +89,6 @@ export async function getBusinessLocations(
   accessToken: string,
   accountName: string,
 ): Promise<{ name: string; title: string; locationName: string }[]> {
-  const client = getAuthedClient(accessToken)
   const res = await fetch(
     `https://mybusinessbusinessinformation.googleapis.com/v1/${accountName}/locations?readMask=name,title`,
     { headers: { Authorization: `Bearer ${accessToken}` } },
@@ -269,7 +268,7 @@ export async function uploadYouTubeVideo(
   const client = getAuthedClient(accessToken)
   const youtube = google.youtube({ version: 'v3', auth: client })
 
-  const { Readable } = require('stream')
+  const { Readable } = await import('stream')
   const stream = Readable.from(videoBuffer)
 
   const res = await youtube.videos.insert({

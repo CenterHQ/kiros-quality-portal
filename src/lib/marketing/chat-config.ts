@@ -1,5 +1,4 @@
 import Anthropic from '@anthropic-ai/sdk'
-import { createServiceRoleClient } from '@/lib/supabase/server'
 import { ROLE_LABELS } from '@/lib/types'
 
 // Re-export for convenience

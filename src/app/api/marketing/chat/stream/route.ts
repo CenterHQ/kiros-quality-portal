@@ -3,7 +3,7 @@ import { createServerSupabaseClient, createServiceRoleClient } from '@/lib/supab
 import Anthropic from '@anthropic-ai/sdk'
 import { selectModelConfig } from '@/lib/chat/model-router'
 import type { SSEEvent } from '@/lib/chat/sse-protocol'
-import { getAnthropicClient, ROLE_LABELS } from '@/lib/chat/shared'
+import { getAnthropicClient } from '@/lib/chat/shared'
 import { MARKETING_TOOLS, buildMarketingSystemPromptCached } from '@/lib/marketing/chat-config'
 import { executeMarketingTool } from '@/lib/marketing/tool-executor'
 
@@ -105,7 +105,7 @@ export async function POST(request: NextRequest) {
         // Filter marketing tools by role
         const allowedTools: Anthropic.Tool[] = MARKETING_TOOLS
           .filter(t => t.allowedRoles.includes(profile.role))
-          .map(({ allowedRoles: _, ...tool }) => tool)
+          .map(({ allowedRoles: _allowedRoles, ...tool }) => tool)
 
         // Build marketing system prompt with caching
         const systemPromptBlocks = buildMarketingSystemPromptCached(profile.role, centreContext, serviceDetailsStr)

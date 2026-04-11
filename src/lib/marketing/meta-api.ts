@@ -299,11 +299,11 @@ export async function getCampaignInsights(
 
 // ─── Webhook Verification ────────────────────────────────────────────────────
 
-export function verifyWebhookSignature(
+export async function verifyWebhookSignature(
   signature: string,
   body: string,
-): boolean {
-  const crypto = require('crypto')
+): Promise<boolean> {
+  const crypto = await import('crypto')
   const expectedSig = 'sha256=' + crypto
     .createHmac('sha256', process.env.META_APP_SECRET!)
     .update(body)

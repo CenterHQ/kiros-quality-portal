@@ -24,7 +24,7 @@ export async function POST(request: NextRequest) {
 
     // Verify signature
     const signature = request.headers.get('x-hub-signature-256')
-    if (signature && !verifyWebhookSignature(signature, body)) {
+    if (signature && !(await verifyWebhookSignature(signature, body))) {
       return NextResponse.json({ error: 'Invalid signature' }, { status: 403 })
     }
 

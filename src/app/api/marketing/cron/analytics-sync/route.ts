@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServiceRoleClient } from '@/lib/supabase/server'
 import { withTokenRefresh } from '@/lib/marketing/token-manager'
-import { getPageInsights, getInstagramInsights, getCampaignInsights, getAdCampaigns } from '@/lib/marketing/meta-api'
+import { getPageInsights, getInstagramInsights } from '@/lib/marketing/meta-api'
 import { queryGA4, getYouTubeChannelAnalytics, getBusinessReviews } from '@/lib/marketing/google-api'
 
 export const dynamic = 'force-dynamic'
