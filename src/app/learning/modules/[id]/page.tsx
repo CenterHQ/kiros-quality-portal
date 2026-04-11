@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useProfile } from '@/lib/ProfileContext'
+import { useToast } from '@/components/ui/toast'
 import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import type {
@@ -125,6 +126,7 @@ export default function ModulePlayerPage() {
   const params = useParams()
   const router = useRouter()
   const profile = useProfile()
+  const { toast } = useToast()
   const supabase = useMemo(() => createClient(), [])
   const moduleId = params.id as string
 
@@ -508,7 +510,7 @@ export default function ModulePlayerPage() {
       }
 
       // Update enrollment
-      await supabase
+      const { error: enrollErr } = await supabase
         .from('lms_enrollments')
         .update({
           status: 'completed',
@@ -517,8 +519,13 @@ export default function ModulePlayerPage() {
         })
         .eq('id', enrollment.id)
 
+      if (enrollErr) {
+        toast({ type: 'error', message: `Failed to complete module: ${enrollErr.message}` })
+        return
+      }
+
       // Generate certificate
-      await supabase.from('lms_certificates').insert({
+      const { error: certErr } = await supabase.from('lms_certificates').insert({
         user_id: profile.id,
         title: mod.title,
         certificate_type: 'internal',
@@ -528,6 +535,11 @@ export default function ModulePlayerPage() {
         related_qa: mod.related_qa || [],
         status: 'current',
       })
+
+      if (certErr) {
+        console.error('Certificate creation failed:', certErr)
+        toast({ type: 'warning', message: 'Module completed but certificate generation failed. Please contact your administrator.' })
+      }
 
       // Log activity
       await supabase.from('activity_log').insert({
@@ -540,10 +552,14 @@ export default function ModulePlayerPage() {
 
       setModuleCompleted(true)
       setCompletionScore(finalScore)
+      toast({ type: 'success', message: 'Module completed! Certificate added to your profile.' })
+    } catch (err) {
+      console.error('Module completion error:', err)
+      toast({ type: 'error', message: 'An error occurred while completing the module. Please try again.' })
     } finally {
       setSaving(false)
     }
-  }, [enrollment, mod, supabase, profile.id, quizResponses])
+  }, [enrollment, mod, supabase, profile.id, quizResponses, toast])
 
   const navigateSection = useCallback(
     (index: number) => {
