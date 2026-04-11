@@ -159,7 +159,7 @@ export default function InboxPage() {
               <div className="p-8 text-center text-muted-foreground">
                 <MessageCircle className="size-8 mx-auto mb-2 opacity-40" />
                 <p className="text-sm">No messages yet</p>
-                <p className="text-xs mt-1">Click "Sync Messages" to pull messages from your connected accounts</p>
+                <p className="text-xs mt-1">Click Sync Messages to pull messages from your connected accounts</p>
               </div>
             ) : (
               threads.map(thread => (
