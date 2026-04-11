@@ -1,9 +1,9 @@
 import { NextRequest } from 'next/server'
 import { createServerSupabaseClient, createServiceRoleClient } from '@/lib/supabase/server'
 import Anthropic from '@anthropic-ai/sdk'
-import { selectModel } from '@/lib/chat/model-router'
+import { selectModelConfig } from '@/lib/chat/model-router'
 import type { SSEEvent } from '@/lib/chat/sse-protocol'
-import { ALL_TOOLS, buildSystemPromptCached, executeTool, ROLE_LABELS, getAnthropicClient } from '@/lib/chat/shared'
+import { ALL_TOOLS, buildSystemPromptCachedFromDB, executeTool, ROLE_LABELS, getAnthropicClient } from '@/lib/chat/shared'
 
 export const dynamic = 'force-dynamic'
 export const maxDuration = 300 // Vercel Pro — 5 min for long agentic chains
@@ -64,8 +64,8 @@ export async function POST(request: NextRequest) {
     content: message,
   })
 
-  // Select model based on message complexity
-  const model = selectModel(message)
+  // Select model and thinking config based on message complexity
+  const { model, thinking } = selectModelConfig(message)
 
   // Use service role client for the streaming work (more reliable for long operations)
   const serviceSupabase = createServiceRoleClient()
@@ -143,7 +143,7 @@ export async function POST(request: NextRequest) {
           .map(({ allowedRoles: _, ...tool }) => tool)
 
         // Build system prompt as cached content blocks
-        const systemPromptBlocks = buildSystemPromptCached(profile.role, centreContext, staffList, serviceDetailsStr)
+        const systemPromptBlocks = await buildSystemPromptCachedFromDB(profile.role, centreContext, staffList, serviceDetailsStr, serviceSupabase)
 
         // Cache the tools array
         const toolsWithCache = [...allowedTools]
@@ -167,6 +167,7 @@ export async function POST(request: NextRequest) {
           const apiStream = anthropic.messages.stream({
             model,
             max_tokens: 16384,
+            ...(thinking && { thinking }),
             system: systemPromptBlocks,
             tools: toolsWithCache as Anthropic.Tool[],
             messages,
@@ -174,24 +175,31 @@ export async function POST(request: NextRequest) {
 
           // Collect content blocks for this iteration
           const contentBlocks: Anthropic.ContentBlock[] = []
+          const contentBlockMap = new Map<number, Anthropic.ContentBlock>()
           let currentToolUseBlocks: Array<Anthropic.ContentBlock & { type: 'tool_use' }> = []
 
           // Stream events to client
           for await (const event of apiStream) {
             if (event.type === 'content_block_delta') {
               const delta = event.delta
+              // Skip thinking deltas — internal reasoning not shown to user
+              if ('type' in delta && (delta.type === 'thinking_delta' || delta.type === 'signature_delta')) continue
               if ('text' in delta && delta.text) {
                 fullText += delta.text
                 controller.enqueue(encodeSSE('delta', { type: 'text_delta', text: delta.text }))
               }
             } else if (event.type === 'content_block_start') {
+              // Skip thinking blocks entirely
+              if (event.content_block.type === 'thinking') continue
               if (event.content_block.type === 'tool_use') {
                 controller.enqueue(encodeSSE('status', { type: 'tool_start', tool: event.content_block.name }))
               }
-              contentBlocks.push(event.content_block as Anthropic.ContentBlock)
+              const block = event.content_block as Anthropic.ContentBlock
+              contentBlocks.push(block)
+              contentBlockMap.set(event.index, block)
             } else if (event.type === 'content_block_stop') {
-              // Update the content block with accumulated data
-              const block = contentBlocks[event.index]
+              // Use map to handle index gaps from skipped thinking blocks
+              const block = contentBlockMap.get(event.index)
               if (block && block.type === 'tool_use') {
                 currentToolUseBlocks.push(block as Anthropic.ContentBlock & { type: 'tool_use' })
               }
@@ -344,4 +352,4 @@ export async function POST(request: NextRequest) {
   })
 }
 
-// buildSystemPromptCached is imported from @/lib/chat/shared
+// buildSystemPromptCachedFromDB is imported from @/lib/chat/shared — loads from DB with hardcoded fallback

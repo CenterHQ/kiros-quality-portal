@@ -63,12 +63,38 @@ RESPONSE RULES:
    - Use tables for structured data
    - Use > blockquotes for direct policy/regulation quotes
 
-3. When generating documents (reports, letters, policies, plans):
-   - Use the generate_document tool
-   - Include professional structure: title, date, executive summary, body sections, recommendations
-   - Include Kiros branding language and philosophy references
-   - Cite all sources within the document
-   - Always ask what format the user wants if not specified (PDF, Word, Excel, HTML, Markdown)
+3. When generating documents, you MUST use the generate_document tool and follow these type-specific templates:
+
+   **REPORT** (board reports, compliance reports, QIP reports, analysis reports):
+   Sections: # Title → metadata table (Date, Author, Recipient, Version) → ## Executive Summary → ## Key Findings (use tables for data) → ## Detailed Analysis (subsections per topic, cite NQS elements) → ## Recommendations (numbered, actionable) → ## Next Steps & Timeline (table with responsible person, deadline)
+
+   **LETTER** (parent letters, regulatory correspondence, staff communications):
+   Sections: Letterhead block (Kiros Early Education, address, date, reference number) → Recipient details → Salutation → ## Purpose → Body paragraphs → ## Action Required (if any) → Professional closing → Signatory block (name, title, centre)
+
+   **POLICY** (centre policies, procedures):
+   Sections: # Policy Title → metadata table (Policy Number, Version, Effective Date, Review Date, Approved By) → ## Purpose → ## Scope → ## Definitions (table if >3 terms) → ## Policy Statement → ## Procedures (numbered steps) → ## Related Legislation & Standards (cite NQS elements, NSW regulations) → ## Review Schedule
+
+   **PLAN** (QIP plans, improvement plans, action plans, strategic plans):
+   Sections: # Plan Title → metadata table → ## Overview & Context → ## SMART Objectives (table: Objective, Measure, Target, Timeframe) → ## Strategies & Actions (table: Action, Responsible, Resources, Timeline, Status) → ## Success Measures & Evidence → ## Review & Evaluation Schedule
+
+   **CHECKLIST** (compliance checklists, audit checklists, daily checklists):
+   Sections: # Checklist Title → metadata (Purpose, Frequency, Responsible Role) → checklist items as task list (- [ ] format) grouped by category → ## Completion & Sign-off section (table: Completed By, Date, Signature, Notes)
+
+   **AGENDA** (team meetings, board meetings, planning meetings):
+   Sections: # Meeting Title → details table (Date, Time, Location, Chair, Attendees, Apologies) → ## Purpose → ## Action Items from Previous Meeting (table: Action, Owner, Status) → ## Agenda Items (numbered with time allocations table: #, Item, Presenter, Duration) → ## Any Other Business → ## Next Meeting Date
+
+   **COMMUNICATION** (newsletters, parent updates, staff bulletins):
+   Sections: # Title → metadata (Audience, Channel, Date) → ## Key Messages (3-5 bullet points) → ## Detail sections → ## Call to Action → ## Contact Information
+
+   **GUIDE** (how-to guides, onboarding guides, procedure guides):
+   Sections: # Guide Title → ## Purpose & Audience → ## Prerequisites (if any) → ## Step-by-Step Instructions (### numbered sections with clear actions) → ## Tips & Best Practice (blockquotes for key tips) → ## Frequently Asked Questions → ## References & Resources
+
+   **SUMMARY** (meeting summaries, briefing notes, executive summaries):
+   Sections: # Title → metadata (Date, Context, Prepared By) → ## Context → ## Key Points (concise bullets) → ## Data Highlights (table if applicable) → ## Implications & Actions → ## Conclusion
+
+   **OTHER**: Use # Title → metadata → ## Purpose → ## Body (appropriate subsections) → ## Conclusion/Next Steps
+
+   Across ALL document types: use Australian English, reference Kiros Early Education philosophy, cite NQS element codes and NSW regulations where relevant, use tables for structured data, bold for key terms, blockquotes for regulatory callouts. Always ask the user what export format they want if not specified (PDF, Word, Excel, HTML, Markdown).
 
 4. When suggesting actions (create task, assign training, update items):
    - ALWAYS use confirmation — return pending_action objects so the user can approve/cancel
@@ -88,6 +114,99 @@ RESPONSE RULES:
 8. Reference NQS element codes (e.g., 1.1.1, 2.2.3) and NSW regulation numbers (e.g., Regulation 77, Regulation 155, Section 165) where relevant.
 
 9. Today's date is ${new Date().toISOString().split('T')[0]}`
+}
+
+// DB-driven system prompt — loads editable sections from ai_system_prompts table
+export async function buildSystemPromptFromDB(
+  role: string,
+  centreContext: string,
+  staffList: string,
+  serviceDetails: string,
+  supabase: ReturnType<typeof createServiceRoleClient>,
+): Promise<string> {
+  try {
+    const { data: prompts, error } = await supabase
+      .from('ai_system_prompts')
+      .select('*')
+      .eq('is_active', true)
+      .order('sort_order', { ascending: true })
+
+    if (error || !prompts || prompts.length === 0) {
+      // Fallback to hardcoded prompt
+      return buildSystemPrompt(role, centreContext, staffList, serviceDetails)
+    }
+
+    const roleLabel = ROLE_LABELS[role] || 'Staff Member'
+
+    // Group by section
+    const bySection: Record<string, typeof prompts> = {}
+    for (const p of prompts) {
+      if (!bySection[p.section]) bySection[p.section] = []
+      bySection[p.section].push(p)
+    }
+
+    // Assemble in order
+    const sectionOrder = ['identity', 'expertise', 'role_instructions', 'response_rules', 'document_templates', 'custom']
+    const parts: string[] = []
+
+    for (const section of sectionOrder) {
+      const rows = bySection[section] || []
+      for (const row of rows) {
+        // Skip role-specific rows that don't match the current user's role
+        if (row.role && row.role !== role) continue
+        parts.push(row.template)
+      }
+    }
+
+    if (parts.length === 0) {
+      return buildSystemPrompt(role, centreContext, staffList, serviceDetails)
+    }
+
+    // Variable substitution
+    let assembled = parts.join('\n\n')
+    const vars: Record<string, string> = {
+      centre_name: 'Kiros Early Education',
+      role_label: roleLabel,
+      role: role,
+      centre_context: centreContext,
+      staff_list: staffList,
+      service_details: serviceDetails,
+      date: new Date().toISOString().split('T')[0],
+    }
+    for (const [key, val] of Object.entries(vars)) {
+      assembled = assembled.replace(new RegExp(`\\{${key}\\}`, 'g'), val)
+    }
+
+    return assembled
+  } catch {
+    return buildSystemPrompt(role, centreContext, staffList, serviceDetails)
+  }
+}
+
+// Async cached version that tries DB first, falls back to hardcoded
+export async function buildSystemPromptCachedFromDB(
+  role: string,
+  centreContext: string,
+  staffList: string,
+  serviceDetails: string,
+  supabase: ReturnType<typeof createServiceRoleClient>,
+): Promise<Anthropic.TextBlockParam[]> {
+  const systemPromptText = await buildSystemPromptFromDB(role, centreContext, staffList, serviceDetails, supabase)
+
+  const knowledgeBaseIdx = systemPromptText.indexOf('CENTRE KNOWLEDGE BASE:')
+  if (knowledgeBaseIdx === -1) {
+    return [
+      { type: 'text', text: systemPromptText, cache_control: { type: 'ephemeral' } },
+    ]
+  }
+
+  const staticPart = systemPromptText.substring(0, knowledgeBaseIdx)
+  const dynamicPart = systemPromptText.substring(knowledgeBaseIdx)
+
+  return [
+    { type: 'text', text: staticPart, cache_control: { type: 'ephemeral' } },
+    { type: 'text', text: dynamicPart, cache_control: { type: 'ephemeral' } },
+  ]
 }
 
 // Cached system prompt — splits static and dynamic content for Anthropic prompt caching
@@ -224,13 +343,13 @@ export const ALL_TOOLS: (Anthropic.Tool & { allowedRoles: string[] })[] = [
   },
   {
     name: 'generate_document',
-    description: 'Generate a formatted document that the user can view and download. Use this for reports, letters, policies, plans, checklists, meeting agendas, parent communications, board reports, or any other document the user requests. Format the content in Markdown.',
+    description: 'Generate a professionally formatted document for viewing and download. Use for reports, letters, policies, plans, checklists, meeting agendas, parent communications, guides, or summaries. The output must be board-ready and regulatory-review ready. Use Australian English throughout and reference Kiros Early Education philosophy where relevant. The content field must contain well-structured Markdown that converts cleanly to PDF, Word, and HTML exports.',
     input_schema: {
       type: 'object' as const,
       properties: {
         title: { type: 'string', description: 'Document title' },
         document_type: { type: 'string', enum: ['report', 'letter', 'policy', 'plan', 'checklist', 'agenda', 'communication', 'guide', 'summary', 'other'], description: 'Type of document' },
-        content: { type: 'string', description: 'Full document content in Markdown format. Include headings, lists, tables, and formatting as appropriate.' },
+        content: { type: 'string', description: 'Full document content in well-structured Markdown. REQUIRED formatting rules: (1) Use heading hierarchy — # for document title, ## for major sections, ### for subsections. (2) Start with a metadata block as a table: Date, Author (Kiros AI Assistant), Recipient if applicable, Version 1.0. (3) Include an executive summary or purpose statement for reports, plans, and policies. (4) Use markdown tables for any structured, comparative, or tabular data. (5) Use **bold** for key terms, definitions, and emphasis. (6) Use bullet or numbered lists for sequences, action items, and collections. (7) Use blockquotes (>) for important callouts, regulatory references, or NQS citations. (8) Content must be comprehensive and suitable for board or regulatory review. (9) Australian English spelling (organisation, behaviour, colour). (10) Follow the document-type template specified in the system prompt.' },
         recipient: { type: 'string', description: 'Who this document is for (if applicable)' },
       },
       required: ['title', 'document_type', 'content'],
@@ -423,6 +542,34 @@ export const ALL_TOOLS: (Anthropic.Tool & { allowedRoles: string[] })[] = [
       required: ['title', 'content', 'format'],
     },
     allowedRoles: ['admin', 'manager', 'ns', 'el', 'educator'],
+  },
+  {
+    name: 'run_deep_analysis',
+    description: 'Run a deep multi-perspective analysis by spawning focused research agents that work in parallel. Use this when the user requests comprehensive analysis, board reports, strategic reviews, gap analysis, or any task that benefits from examining multiple areas simultaneously. Each agent focuses on one aspect and results are synthesised into a thorough response. Only use for complex multi-faceted queries — not simple questions.',
+    input_schema: {
+      type: 'object' as const,
+      properties: {
+        analysis_areas: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              focus: { type: 'string', description: 'What this agent should analyse (e.g. "QA1 compliance gaps", "staff training needs", "family engagement status")' },
+              data_tools: {
+                type: 'array',
+                items: { type: 'string' },
+                description: 'Which data tools this agent needs (e.g. ["get_qa_progress", "get_overdue_items"])',
+              },
+            },
+            required: ['focus', 'data_tools'],
+          },
+          description: 'Array of analysis areas to investigate in parallel (2-5 areas)',
+        },
+        synthesis_instruction: { type: 'string', description: 'How to combine the findings into the final response' },
+      },
+      required: ['analysis_areas', 'synthesis_instruction'],
+    },
+    allowedRoles: ['admin', 'manager', 'ns', 'el'],
   },
 ]
 
@@ -894,6 +1041,43 @@ export async function executeTool(
         content: toolInput.content,
         recipient: toolInput.recipient || null,
         download_url: '/api/documents/export',
+      })
+    }
+
+    case 'run_deep_analysis': {
+      const { orchestrateAgents } = await import('@/lib/chat/orchestrator')
+      const areas = toolInput.analysis_areas as Array<{ focus: string; data_tools: string[] }>
+
+      const tasks = areas.map(area => ({
+        agentName: area.focus.toLowerCase().replace(/\s+/g, '_').substring(0, 30),
+        description: area.focus,
+        systemPrompt: `You are a focused research agent for Kiros Early Education Centre (Bidwill, NSW). Your task is to analyse: ${area.focus}. Use the available tools to gather real data, then provide a concise analysis with key findings, issues identified, and specific recommendations. Be specific — cite data points, staff names, dates, NQS element codes. Use Australian English. Format your response with ## headings and bullet points.`,
+        tools: ALL_TOOLS
+          .filter(t => area.data_tools.includes(t.name))
+          .map(({ allowedRoles: _r, ...rest }) => rest) as Anthropic.Tool[],
+        context: `Centre: Kiros Early Education, Bidwill NSW. Today: ${new Date().toISOString().split('T')[0]}`,
+        model: 'claude-sonnet-4-20250514',
+        maxIterations: 3,
+      }))
+
+      const results = await orchestrateAgents({
+        conversationId: '',
+        messageId: '',
+        tasks,
+        supabase,
+      })
+
+      const synthesis = results.map(r =>
+        `## ${r.agentName}\n**Status:** ${r.status}\n\n${r.output}`
+      ).join('\n\n---\n\n')
+
+      return JSON.stringify({
+        type: 'deep_analysis',
+        areas_analyzed: results.length,
+        completed: results.filter(r => r.status === 'completed').length,
+        failed: results.filter(r => r.status === 'failed').length,
+        total_tokens: results.reduce((sum, r) => sum + r.tokensUsed, 0),
+        findings: synthesis,
       })
     }
 

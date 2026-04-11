@@ -4,6 +4,7 @@ import {
   Page,
   View,
   Text,
+  Image,
   StyleSheet,
   renderToBuffer,
   Font,
@@ -13,6 +14,7 @@ import {
   Packer,
   Paragraph,
   TextRun,
+  ImageRun,
   Table,
   TableRow,
   TableCell,
@@ -27,6 +29,19 @@ import {
 } from 'docx'
 import ExcelJS from 'exceljs'
 import MarkdownIt from 'markdown-it'
+import fs from 'fs'
+import path from 'path'
+
+// Load logo once at module init for embedding in exports
+let LOGO_BASE64: string | null = null
+let LOGO_BUFFER: Buffer | null = null
+try {
+  const logoPath = path.join(process.cwd(), 'public', 'logo.jpg')
+  LOGO_BUFFER = fs.readFileSync(logoPath)
+  LOGO_BASE64 = `data:image/jpeg;base64,${LOGO_BUFFER.toString('base64')}`
+} catch {
+  // Logo not available — headers will be text-only
+}
 
 // ---------------------------------------------------------------------------
 // Types
@@ -472,6 +487,9 @@ export async function generatePdfDocument(
   const headerView = React.createElement(
     View,
     { style: pdfStyles.header, fixed: true },
+    ...(LOGO_BASE64
+      ? [React.createElement(Image, { key: 'logo', src: LOGO_BASE64, style: { height: 36, width: 80, marginRight: 10 } })]
+      : []),
     React.createElement(Text, { style: pdfStyles.headerText }, BRAND.centreName),
     React.createElement(Text, { style: pdfStyles.headerDate }, dateStr)
   )
@@ -690,6 +708,13 @@ export async function generateWordDocument(
             children: [
               new Paragraph({
                 children: [
+                  ...(LOGO_BUFFER
+                    ? [new ImageRun({
+                        data: LOGO_BUFFER,
+                        transformation: { width: 80, height: 36 },
+                        type: 'jpg',
+                      })]
+                    : []),
                   new TextRun({
                     text: BRAND.centreName,
                     bold: true,
@@ -1121,6 +1146,7 @@ export function generateHtmlDocument(
 </head>
 <body>
   <header>
+    ${LOGO_BASE64 ? `<img src="${LOGO_BASE64}" alt="Kiros" style="height:36px;width:auto;margin-right:12px;">` : ''}
     <span class="centre-name">${escapeHtml(BRAND.centreName)}</span>
     <span class="date">${escapeHtml(dateStr)}</span>
   </header>
