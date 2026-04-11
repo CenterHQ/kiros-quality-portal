@@ -140,9 +140,10 @@ export default function ChatAssistant() {
 
   return (
     <>
+      {/* Hidden on mobile — bottom nav has AI Chat tab instead */}
       {/* Status indicator — visible when processing or new message, even with panel closed */}
       {!isOpen && (loading || hasNewMessage) && (
-        <div className={`fixed bottom-[88px] right-6 z-50 rounded-full px-3 py-1.5 text-xs font-medium shadow-lg whitespace-nowrap transition-all ${
+        <div className={`hidden md:block fixed bottom-[88px] right-6 z-50 rounded-full px-3 py-1.5 text-xs font-medium shadow-lg whitespace-nowrap transition-all ${
           hasNewMessage
             ? 'bg-green-500 text-white animate-bounce'
             : 'bg-card text-primary border border-primary/20'
@@ -159,7 +160,7 @@ export default function ChatAssistant() {
       {/* Floating button */}
       <button
         onClick={() => { setIsOpen(!isOpen); if (!isOpen) setHasNewMessage(false) }}
-        className={`fixed bottom-6 right-6 w-14 h-14 rounded-full shadow-lg flex items-center justify-center text-primary-foreground z-50 hover:scale-105 transition-transform bg-primary ${hasNewMessage && !isOpen ? 'animate-pulse ring-4 ring-purple-300/50' : ''}`}
+        className={`hidden md:flex fixed bottom-6 right-6 w-14 h-14 rounded-full shadow-lg items-center justify-center text-primary-foreground z-50 hover:scale-105 transition-transform bg-primary ${hasNewMessage && !isOpen ? 'animate-pulse ring-4 ring-purple-300/50' : ''}`}
         aria-label={isOpen ? 'Close chat assistant' : 'Open chat assistant'}
         title="Kiros AI Assistant"
       >
@@ -176,7 +177,7 @@ export default function ChatAssistant() {
 
       {/* Mini chat panel */}
       {isOpen && (
-        <div className="fixed bottom-24 right-6 w-[420px] h-[550px] bg-card rounded-2xl shadow-2xl border border-border flex flex-col z-50 overflow-hidden max-sm:w-[calc(100vw-16px)] max-sm:h-[calc(100vh-100px)] max-sm:right-2 max-sm:bottom-[76px]">
+        <div className="hidden md:flex fixed bottom-24 right-6 w-[420px] h-[550px] bg-card rounded-2xl shadow-2xl border border-border flex-col z-50 overflow-hidden">
           {/* Header */}
           <div className="px-4 py-2.5 border-b border-border bg-primary text-primary-foreground flex items-center justify-between">
             <div className="flex items-center gap-2">
