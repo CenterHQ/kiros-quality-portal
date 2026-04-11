@@ -371,3 +371,101 @@ export function aggregateData(
 
   return { columns: resultColumns, labels: resultLabels, rows: resultRows }
 }
+
+// ─── User UUID Resolution ────────────────────────────────────────────────────
+
+/** Column names that are known to reference profiles.id */
+const USER_UUID_COLUMNS = new Set([
+  'user_id', 'assigned_to', 'created_by', 'submitted_by', 'reviewed_by',
+  'uploaded_by', 'completed_by', 'resolved_by', 'approved_by', 'published_by',
+  'assigned_by', 'covering_user_id', 'owner_id', 'last_reviewed_by',
+  'reviewer_id', 'suggested_by', 'target_user_id', 'updated_by', 'connected_by',
+])
+
+/**
+ * Detect which columns in the flat output contain user UUIDs,
+ * batch-fetch their names from profiles, and add a "Name" column
+ * next to each resolved UUID column.
+ */
+export async function resolveUserNames(
+  supabase: SupabaseClient,
+  flatData: { columns: string[]; labels: string[]; rows: unknown[][] }
+): Promise<{ columns: string[]; labels: string[]; rows: unknown[][] }> {
+  // Find column indices that contain user UUIDs
+  const userColIndices: { index: number; colName: string; label: string }[] = []
+  for (let i = 0; i < flatData.columns.length; i++) {
+    const col = flatData.columns[i]
+    // Check both direct column names and joined column names (e.g., "profiles.id")
+    const baseName = col.includes('.') ? col.split('.').pop()! : col
+    if (USER_UUID_COLUMNS.has(baseName)) {
+      userColIndices.push({ index: i, colName: col, label: flatData.labels[i] })
+    }
+  }
+
+  if (userColIndices.length === 0) return flatData
+
+  // Collect all unique UUIDs
+  const allUuids = new Set<string>()
+  for (const row of flatData.rows) {
+    for (const { index } of userColIndices) {
+      const val = row[index]
+      if (typeof val === 'string' && val.length === 36) {
+        allUuids.add(val)
+      }
+    }
+  }
+
+  if (allUuids.size === 0) return flatData
+
+  // Batch fetch profiles
+  const uuidArray = Array.from(allUuids)
+  const nameMap = new Map<string, string>()
+
+  // Supabase IN filter has a limit, batch in chunks of 100
+  for (let i = 0; i < uuidArray.length; i += 100) {
+    const chunk = uuidArray.slice(i, i + 100)
+    const { data } = await supabase
+      .from('profiles')
+      .select('id, full_name')
+      .in('id', chunk)
+
+    if (data) {
+      for (const profile of data) {
+        nameMap.set(profile.id, profile.full_name)
+      }
+    }
+  }
+
+  // Build new columns/labels/rows with name columns inserted after each UUID column
+  const newColumns: string[] = []
+  const newLabels: string[] = []
+  const insertMap: { origIndex: number; isName: boolean }[] = []
+
+  for (let i = 0; i < flatData.columns.length; i++) {
+    newColumns.push(flatData.columns[i])
+    newLabels.push(flatData.labels[i])
+    insertMap.push({ origIndex: i, isName: false })
+
+    const userCol = userColIndices.find(u => u.index === i)
+    if (userCol) {
+      // Insert a name column right after
+      const nameLabel = userCol.label.replace('(User ID)', '').replace('User ID', '').replace(' ID', '').trim()
+      newColumns.push(`${userCol.colName}_name`)
+      newLabels.push(nameLabel ? `${nameLabel} Name` : 'Name')
+      insertMap.push({ origIndex: i, isName: true })
+    }
+  }
+
+  const newRows = flatData.rows.map(row => {
+    return insertMap.map(({ origIndex, isName }) => {
+      if (!isName) return row[origIndex]
+      const uuid = row[origIndex]
+      if (typeof uuid === 'string') {
+        return nameMap.get(uuid) ?? uuid
+      }
+      return null
+    })
+  })
+
+  return { columns: newColumns, labels: newLabels, rows: newRows }
+}

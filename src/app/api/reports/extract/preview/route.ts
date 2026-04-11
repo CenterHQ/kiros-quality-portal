@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
 import { createServiceRoleClient } from '@/lib/supabase/server'
-import { executeReportQuery, flattenRows, aggregateData } from '@/lib/report-query-builder'
+import { executeReportQuery, flattenRows, aggregateData, resolveUserNames } from '@/lib/report-query-builder'
 import type { ReportTemplateConfig } from '@/lib/report-types'
 
 export const dynamic = 'force-dynamic'
@@ -42,6 +42,9 @@ export async function POST(request: NextRequest) {
 
     // Flatten for display
     let flatData = flattenRows(result.data ?? [], config)
+
+    // Auto-resolve user UUIDs to names
+    flatData = await resolveUserNames(serviceClient, flatData)
 
     // Apply aggregation if enabled
     if (config.aggregation?.enabled) {
