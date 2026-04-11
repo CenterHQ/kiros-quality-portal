@@ -7,8 +7,7 @@ import { useToast } from '@/components/ui/toast'
 import { ROLE_LABELS } from '@/lib/types'
 import { useChatStream } from '@/hooks/useChatStream'
 import { TOOL_LABELS } from '@/lib/chat/sse-protocol'
-import ReactMarkdown from 'react-markdown'
-import remarkGfm from 'remark-gfm'
+import MarkdownRenderer from '@/components/chat/MarkdownRenderer'
 
 interface Message {
   id: string
@@ -578,7 +577,7 @@ export default function ChatPage() {
 
             {/* Messages */}
             {messages.map(msg => (
-              <div key={msg.id} className={`flex gap-3 ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+              <div key={msg.id} className={`flex gap-3 animate-fade-in ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                 {msg.role === 'assistant' && (
                   <div className="w-8 h-8 rounded-full flex items-center justify-center bg-primary text-primary-foreground text-xs font-bold flex-shrink-0 mt-1">K</div>
                 )}
@@ -591,11 +590,7 @@ export default function ChatPage() {
                   ) : (
                     <div className="space-y-3">
                       {/* Markdown rendered content */}
-                      <div className="prose prose-sm max-w-none text-foreground [&_h1]:text-base [&_h1]:font-bold [&_h2]:text-sm [&_h2]:font-semibold [&_h3]:text-sm [&_h3]:font-medium [&_p]:text-sm [&_p]:leading-relaxed [&_li]:text-sm [&_table]:text-xs [&_th]:bg-gray-50 [&_th]:px-3 [&_th]:py-1.5 [&_td]:px-3 [&_td]:py-1.5 [&_blockquote]:border-l-purple-400 [&_blockquote]:bg-purple-50/50 [&_code]:text-xs [&_code]:bg-gray-100 [&_code]:px-1 [&_code]:rounded [&_pre]:bg-gray-900 [&_pre]:text-gray-100 [&_pre]:rounded-lg [&_pre]:text-xs">
-                        <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                          {msg.content}
-                        </ReactMarkdown>
-                      </div>
+                      <MarkdownRenderer content={msg.content} />
 
                       {/* Pending Action Confirmation Cards */}
                       {Object.entries(pendingActions).filter(([, v]) => v.status === 'pending').map(([actionId, { action }]) => (
@@ -667,10 +662,8 @@ export default function ChatPage() {
                             </div>
                           </div>
                           {expandedDoc === `${msg.id}-${di}` && (
-                            <div className="px-4 py-4 border-t border-purple-100 max-h-64 sm:max-h-96 overflow-y-auto prose prose-sm max-w-none [&_h1]:text-base [&_h2]:text-sm [&_table]:text-xs [&_th]:bg-gray-50 [&_th]:px-2 [&_td]:px-2">
-                              <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                                {doc.content}
-                              </ReactMarkdown>
+                            <div className="px-4 py-4 border-t border-purple-100 max-h-64 sm:max-h-96 overflow-y-auto">
+                              <MarkdownRenderer content={doc.content} />
                             </div>
                           )}
                         </div>
@@ -712,11 +705,7 @@ export default function ChatPage() {
               <div className="flex gap-3 justify-start">
                 <div className="w-8 h-8 rounded-full flex items-center justify-center bg-primary text-primary-foreground text-xs font-bold flex-shrink-0 mt-1">K</div>
                 <div className="max-w-[90%] sm:max-w-[80%] space-y-3">
-                  <div className="prose prose-sm max-w-none text-foreground [&_h1]:text-base [&_h1]:font-bold [&_h2]:text-sm [&_h2]:font-semibold [&_h3]:text-sm [&_h3]:font-medium [&_p]:text-sm [&_p]:leading-relaxed [&_li]:text-sm [&_table]:text-xs [&_th]:bg-gray-50 [&_th]:px-3 [&_th]:py-1.5 [&_td]:px-3 [&_td]:py-1.5 [&_blockquote]:border-l-purple-400 [&_blockquote]:bg-purple-50/50 [&_code]:text-xs [&_code]:bg-gray-100 [&_code]:px-1 [&_code]:rounded [&_pre]:bg-gray-900 [&_pre]:text-gray-100 [&_pre]:rounded-lg [&_pre]:text-xs">
-                    <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                      {streamingMessage.text}
-                    </ReactMarkdown>
-                  </div>
+                  <MarkdownRenderer content={streamingMessage.text} />
 
                   {/* Tool activity indicators */}
                   {activeTools.length > 0 && (

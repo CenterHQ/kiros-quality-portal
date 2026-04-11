@@ -7,8 +7,7 @@ import { useProfile } from '@/lib/ProfileContext'
 import { ROLE_LABELS } from '@/lib/types'
 import { useChatStream } from '@/hooks/useChatStream'
 import { TOOL_LABELS } from '@/lib/chat/sse-protocol'
-import ReactMarkdown from 'react-markdown'
-import remarkGfm from 'remark-gfm'
+import MarkdownRenderer from '@/components/chat/MarkdownRenderer'
 
 interface Message {
   id: string
@@ -240,9 +239,7 @@ export default function ChatAssistant() {
                     : 'bg-muted text-foreground rounded-bl-md'
                 }`}>
                   {msg.role === 'assistant' ? (
-                    <div className="prose prose-sm max-w-none [&_p]:text-sm [&_p]:leading-relaxed [&_p]:my-1 [&_li]:text-sm [&_h1]:text-sm [&_h1]:font-bold [&_h2]:text-sm [&_h2]:font-semibold [&_h3]:text-xs [&_table]:text-[11px] [&_code]:text-xs [&_code]:bg-gray-100 [&_code]:px-1 [&_code]:rounded [&_blockquote]:text-xs [&_blockquote]:border-l-purple-300">
-                      <ReactMarkdown remarkPlugins={[remarkGfm]}>{msg.content}</ReactMarkdown>
-                    </div>
+                    <MarkdownRenderer content={msg.content} compact />
                   ) : (
                     <div className="whitespace-pre-wrap">{msg.content}</div>
                   )}
@@ -254,9 +251,7 @@ export default function ChatAssistant() {
             {streamingMessage?.isStreaming && streamingMessage.text && (
               <div className="flex justify-start">
                 <div className="max-w-[85%] rounded-2xl rounded-bl-md bg-muted text-foreground px-3 py-2 text-sm space-y-2">
-                  <div className="prose prose-sm max-w-none [&_p]:text-sm [&_p]:leading-relaxed [&_p]:my-1 [&_li]:text-sm [&_h1]:text-sm [&_h1]:font-bold [&_h2]:text-sm [&_h2]:font-semibold [&_h3]:text-xs [&_table]:text-[11px] [&_code]:text-xs [&_code]:bg-gray-100 [&_code]:px-1 [&_code]:rounded [&_blockquote]:text-xs [&_blockquote]:border-l-purple-300">
-                    <ReactMarkdown remarkPlugins={[remarkGfm]}>{streamingMessage.text}</ReactMarkdown>
-                  </div>
+                  <MarkdownRenderer content={streamingMessage.text} compact />
                   {activeTools.length > 0 && (
                     <div className="flex flex-wrap gap-1">
                       {activeTools.map(tool => (
