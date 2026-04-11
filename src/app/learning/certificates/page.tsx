@@ -244,12 +244,13 @@ export default function CertificatesPage() {
       if (insertErr) throw insertErr
 
       // Log activity
-      await supabase.from('activity_log').insert({
+      const { error: logErr } = await supabase.from('activity_log').insert({
         user_id: user.id,
         action: 'uploaded_certificate',
         entity_type: 'lms_certificate',
         details: `Uploaded certificate: ${formTitle.trim()}`,
       })
+      if (logErr) console.error('Failed to log activity:', logErr)
 
       // Reset form
       setFormTitle('')

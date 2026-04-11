@@ -542,13 +542,14 @@ export default function ModulePlayerPage() {
       }
 
       // Log activity
-      await supabase.from('activity_log').insert({
+      const { error: logErr } = await supabase.from('activity_log').insert({
         user_id: profile.id,
         action: 'completed_module',
         entity_type: 'lms_module',
         entity_id: mod.id,
         details: `Completed module: ${mod.title}${finalScore !== null ? ` (Score: ${finalScore}%)` : ''}`,
       })
+      if (logErr) console.error('Failed to log activity:', logErr)
 
       setModuleCompleted(true)
       setCompletionScore(finalScore)

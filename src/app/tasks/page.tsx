@@ -79,12 +79,13 @@ export default function TaskBoardPage() {
     }
 
     if (user) {
-      await supabase.from('activity_log').insert({
+      const { error: logErr } = await supabase.from('activity_log').insert({
         user_id: user.id,
         action: `Moved task to ${newStatus.replace(/_/g, ' ')}`,
         entity_type: 'task',
         entity_id: taskId,
       })
+      if (logErr) console.error('Failed to log activity:', logErr)
     }
   }
 
@@ -99,34 +100,34 @@ export default function TaskBoardPage() {
 
   const deleteTask = async (taskId: string) => {
     if (!confirm('Delete this task?')) return
-    try {
-      await supabase.from('tasks').delete().eq('id', taskId)
-      setTasks(prev => prev.filter(t => t.id !== taskId))
-      toast({ type: 'success', message: 'Task deleted' })
-    } catch {
+    const { error } = await supabase.from('tasks').delete().eq('id', taskId)
+    if (error) {
       toast({ type: 'error', message: 'Failed to delete task' })
+      return
     }
+    setTasks(prev => prev.filter(t => t.id !== taskId))
+    toast({ type: 'success', message: 'Task deleted' })
   }
 
   const createTask = async () => {
     if (!newTask.title.trim() || !user) return
-    try {
-      await supabase.from('tasks').insert({
-        title: newTask.title,
-        description: newTask.description || null,
-        priority: newTask.priority,
-        assigned_to: newTask.assigned_to || null,
-        due_date: newTask.due_date || null,
-        created_by: user.id,
-        status: 'todo',
-      })
-      setNewTask({ title: '', description: '', priority: 'medium', assigned_to: '', due_date: '' })
-      setShowAdd(false)
-      await loadTasks()
-      toast({ type: 'success', message: 'Task created' })
-    } catch {
+    const { error } = await supabase.from('tasks').insert({
+      title: newTask.title,
+      description: newTask.description || null,
+      priority: newTask.priority,
+      assigned_to: newTask.assigned_to || null,
+      due_date: newTask.due_date || null,
+      created_by: user.id,
+      status: 'todo',
+    })
+    if (error) {
       toast({ type: 'error', message: 'Failed to create task' })
+      return
     }
+    setNewTask({ title: '', description: '', priority: 'medium', assigned_to: '', due_date: '' })
+    setShowAdd(false)
+    await loadTasks()
+    toast({ type: 'success', message: 'Task created' })
   }
 
   const addComment = async (taskId: string) => {

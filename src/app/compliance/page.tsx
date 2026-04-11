@@ -56,13 +56,14 @@ export default function CompliancePage() {
       .eq('id', id)
 
     if (!error) {
-      await supabase.from('activity_log').insert({
+      const { error: logErr } = await supabase.from('activity_log').insert({
         user_id: currentUser.id,
         action: `updated_compliance_${field}`,
         entity_type: 'compliance',
         entity_id: String(id),
         details: `Updated ${field} to "${value}"`,
       })
+      if (logErr) console.error('Failed to log activity:', logErr)
       loadData()
       toast({ type: 'success', message: `${field === 'notes' ? 'Notes saved' : field === 'status' ? 'Status updated' : 'Updated'} successfully` })
     } else {

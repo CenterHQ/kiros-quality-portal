@@ -16,6 +16,7 @@ import {
   type LmsModule,
 } from '@/lib/types'
 import Breadcrumbs from '@/components/Breadcrumbs'
+import { useToast } from '@/components/ui/toast'
 
 interface PathwayModuleRow extends LmsPathwayModule {
   lms_modules: LmsModule
@@ -25,6 +26,7 @@ export default function PathwayDetailPage() {
   const params = useParams()
   const pathwayId = params.id as string
   const currentUser = useProfile()
+  const { toast } = useToast()
   const supabase = createClient()
 
   const [pathway, setPathway] = useState<LmsPathway | null>(null)
@@ -84,21 +86,31 @@ export default function PathwayDetailPage() {
     // Auto-create module enrollment if none exists
     const existing = getModuleEnrollment(moduleId)
     if (!existing) {
-      await supabase.from('lms_enrollments').insert({
+      const { error } = await supabase.from('lms_enrollments').insert({
         user_id: currentUser.id,
         module_id: moduleId,
         status: 'not_started',
       })
+      if (error) {
+        toast({ type: 'error', message: 'Failed to create module enrollment' })
+        setStartingModuleId(null)
+        return
+      }
     }
 
     // Ensure pathway enrollment exists and is in_progress
     if (!enrollment) {
-      await supabase.from('lms_pathway_enrollments').insert({
+      const { error } = await supabase.from('lms_pathway_enrollments').insert({
         user_id: currentUser.id,
         pathway_id: pathwayId,
         status: 'in_progress',
         started_at: new Date().toISOString(),
       })
+      if (error) {
+        toast({ type: 'error', message: 'Failed to create pathway enrollment' })
+        setStartingModuleId(null)
+        return
+      }
     } else if (enrollment.status === 'not_started') {
       await supabase
         .from('lms_pathway_enrollments')
@@ -106,13 +118,14 @@ export default function PathwayDetailPage() {
         .eq('id', enrollment.id)
     }
 
-    await supabase.from('activity_log').insert({
+    const { error: logErr } = await supabase.from('activity_log').insert({
       user_id: currentUser.id,
       action: 'started_module',
       entity_type: 'lms_module',
       entity_id: moduleId,
       details: `Started module from pathway ${pathwayId}`,
     })
+    if (logErr) console.error('Failed to log activity:', logErr)
 
     setStartingModuleId(null)
     // Navigate to the module

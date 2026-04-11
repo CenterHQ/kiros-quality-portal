@@ -87,13 +87,14 @@ export default function PathwaysPage() {
       status: 'not_started',
     })
     if (!error) {
-      await supabase.from('activity_log').insert({
+      const { error: logErr } = await supabase.from('activity_log').insert({
         user_id: currentUser.id,
         action: 'enrolled_pathway',
         entity_type: 'lms_pathway',
         entity_id: pathwayId,
         details: 'Enrolled in learning pathway',
       })
+      if (logErr) console.error('Failed to log activity:', logErr)
       await loadData()
     }
     setEnrollingId(null)

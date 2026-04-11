@@ -6,6 +6,7 @@ import { createClient } from '@/lib/supabase/client'
 import type { ChecklistTemplate, ChecklistCategory, ChecklistItemDefinition, ChecklistFrequency, ChecklistItemType, Profile } from '@/lib/types'
 import { CHECKLIST_FREQUENCY_LABELS, CHECKLIST_ITEM_TYPE_LABELS, QA_COLORS } from '@/lib/types'
 import { useProfile } from '@/lib/ProfileContext'
+import { useToast } from '@/components/ui/toast'
 
 const EMPTY_ITEM: Omit<ChecklistItemDefinition, 'id' | 'sort_order'> = {
   title: '',
@@ -18,6 +19,7 @@ export default function ChecklistTemplatesPage() {
   const [templates, setTemplates] = useState<ChecklistTemplate[]>([])
   const [categories, setCategories] = useState<ChecklistCategory[]>([])
   const user = useProfile()
+  const { toast } = useToast()
   const [filter, setFilter] = useState<{ category: string; frequency: string; status: string }>({ category: '', frequency: '', status: 'active' })
   const [editing, setEditing] = useState<ChecklistTemplate | null>(null)
   const [showBuilder, setShowBuilder] = useState(false)
@@ -107,12 +109,16 @@ export default function ChecklistTemplatesPage() {
 
   const duplicateTemplate = async (template: ChecklistTemplate) => {
     const { id, created_at, updated_at, checklist_categories, profiles, ...rest } = template
-    await supabase.from('checklist_templates').insert({
+    const { error } = await supabase.from('checklist_templates').insert({
       ...rest,
       name: `${rest.name} (Copy)`,
       is_system_template: false,
       created_by: user?.id,
     })
+    if (error) {
+      toast({ type: 'error', message: 'Failed to duplicate template' })
+      return
+    }
     await load()
   }
 
@@ -133,18 +139,29 @@ export default function ChecklistTemplatesPage() {
     }
 
     if (editing) {
-      await supabase.from('checklist_templates').update(payload).eq('id', editing.id)
+      const { error } = await supabase.from('checklist_templates').update(payload).eq('id', editing.id)
+      if (error) {
+        toast({ type: 'error', message: 'Failed to update template' })
+        setSaving(false)
+        return
+      }
     } else {
-      await supabase.from('checklist_templates').insert(payload)
+      const { error } = await supabase.from('checklist_templates').insert(payload)
+      if (error) {
+        toast({ type: 'error', message: 'Failed to create template' })
+        setSaving(false)
+        return
+      }
     }
 
     if (user) {
-      await supabase.from('activity_log').insert({
+      const { error: logErr } = await supabase.from('activity_log').insert({
         user_id: user.id,
         action: editing ? 'updated_checklist_template' : 'created_checklist_template',
         entity_type: 'checklist_template',
         details: `${editing ? 'Updated' : 'Created'} checklist template: ${builderName}`,
       })
+      if (logErr) console.error('Failed to log activity:', logErr)
     }
 
     setSaving(false)
@@ -154,7 +171,11 @@ export default function ChecklistTemplatesPage() {
   }
 
   const archiveTemplate = async (id: string) => {
-    await supabase.from('checklist_templates').update({ status: 'archived' }).eq('id', id)
+    const { error } = await supabase.from('checklist_templates').update({ status: 'archived' }).eq('id', id)
+    if (error) {
+      toast({ type: 'error', message: 'Failed to archive template' })
+      return
+    }
     await load()
   }
 
