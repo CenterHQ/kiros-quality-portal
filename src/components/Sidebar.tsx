@@ -105,6 +105,7 @@ const navGroups: NavGroup[] = [
       { href: '/marketing/ads', label: 'Ads', icon: BadgeDollarSign },
       { href: '/marketing/analytics', label: 'Analytics', icon: TrendingUp },
       { href: '/marketing/chat', label: 'Marketing AI', icon: Bot },
+      { href: '/marketing/settings', label: 'Settings', icon: Plug },
     ],
   },
   {
