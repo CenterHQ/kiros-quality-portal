@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useProfile } from '@/lib/ProfileContext'
+import { useToast } from '@/components/ui/toast'
 
 export default function NotificationsPage() {
   const profile = useProfile()
@@ -12,10 +13,15 @@ export default function NotificationsPage() {
     notify_assignments: profile.notify_assignments,
   })
   const [saved, setSaved] = useState(false)
+  const { toast } = useToast()
   const supabase = createClient()
 
   const save = async () => {
-    await supabase.from('profiles').update(settings).eq('id', profile.id)
+    const { error } = await supabase.from('profiles').update(settings).eq('id', profile.id)
+    if (error) {
+      toast({ type: 'error', message: 'Failed to save notification settings' })
+      return
+    }
     setSaved(true)
     setTimeout(() => setSaved(false), 2000)
   }

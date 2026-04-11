@@ -332,7 +332,12 @@ export default function SharePointAdminPage() {
   const handleDisconnect = async () => {
     if (!connection) return
     setDisconnecting(true)
-    await supabase.from('sharepoint_connection').update({ status: 'disconnected' }).eq('id', connection.id)
+    const { error } = await supabase.from('sharepoint_connection').update({ status: 'disconnected' }).eq('id', connection.id)
+    if (error) {
+      setFlashMessage({ type: 'error', text: 'Failed to disconnect from SharePoint.' })
+      setDisconnecting(false)
+      return
+    }
     setConnection({ ...connection, status: 'disconnected' })
     setDisconnecting(false)
     setFlashMessage({ type: 'success', text: 'Disconnected from SharePoint.' })
@@ -408,18 +413,26 @@ export default function SharePointAdminPage() {
 
   const handleToggleContext = async (item: CentreContextItem) => {
     setTogglingContext(prev => new Set(prev).add(item.id))
-    await supabase.from('centre_context').update({ is_active: !item.is_active }).eq('id', item.id)
-    setContextItems(prev => prev.map(c => c.id === item.id ? { ...c, is_active: !c.is_active } : c))
+    const { error } = await supabase.from('centre_context').update({ is_active: !item.is_active }).eq('id', item.id)
+    if (error) {
+      console.error('Failed to toggle context active state:', error)
+    } else {
+      setContextItems(prev => prev.map(c => c.id === item.id ? { ...c, is_active: !c.is_active } : c))
+    }
     setTogglingContext(prev => { const s = new Set(prev); s.delete(item.id); return s })
   }
 
   const handleDeleteContext = async (id: string) => {
     if (!confirm('Delete this context item? This cannot be undone.')) return
     setDeletingContext(prev => new Set(prev).add(id))
-    await supabase.from('centre_context').delete().eq('id', id)
-    setContextItems(prev => prev.filter(c => c.id !== id))
+    const { error } = await supabase.from('centre_context').delete().eq('id', id)
+    if (error) {
+      setFlashMessage({ type: 'error', text: 'Failed to delete context item.' })
+    } else {
+      setContextItems(prev => prev.filter(c => c.id !== id))
+      loadContextCounts()
+    }
     setDeletingContext(prev => { const s = new Set(prev); s.delete(id); return s })
-    loadContextCounts()
   }
 
   const handleContextualiseAll = async () => {

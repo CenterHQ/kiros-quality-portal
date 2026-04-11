@@ -71,6 +71,8 @@
 - **bg-white needs grep verification** — 19 files were missed on the first token replacement pass. Always run `grep -r "bg-white" src/ --include="*.tsx" | grep -v "bg-white/" | wc -l` after each cleanup round.
 - **Error handling is not optional** — every page that fetches data must have: error state, try/catch, error UI with retry button. Add this at the same time as the page, not as a later fix.
 - **alert() is never acceptable** — always use toast notifications. Check for alert() in every PR.
+- **Every DB operation must check for errors** — never `await supabase.from(...).insert(...)` without capturing and checking the `{ error }` result. Silent failures cause data loss (e.g., certificates not created but UI shows success).
+- **Navigation must use Next.js Link** — never `<a href="/path">` for internal routes. Plain anchors cause full page reloads (2-3 second delay per click). Always import Link from 'next/link'.
 
 ## Security Rules
 
@@ -114,5 +116,7 @@
 | 2026-04-10 | Corrected LEARNING-LOG: documents table uses `name` (not `file_name`) | Only sharepoint_documents uses file_name; documents table column is `name` | `LEARNING-LOG.md` |
 | 2026-04-10 | Added error checks on .single() in confirm route (create_task + create_checklist_instance profile lookups) | Silent null assignment when staff not found — task created unassigned without feedback | `src/app/api/chat/confirm/route.ts` |
 | 2026-04-10 | Added error checks in suggestions route (create_task insert, assign_training lookups + upsert) | Actions silently failed with no error logging | `src/app/api/chat/suggestions/route.ts` |
+| 2026-04-11 | Fixed certificate generation: added error handling to module completion | Certificate INSERT failed silently, UI showed success | `src/app/learning/modules/[id]/page.tsx` |
+| 2026-04-11 | Added error handling to ALL 52 Supabase write operations across 19 files | Platform-wide silent failure pattern — insert/update/delete without {error} check | policies/[id], policies/new, forms/new, checklists/[id], checklists, registers/[id], registers, tasks, documents, admin/tags, admin/users, admin/sharepoint, admin/context, admin/notifications, training, rostering, elements/[id], learning/library, learning/pdp |
 | 2026-04-10 | Fixed double menu on all admin sub-pages (sharepoint, context, tags) | Sub-route layouts wrapped in ProtectedLayout again when parent admin/layout.tsx already did | `src/app/admin/*/layout.tsx` |
 | 2026-04-10 | Fixed Site URL overlapping Connected By field on SharePoint page | Long URL had no break-all, overflowed grid cell | `src/app/admin/sharepoint/page.tsx` |

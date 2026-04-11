@@ -6,10 +6,12 @@ import { createClient } from '@/lib/supabase/client'
 import type { RegisterDefinition, RegisterColumnDef, RegisterColumnType, Profile } from '@/lib/types'
 import { REGISTER_COLUMN_TYPE_LABELS } from '@/lib/types'
 import { useProfile } from '@/lib/ProfileContext'
+import { useToast } from '@/components/ui/toast'
 
 export default function RegistersPage() {
   const supabase = createClient()
   const user = useProfile()
+  const { toast } = useToast()
   const [registers, setRegisters] = useState<RegisterDefinition[]>([])
   const [entryCounts, setEntryCounts] = useState<Record<string, number>>({})
   const [showBuilder, setShowBuilder] = useState(false)
@@ -114,15 +116,18 @@ export default function RegistersPage() {
       created_by: user?.id,
     }
     if (editingReg) {
-      await supabase.from('register_definitions').update(payload).eq('id', editingReg.id)
+      const { error } = await supabase.from('register_definitions').update(payload).eq('id', editingReg.id)
+      if (error) { toast({ type: 'error', message: 'Failed to update register' }); setSaving(false); return }
     } else {
-      await supabase.from('register_definitions').insert(payload)
+      const { error } = await supabase.from('register_definitions').insert(payload)
+      if (error) { toast({ type: 'error', message: 'Failed to create register' }); setSaving(false); return }
     }
     if (user) {
-      await supabase.from('activity_log').insert({
+      const { error: logError } = await supabase.from('activity_log').insert({
         user_id: user.id, action: editingReg ? 'updated_register' : 'created_register', entity_type: 'register',
         details: `${editingReg ? 'Updated' : 'Created'} register: ${regName}`,
       })
+      if (logError) console.error('Failed to log activity:', logError)
     }
     setSaving(false)
     setShowBuilder(false)
@@ -131,7 +136,7 @@ export default function RegistersPage() {
   }
 
   const duplicateRegister = async (reg: RegisterDefinition) => {
-    await supabase.from('register_definitions').insert({
+    const { error } = await supabase.from('register_definitions').insert({
       name: `${reg.name} (Copy)`,
       description: reg.description,
       icon: reg.icon,
@@ -139,11 +144,13 @@ export default function RegistersPage() {
       is_system_template: false,
       created_by: user?.id,
     })
+    if (error) { toast({ type: 'error', message: 'Failed to duplicate register' }); return }
     await load()
   }
 
   const archiveRegister = async (id: string) => {
-    await supabase.from('register_definitions').update({ status: 'archived' }).eq('id', id)
+    const { error } = await supabase.from('register_definitions').update({ status: 'archived' }).eq('id', id)
+    if (error) { toast({ type: 'error', message: 'Failed to archive register' }); return }
     await load()
   }
 

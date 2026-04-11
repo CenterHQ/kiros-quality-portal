@@ -72,7 +72,7 @@ export default function ChecklistsPage() {
     const tmpl = templates.find(t => t.id === selectedTemplate)
     if (!tmpl) return
     const applicableItems = (tmpl.items || []).filter((i: ChecklistItemDefinition) => i.type !== 'heading')
-    await supabase.from('checklist_instances').insert({
+    const { error } = await supabase.from('checklist_instances').insert({
       template_id: selectedTemplate,
       name: tmpl.name,
       due_date: dueDate,
@@ -81,13 +81,18 @@ export default function ChecklistsPage() {
       total_items: applicableItems.length,
       status: 'pending',
     })
+    if (error) {
+      toast({ type: 'error', message: 'Failed to assign checklist' })
+      return
+    }
     if (user) {
-      await supabase.from('activity_log').insert({
+      const { error: logError } = await supabase.from('activity_log').insert({
         user_id: user.id,
         action: 'created_checklist_instance',
         entity_type: 'checklist_instance',
         details: `Created checklist: ${tmpl.name} due ${dueDate}`,
       })
+      if (logError) console.error('Failed to log activity:', logError)
     }
     setShowCreate(false)
     setSelectedTemplate('')
@@ -97,7 +102,8 @@ export default function ChecklistsPage() {
   }
 
   const skipInstance = async (id: string) => {
-    await supabase.from('checklist_instances').update({ status: 'skipped' }).eq('id', id)
+    const { error } = await supabase.from('checklist_instances').update({ status: 'skipped' }).eq('id', id)
+    if (error) { toast({ type: 'error', message: 'Failed to skip checklist' }); return }
     await load()
   }
 
@@ -107,7 +113,8 @@ export default function ChecklistsPage() {
       updates.resolved_by = user?.id
       updates.resolved_at = new Date().toISOString()
     }
-    await supabase.from('smart_tickets').update(updates).eq('id', id)
+    const { error } = await supabase.from('smart_tickets').update(updates).eq('id', id)
+    if (error) { toast({ type: 'error', message: 'Failed to update ticket status' }); return }
     await load()
   }
 

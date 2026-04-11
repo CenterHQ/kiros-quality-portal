@@ -4,6 +4,7 @@ import { useEffect, useState, useRef, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { QA_COLORS, type Profile, type Document } from '@/lib/types'
 import { useProfile } from '@/lib/ProfileContext'
+import { useToast } from '@/components/ui/toast'
 
 const QA_LABELS: Record<number, string> = {
   0: 'General',
@@ -33,6 +34,7 @@ export default function DocumentsPage() {
   const [error, setError] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
+  const { toast } = useToast()
   const supabase = createClient()
 
   useEffect(() => {
@@ -70,7 +72,7 @@ export default function DocumentsPage() {
         continue
       }
 
-      await supabase.from('documents').insert({
+      const { error: insertError } = await supabase.from('documents').insert({
         name: file.name,
         file_path: filePath,
         file_size: file.size,
@@ -80,12 +82,18 @@ export default function DocumentsPage() {
         qa_area: filterQA || null,
       })
 
-      await supabase.from('activity_log').insert({
+      if (insertError) {
+        toast({ type: 'error', message: `Failed to save document record for ${file.name}` })
+        continue
+      }
+
+      const { error: logError } = await supabase.from('activity_log').insert({
         user_id: currentUser.id,
         action: 'uploaded_document',
         entity_type: 'document',
         details: `Uploaded ${file.name}`,
       })
+      if (logError) console.error('Failed to log upload activity:', logError)
     }
     setUploading(false)
     loadData()
@@ -94,14 +102,19 @@ export default function DocumentsPage() {
   async function handleDelete(doc: Document) {
     if (!confirm(`Delete "${doc.name}"?`)) return
     await supabase.storage.from('documents').remove([doc.file_path])
-    await supabase.from('documents').delete().eq('id', doc.id)
-    await supabase.from('activity_log').insert({
+    const { error } = await supabase.from('documents').delete().eq('id', doc.id)
+    if (error) {
+      toast({ type: 'error', message: 'Failed to delete document' })
+      return
+    }
+    const { error: logError } = await supabase.from('activity_log').insert({
       user_id: currentUser.id,
       action: 'deleted_document',
       entity_type: 'document',
       entity_id: doc.id,
       details: `Deleted ${doc.name}`,
     })
+    if (logError) console.error('Failed to log delete activity:', logError)
     loadData()
   }
 

@@ -3,6 +3,7 @@
 import { useEffect, useState, useRef, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useProfile } from '@/lib/ProfileContext'
+import { useToast } from '@/components/ui/toast'
 import {
   QA_COLORS,
   ROLE_LABELS,
@@ -160,6 +161,7 @@ function SignaturePad({
 
 export default function PdpPage() {
   const currentUser = useProfile()
+  const { toast } = useToast()
   const supabase = createClient()
 
   const [activeTab, setActiveTab] = useState<ActiveTab>('goals')
@@ -285,17 +287,21 @@ export default function PdpPage() {
       linked_pathway_ids: goalForm.linked_pathway_ids,
       evidence_notes: null,
     })
-    if (!error) {
-      await supabase.from('activity_log').insert({
-        user_id: currentUser.id,
-        action: 'created_pdp_goal',
-        entity_type: 'lms_pdp_goal',
-        details: goalForm.title,
-      })
-      setGoalForm({ title: '', description: '', related_qa: [], target_date: '', linked_module_ids: [], linked_pathway_ids: [] })
-      setShowAddGoal(false)
-      await loadData()
+    if (error) {
+      toast({ type: 'error', message: 'Failed to add goal' })
+      setSaving(false)
+      return
     }
+    const { error: logError } = await supabase.from('activity_log').insert({
+      user_id: currentUser.id,
+      action: 'created_pdp_goal',
+      entity_type: 'lms_pdp_goal',
+      details: goalForm.title,
+    })
+    if (logError) console.error('Failed to log goal creation:', logError)
+    setGoalForm({ title: '', description: '', related_qa: [], target_date: '', linked_module_ids: [], linked_pathway_ids: [] })
+    setShowAddGoal(false)
+    await loadData()
     setSaving(false)
   }
 
@@ -312,13 +318,18 @@ export default function PdpPage() {
 
   async function handleSaveGoalEdit(goalId: string) {
     setSaving(true)
-    await supabase.from('lms_pdp_goals').update({
+    const { error } = await supabase.from('lms_pdp_goals').update({
       title: editForm.title,
       description: editForm.description || null,
       target_date: editForm.target_date || null,
       status: editForm.status,
       evidence_notes: editForm.evidence_notes || null,
     }).eq('id', goalId)
+    if (error) {
+      toast({ type: 'error', message: 'Failed to save goal changes' })
+      setSaving(false)
+      return
+    }
     setEditingGoalId(null)
     await loadData()
     setSaving(false)
@@ -328,10 +339,15 @@ export default function PdpPage() {
 
   async function handleSubmitDraftReview(reviewId: string, goalsSummary: string) {
     setSaving(true)
-    await supabase.from('lms_pdp_reviews').update({
+    const { error } = await supabase.from('lms_pdp_reviews').update({
       goals_summary: goalsSummary,
       status: 'submitted',
     }).eq('id', reviewId)
+    if (error) {
+      toast({ type: 'error', message: 'Failed to submit review' })
+      setSaving(false)
+      return
+    }
     setDraftReviewEdit(null)
     await loadData()
     setSaving(false)
@@ -339,10 +355,15 @@ export default function PdpPage() {
 
   async function handleStaffSignature(reviewId: string, dataUrl: string) {
     setSaving(true)
-    await supabase.from('lms_pdp_reviews').update({
+    const { error } = await supabase.from('lms_pdp_reviews').update({
       staff_signature: dataUrl,
       status: 'acknowledged',
     }).eq('id', reviewId)
+    if (error) {
+      toast({ type: 'error', message: 'Failed to save signature' })
+      setSaving(false)
+      return
+    }
     await loadData()
     setSaving(false)
   }
@@ -362,27 +383,36 @@ export default function PdpPage() {
       agreed_actions: reviewForm.agreed_actions || null,
       status: 'draft',
     })
-    if (!error) {
-      await supabase.from('activity_log').insert({
-        user_id: currentUser.id,
-        action: 'created_pdp_review',
-        entity_type: 'lms_pdp_review',
-        details: `Review for ${reviewForm.review_period}`,
-      })
-      setReviewForm({ user_id: '', review_period: '', goals_summary: '', strengths: '', areas_for_growth: '', agreed_actions: '' })
-      setShowCreateReview(false)
-      await loadData()
+    if (error) {
+      toast({ type: 'error', message: 'Failed to create review' })
+      setSaving(false)
+      return
     }
+    const { error: logError } = await supabase.from('activity_log').insert({
+      user_id: currentUser.id,
+      action: 'created_pdp_review',
+      entity_type: 'lms_pdp_review',
+      details: `Review for ${reviewForm.review_period}`,
+    })
+    if (logError) console.error('Failed to log review creation:', logError)
+    setReviewForm({ user_id: '', review_period: '', goals_summary: '', strengths: '', areas_for_growth: '', agreed_actions: '' })
+    setShowCreateReview(false)
+    await loadData()
     setSaving(false)
   }
 
   async function handleReviewerSignature(reviewId: string, dataUrl: string) {
     setSaving(true)
-    await supabase.from('lms_pdp_reviews').update({
+    const { error } = await supabase.from('lms_pdp_reviews').update({
       reviewer_signature: dataUrl,
       status: 'reviewed',
       reviewed_at: new Date().toISOString(),
     }).eq('id', reviewId)
+    if (error) {
+      toast({ type: 'error', message: 'Failed to save reviewer signature' })
+      setSaving(false)
+      return
+    }
     await loadData()
     setSaving(false)
   }

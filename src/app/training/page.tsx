@@ -11,6 +11,7 @@ import {
   type TrainingAssignment,
 } from '@/lib/types'
 import { useProfile } from '@/lib/ProfileContext'
+import { useToast } from '@/components/ui/toast'
 
 export default function TrainingPage() {
   const [modules, setModules] = useState<TrainingModule[]>([])
@@ -21,6 +22,7 @@ export default function TrainingPage() {
   const [assignForm, setAssignForm] = useState({ user_id: '', due_date: '' })
   const [loading, setLoading] = useState(true)
 
+  const { toast } = useToast()
   const supabase = createClient()
 
   useEffect(() => {
@@ -63,13 +65,14 @@ export default function TrainingPage() {
     })
 
     if (!error) {
-      await supabase.from('activity_log').insert({
+      const { error: logError } = await supabase.from('activity_log').insert({
         user_id: currentUser.id,
         action: 'assigned_training',
         entity_type: 'training',
         entity_id: String(moduleId),
         details: `Assigned training module to user`,
       })
+      if (logError) console.error('Failed to log training assignment:', logError)
       setAssigningModuleId(null)
       setAssignForm({ user_id: '', due_date: '' })
       loadData()
@@ -82,16 +85,19 @@ export default function TrainingPage() {
       .update({ status: 'completed', completed_at: new Date().toISOString() })
       .eq('id', assignmentId)
 
-    if (!error) {
-      await supabase.from('activity_log').insert({
-        user_id: currentUser.id,
-        action: 'completed_training',
-        entity_type: 'training',
-        entity_id: assignmentId,
-        details: 'Marked training assignment as completed',
-      })
-      loadData()
+    if (error) {
+      toast({ type: 'error', message: 'Failed to mark training as completed' })
+      return
     }
+    const { error: logError } = await supabase.from('activity_log').insert({
+      user_id: currentUser.id,
+      action: 'completed_training',
+      entity_type: 'training',
+      entity_id: assignmentId,
+      details: 'Marked training assignment as completed',
+    })
+    if (logError) console.error('Failed to log training completion:', logError)
+    loadData()
   }
 
   if (loading) {

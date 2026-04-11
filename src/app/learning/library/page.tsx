@@ -141,13 +141,14 @@ export default function ModuleLibraryPage() {
       if (error) throw error
 
       // Log activity
-      await supabase.from('activity_log').insert({
+      const { error: logError } = await supabase.from('activity_log').insert({
         user_id: user.id,
         action: 'self_enrolled',
         entity_type: 'lms_enrollment',
         entity_id: data.id,
         details: `Self-enrolled in module`,
       })
+      if (logError) console.error('Failed to log enrollment:', logError)
 
       // Refresh enrollments
       setEnrollments(prev => [...prev, data])
@@ -178,13 +179,14 @@ export default function ModuleLibraryPage() {
 
       if (error) throw error
 
-      await supabase.from('activity_log').insert({
+      const { error: logError2 } = await supabase.from('activity_log').insert({
         user_id: user.id,
         action: 'assigned_module',
         entity_type: 'lms_enrollment',
         entity_id: data.id,
         details: `Assigned module to user ${assignUserId}`,
       })
+      if (logError2) console.error('Failed to log module assignment:', logError2)
 
       setAllEnrollments(prev => [...prev, data])
       if (assignUserId === user.id) {

@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { ROLE_LABELS, ALL_APP_PAGES, type Profile } from '@/lib/types'
+import { useToast } from '@/components/ui/toast'
 
 export default function UsersPage() {
   const [profiles, setProfiles] = useState<Profile[]>([])
@@ -12,6 +13,7 @@ export default function UsersPage() {
   const [message, setMessage] = useState('')
   const [expandedUser, setExpandedUser] = useState<string | null>(null)
   const [saving, setSaving] = useState<string | null>(null)
+  const { toast } = useToast()
   const supabase = createClient()
 
   const loadProfiles = async () => {
@@ -22,7 +24,11 @@ export default function UsersPage() {
   useEffect(() => { loadProfiles() }, [])
 
   const updateRole = async (userId: string, newRole: string) => {
-    await supabase.from('profiles').update({ role: newRole }).eq('id', userId)
+    const { error } = await supabase.from('profiles').update({ role: newRole }).eq('id', userId)
+    if (error) {
+      toast({ type: 'error', message: 'Failed to update user role' })
+      return
+    }
     setProfiles(prev => prev.map(p => p.id === userId ? { ...p, role: newRole as Profile['role'] } : p))
   }
 
@@ -62,9 +68,10 @@ export default function UsersPage() {
         const setDefaults = async (retries = 5) => {
           const { data: profile } = await supabase.from('profiles').select('id').eq('id', userId).single()
           if (profile) {
-            await supabase.from('profiles').update({
+            const { error: pagesError } = await supabase.from('profiles').update({
               allowed_pages: newUser.role === 'admin' ? null : DEFAULT_NEW_USER_PAGES
             }).eq('id', userId)
+            if (pagesError) console.error('Failed to set default pages:', pagesError)
           } else if (retries > 0) {
             setTimeout(() => setDefaults(retries - 1), 1000)
           }
@@ -98,7 +105,12 @@ export default function UsersPage() {
     setSaving(userId)
     // If all pages selected, store null (meaning full access)
     const value = allowedPages.length === ALL_APP_PAGES.length ? null : allowedPages
-    await supabase.from('profiles').update({ allowed_pages: value }).eq('id', userId)
+    const { error } = await supabase.from('profiles').update({ allowed_pages: value }).eq('id', userId)
+    if (error) {
+      toast({ type: 'error', message: 'Failed to update page permissions' })
+      setSaving(null)
+      return
+    }
     setProfiles(prev => prev.map(p => p.id === userId ? { ...p, allowed_pages: value } : p))
     setSaving(null)
   }

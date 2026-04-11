@@ -67,10 +67,16 @@ export default function TaskBoardPage() {
 
     setTasks(prev => prev.map(t => t.id === taskId ? { ...t, status: newStatus as Task['status'] } : t))
 
-    await supabase.from('tasks').update({
+    const { error } = await supabase.from('tasks').update({
       status: newStatus,
       completed_at: newStatus === 'done' ? new Date().toISOString() : null
     }).eq('id', taskId)
+
+    if (error) {
+      toast({ type: 'error', message: 'Failed to update task status' })
+      await loadTasks()
+      return
+    }
 
     if (user) {
       await supabase.from('activity_log').insert({
@@ -83,7 +89,11 @@ export default function TaskBoardPage() {
   }
 
   const updateTask = async (taskId: string, field: string, value: any) => {
-    await supabase.from('tasks').update({ [field]: value }).eq('id', taskId)
+    const { error } = await supabase.from('tasks').update({ [field]: value }).eq('id', taskId)
+    if (error) {
+      toast({ type: 'error', message: 'Failed to update task' })
+      return
+    }
     setTasks(prev => prev.map(t => t.id === taskId ? { ...t, [field]: value } : t))
   }
 
@@ -122,19 +132,28 @@ export default function TaskBoardPage() {
   const addComment = async (taskId: string) => {
     if (!newComment.trim() || !user) return
     setSubmittingComment(true)
-    await supabase.from('comments').insert({
+    const { error } = await supabase.from('comments').insert({
       content: newComment.trim(),
       user_id: user.id,
       entity_type: 'task',
       entity_id: taskId,
     })
+    if (error) {
+      toast({ type: 'error', message: 'Failed to add comment' })
+      setSubmittingComment(false)
+      return
+    }
     setNewComment('')
     setSubmittingComment(false)
     await loadComments()
   }
 
   const deleteComment = async (commentId: string) => {
-    await supabase.from('comments').delete().eq('id', commentId)
+    const { error } = await supabase.from('comments').delete().eq('id', commentId)
+    if (error) {
+      toast({ type: 'error', message: 'Failed to delete comment' })
+      return
+    }
     await loadComments()
   }
 

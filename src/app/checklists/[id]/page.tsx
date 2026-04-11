@@ -81,13 +81,14 @@ export default function ChecklistCompletionPage() {
 
   const saveProgress = async () => {
     setSaving(true)
-    await supabase.from('checklist_instances').update({
+    const { error } = await supabase.from('checklist_instances').update({
       responses,
       notes,
       status: 'in_progress',
       completed_items: answeredItems.length,
       failed_items: failedItems.length,
     }).eq('id', instance.id)
+    if (error) toast({ type: 'error', message: 'Failed to save progress' })
     setSaving(false)
   }
 
@@ -106,7 +107,7 @@ export default function ChecklistCompletionPage() {
     setSubmitting(true)
 
     // Update instance
-    await supabase.from('checklist_instances').update({
+    const { error: submitError } = await supabase.from('checklist_instances').update({
       responses,
       notes,
       status: 'completed',
@@ -117,10 +118,15 @@ export default function ChecklistCompletionPage() {
       total_items: applicableItems.length,
       items_snapshot: items,
     }).eq('id', instance.id)
+    if (submitError) {
+      toast({ type: 'error', message: 'Failed to submit checklist' })
+      setSubmitting(false)
+      return
+    }
 
     // Auto-create smart tickets for failed items
     for (const item of failedItems) {
-      await supabase.from('smart_tickets').insert({
+      const { error: ticketError } = await supabase.from('smart_tickets').insert({
         checklist_instance_id: instance.id,
         checklist_item_id: item.id,
         title: `Failed: ${item.title}`,
@@ -129,16 +135,18 @@ export default function ChecklistCompletionPage() {
         status: 'open',
         created_by: user?.id,
       })
+      if (ticketError) console.error('Failed to create smart ticket:', ticketError)
     }
 
     if (user) {
-      await supabase.from('activity_log').insert({
+      const { error: logError } = await supabase.from('activity_log').insert({
         user_id: user.id,
         action: 'completed_checklist',
         entity_type: 'checklist_instance',
         entity_id: instance.id,
         details: `Completed checklist: ${instance.name} (${answeredItems.length}/${applicableItems.length} items, ${failedItems.length} failed)`,
       })
+      if (logError) console.error('Failed to log activity:', logError)
     }
 
     setSubmitting(false)

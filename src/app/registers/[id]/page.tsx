@@ -99,12 +99,13 @@ export default function RegisterDetailPage() {
         return
       }
     }
-    await supabase.from('register_entries').insert({
+    const { error } = await supabase.from('register_entries').insert({
       register_id: register.id,
       row_data: newRow,
       sort_order: entries.length,
       created_by: user?.id,
     })
+    if (error) { toast({ type: 'error', message: 'Failed to add entry' }); return }
     setShowAddRow(false)
     setNewRow({})
     await load()
@@ -116,10 +117,11 @@ export default function RegisterDetailPage() {
   }
 
   const saveEdit = async (entryId: string) => {
-    await supabase.from('register_entries').update({
+    const { error } = await supabase.from('register_entries').update({
       row_data: editData,
       updated_by: user?.id,
     }).eq('id', entryId)
+    if (error) { toast({ type: 'error', message: 'Failed to save changes' }); return }
     setEditingRow(null)
     setEditData({})
     await load()
@@ -127,7 +129,8 @@ export default function RegisterDetailPage() {
 
   const deleteRow = async (entryId: string) => {
     if (!confirm('Delete this entry?')) return
-    await supabase.from('register_entries').delete().eq('id', entryId)
+    const { error } = await supabase.from('register_entries').delete().eq('id', entryId)
+    if (error) { toast({ type: 'error', message: 'Failed to delete entry' }); return }
     await load()
   }
 

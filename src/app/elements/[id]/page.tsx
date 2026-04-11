@@ -5,6 +5,7 @@ import { useParams, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { QA_COLORS, STATUS_COLORS, type QAElement, type Comment, type Profile } from '@/lib/types'
 import { useProfile } from '@/lib/ProfileContext'
+import { useToast } from '@/components/ui/toast'
 import CentreContextPanel from '@/components/CentreContextPanel'
 import Breadcrumbs from '@/components/Breadcrumbs'
 
@@ -44,6 +45,7 @@ export default function ElementDetailPage() {
   const [comments, setComments] = useState<(Comment & { profiles: Profile })[]>([])
   const [newComment, setNewComment] = useState('')
   const user = useProfile()
+  const { toast } = useToast()
   const supabase = createClient()
 
   // Element Actions state
@@ -136,57 +138,76 @@ export default function ElementDetailPage() {
 
   const updateField = useCallback(async (field: string, value: string) => {
     if (!element) return
-    await supabase.from('qa_elements').update({ [field]: value }).eq('id', element.id)
+    const { error } = await supabase.from('qa_elements').update({ [field]: value }).eq('id', element.id)
+    if (error) {
+      toast({ type: 'error', message: `Failed to update ${field}` })
+      return
+    }
     setElement(prev => prev ? { ...prev, [field]: value } : null)
     // Log activity
     if (user) {
-      await supabase.from('activity_log').insert({
+      const { error: logError } = await supabase.from('activity_log').insert({
         user_id: user.id,
         action: `Updated ${field}`,
         entity_type: 'element',
         entity_id: String(element.id),
         details: `${element.element_code}: ${field} changed to "${value}"`
       })
+      if (logError) console.error('Failed to log element update:', logError)
     }
   }, [element, user])
 
   const addComment = async () => {
     if (!newComment.trim() || !user || !element) return
-    await supabase.from('comments').insert({
+    const { error } = await supabase.from('comments').insert({
       content: newComment,
       user_id: user.id,
       entity_type: 'element',
       entity_id: String(element.id),
     })
+    if (error) {
+      toast({ type: 'error', message: 'Failed to add comment' })
+      return
+    }
     setNewComment('')
     // Log activity
-    await supabase.from('activity_log').insert({
+    const { error: logError } = await supabase.from('activity_log').insert({
       user_id: user.id,
       action: 'Added comment',
       entity_type: 'element',
       entity_id: String(element.id),
       details: `Comment on ${element.element_code}`
     })
+    if (logError) console.error('Failed to log comment:', logError)
   }
 
   // Element Action helpers
   const toggleActionStatus = async (action: ElementAction) => {
     const newStatus = action.status === 'completed' ? 'not_started' : 'completed'
-    await supabase.from('element_actions').update({ status: newStatus }).eq('id', action.id)
+    const { error } = await supabase.from('element_actions').update({ status: newStatus }).eq('id', action.id)
+    if (error) {
+      toast({ type: 'error', message: 'Failed to update action status' })
+      return
+    }
     setElementActions(prev => prev.map(a => a.id === action.id ? { ...a, status: newStatus } : a))
     if (user && element) {
-      await supabase.from('activity_log').insert({
+      const { error: logError } = await supabase.from('activity_log').insert({
         user_id: user.id,
         action: newStatus === 'completed' ? 'Completed action' : 'Reopened action',
         entity_type: 'element_action',
         entity_id: action.id,
         details: `${element.element_code}: "${action.title}" marked ${newStatus}`
       })
+      if (logError) console.error('Failed to log action status change:', logError)
     }
   }
 
   const updateAction = async (actionId: string, field: string, value: string | null) => {
-    await supabase.from('element_actions').update({ [field]: value }).eq('id', actionId)
+    const { error } = await supabase.from('element_actions').update({ [field]: value }).eq('id', actionId)
+    if (error) {
+      toast({ type: 'error', message: 'Failed to update action' })
+      return
+    }
     setElementActions(prev => prev.map(a => a.id === actionId ? { ...a, [field]: value } : a))
   }
 
@@ -212,19 +233,24 @@ export default function ElementDetailPage() {
       due_date: newAction.due_date || null,
       status: 'not_started',
     }).select().single()
+    if (error) {
+      toast({ type: 'error', message: 'Failed to create action' })
+      return
+    }
     if (data) {
       setElementActions(prev => [...prev, data as ElementAction])
       setNewAction({ title: '', description: '', steps: '', prerequisites: '', evidence_required: '', assigned_to: '', due_date: '' })
       setShowNewActionForm(false)
     }
     if (user) {
-      await supabase.from('activity_log').insert({
+      const { error: logError } = await supabase.from('activity_log').insert({
         user_id: user.id,
         action: 'Created action',
         entity_type: 'element_action',
         entity_id: data?.id || '',
         details: `${element.element_code}: "${newAction.title}"`
       })
+      if (logError) console.error('Failed to log action creation:', logError)
     }
   }
 

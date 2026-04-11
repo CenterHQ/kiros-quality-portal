@@ -106,7 +106,7 @@ export default function RosteringPage() {
 
   const addShift = async () => {
     if (!selectedDay || !newShift.user_id) return
-    await supabase.from('roster_shifts').insert({
+    const { error } = await supabase.from('roster_shifts').insert({
       shift_date: selectedDay,
       start_time: newShift.start_time,
       end_time: newShift.end_time,
@@ -118,12 +118,17 @@ export default function RosteringPage() {
       notes: newShift.notes || null,
       created_by: user?.id,
     })
+    if (error) {
+      toast({ type: 'error', message: 'Failed to add shift' })
+      return
+    }
     if (user) {
       const staffName = profiles.find(p => p.id === newShift.user_id)?.full_name
-      await supabase.from('activity_log').insert({
+      const { error: logError } = await supabase.from('activity_log').insert({
         user_id: user.id, action: 'created_roster_shift', entity_type: 'roster_shift',
         details: `Added shift for ${staffName} on ${selectedDay}`,
       })
+      if (logError) console.error('Failed to log shift creation:', logError)
     }
     setShowAddShift(false)
     setNewShift({ user_id: '', room_id: '', start_time: '07:00', end_time: '15:30', shift_type: 'regular', break_start: '12:00', break_end: '12:30', notes: '' })
@@ -131,13 +136,21 @@ export default function RosteringPage() {
   }
 
   const deleteShift = async (id: string) => {
-    await supabase.from('roster_shifts').delete().eq('id', id)
+    const { error } = await supabase.from('roster_shifts').delete().eq('id', id)
+    if (error) {
+      toast({ type: 'error', message: 'Failed to delete shift' })
+      return
+    }
     await loadShifts()
   }
 
   const addRoom = async () => {
     if (!newRoom.name) return
-    await supabase.from('rooms').insert({ ...newRoom, sort_order: rooms.length })
+    const { error } = await supabase.from('rooms').insert({ ...newRoom, sort_order: rooms.length })
+    if (error) {
+      toast({ type: 'error', message: 'Failed to add room' })
+      return
+    }
     setShowAddRoom(false)
     setNewRoom({ name: '', age_group: '3-5', licensed_capacity: 22, ratio_children: 10, ratio_educators: 1, color: '#470DA8' })
     await load()
@@ -145,13 +158,17 @@ export default function RosteringPage() {
 
   const addLeave = async () => {
     if (!newLeave.user_id || !newLeave.start_date || !newLeave.end_date) return
-    await supabase.from('leave_requests').insert({
+    const { error } = await supabase.from('leave_requests').insert({
       user_id: newLeave.user_id,
       leave_type: newLeave.leave_type,
       start_date: newLeave.start_date,
       end_date: newLeave.end_date,
       reason: newLeave.reason || null,
     })
+    if (error) {
+      toast({ type: 'error', message: 'Failed to submit leave request' })
+      return
+    }
     setShowLeaveForm(false)
     setNewLeave({ user_id: '', leave_type: 'annual', start_date: '', end_date: '', reason: '' })
     await load()
@@ -163,7 +180,11 @@ export default function RosteringPage() {
       updates.approved_by = user?.id
       updates.approved_at = new Date().toISOString()
     }
-    await supabase.from('leave_requests').update(updates).eq('id', id)
+    const { error } = await supabase.from('leave_requests').update(updates).eq('id', id)
+    if (error) {
+      toast({ type: 'error', message: 'Failed to update leave request' })
+      return
+    }
     await load()
   }
 
@@ -181,7 +202,11 @@ export default function RosteringPage() {
       return { ...rest, shift_date: toDates[dayIndex], status: 'scheduled', is_published: false, created_by: user?.id }
     }).filter(Boolean)
     if (newShifts.length > 0) {
-      await supabase.from('roster_shifts').insert(newShifts)
+      const { error } = await supabase.from('roster_shifts').insert(newShifts)
+      if (error) {
+        toast({ type: 'error', message: 'Failed to copy shifts' })
+        return
+      }
       await loadShifts()
     }
   }
@@ -203,9 +228,13 @@ export default function RosteringPage() {
       toast({ type: 'warning', message: `Cannot publish — ratio breaches detected: ${breaches.join(', ')}` })
       return
     }
-    await supabase.from('roster_shifts')
+    const { error } = await supabase.from('roster_shifts')
       .update({ is_published: true, published_at: new Date().toISOString(), published_by: user?.id })
       .gte('shift_date', weekDates[0]).lte('shift_date', weekDates[4])
+    if (error) {
+      toast({ type: 'error', message: 'Failed to publish roster' })
+      return
+    }
     await loadShifts()
   }
 

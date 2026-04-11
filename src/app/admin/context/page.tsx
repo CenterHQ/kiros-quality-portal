@@ -162,7 +162,11 @@ export default function ContextManagementPage() {
   }
 
   const handleToggleActive = async (id: string, currentlyActive: boolean) => {
-    await supabase.from('centre_context').update({ is_active: !currentlyActive }).eq('id', id)
+    const { error } = await supabase.from('centre_context').update({ is_active: !currentlyActive }).eq('id', id)
+    if (error) {
+      showFlash('error', 'Failed to toggle active state')
+      return
+    }
     loadItems()
   }
 

@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { useProfile } from '@/lib/ProfileContext'
+import { useToast } from '@/components/ui/toast'
 
 const FORM_CONFIGS: Record<string, { title: string; fields: { name: string; label: string; type: 'text' | 'textarea' | 'select' | 'date'; options?: string[] }[] }> = {
   weekly_reflection: {
@@ -151,6 +152,7 @@ export default function NewFormPage() {
   const [saving, setSaving] = useState(false)
   const supabase = createClient()
   const currentUser = useProfile()
+  const { toast } = useToast()
 
   if (!config) return <div className="p-8 text-center text-muted-foreground">Invalid form type</div>
 
@@ -161,20 +163,26 @@ export default function NewFormPage() {
   const saveForm = async (status: 'draft' | 'submitted') => {
     setSaving(true)
 
-    await supabase.from('form_submissions').insert({
+    const { error: submitError } = await supabase.from('form_submissions').insert({
       form_type: formType,
       data: formData,
       submitted_by: currentUser.id,
       room: formData.room || null,
       status,
     })
+    if (submitError) {
+      toast({ type: 'error', message: 'Failed to save: ' + submitError.message })
+      setSaving(false)
+      return
+    }
 
-    await supabase.from('activity_log').insert({
+    const { error: logError } = await supabase.from('activity_log').insert({
       user_id: currentUser.id,
       action: `${status === 'submitted' ? 'Submitted' : 'Saved draft'} ${config.title}`,
       entity_type: 'form',
       entity_id: formType,
     })
+    if (logError) console.error('Failed to log activity:', logError.message)
 
     router.push('/forms')
   }

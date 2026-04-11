@@ -8,12 +8,14 @@ import type { Policy, PolicyCategory, PolicyVersion, PolicyAcknowledgement, Serv
 import { POLICY_STATUS_LABELS, REVIEW_FREQUENCY_LABELS, QA_COLORS } from '@/lib/types'
 import { useProfile } from '@/lib/ProfileContext'
 import Breadcrumbs from '@/components/Breadcrumbs'
+import { useToast } from '@/components/ui/toast'
 
 export default function PolicyDetailPage() {
   const { id } = useParams()
   const router = useRouter()
   const supabase = createClient()
   const user = useProfile()
+  const { toast } = useToast()
   const [policy, setPolicy] = useState<Policy | null>(null)
   const [categories, setCategories] = useState<PolicyCategory[]>([])
   const [versions, setVersions] = useState<PolicyVersion[]>([])
@@ -66,27 +68,38 @@ export default function PolicyDetailPage() {
       finalContent = finalContent.replace(new RegExp(`\\{\\{${sd.key}\\}\\}`, 'g'), sd.value)
     }
 
-    await supabase.from('policies').update({
+    const { error: updateError } = await supabase.from('policies').update({
       content: finalContent,
       version: newVersion,
       last_reviewed_at: new Date().toISOString(),
       last_reviewed_by: user?.id,
       status: 'published',
     }).eq('id', policy.id)
+    if (updateError) {
+      toast({ type: 'error', message: 'Failed to save: ' + updateError.message })
+      setSaving(false)
+      return
+    }
 
-    await supabase.from('policy_versions').insert({
+    const { error: versionError } = await supabase.from('policy_versions').insert({
       policy_id: policy.id,
       version: newVersion,
       content: finalContent,
       change_summary: changeSummary,
       created_by: user?.id,
     })
+    if (versionError) {
+      toast({ type: 'error', message: 'Failed to save version: ' + versionError.message })
+      setSaving(false)
+      return
+    }
 
     if (user) {
-      await supabase.from('activity_log').insert({
+      const { error: logError } = await supabase.from('activity_log').insert({
         user_id: user.id, action: 'updated_policy', entity_type: 'policy', entity_id: policy.id,
         details: `Updated policy "${policy.title}" to v${newVersion}: ${changeSummary}`,
       })
+      if (logError) console.error('Failed to log activity:', logError.message)
     }
 
     setSaving(false)
@@ -104,7 +117,11 @@ export default function PolicyDetailPage() {
     if (status === 'published') {
       updates.published_at = new Date().toISOString()
     }
-    await supabase.from('policies').update(updates).eq('id', policy.id)
+    const { error } = await supabase.from('policies').update(updates).eq('id', policy.id)
+    if (error) {
+      toast({ type: 'error', message: 'Failed to update status: ' + error.message })
+      return
+    }
     await load()
   }
 
@@ -118,16 +135,21 @@ export default function PolicyDetailPage() {
       case 'annual': next.setFullYear(next.getFullYear() + 1); break
       case 'biennial': next.setFullYear(next.getFullYear() + 2); break
     }
-    await supabase.from('policies').update({
+    const { error: reviewError } = await supabase.from('policies').update({
       last_reviewed_at: new Date().toISOString(),
       last_reviewed_by: user?.id,
       next_review_date: next.toISOString().split('T')[0],
     }).eq('id', policy.id)
+    if (reviewError) {
+      toast({ type: 'error', message: 'Failed to mark reviewed: ' + reviewError.message })
+      return
+    }
     if (user) {
-      await supabase.from('activity_log').insert({
+      const { error: logError } = await supabase.from('activity_log').insert({
         user_id: user.id, action: 'reviewed_policy', entity_type: 'policy', entity_id: policy.id,
         details: `Reviewed policy "${policy.title}" — next review: ${next.toLocaleDateString()}`,
       })
+      if (logError) console.error('Failed to log activity:', logError.message)
     }
     await load()
   }
@@ -153,17 +175,22 @@ export default function PolicyDetailPage() {
   const acknowledge = async () => {
     if (!user || hasAcknowledged) return
     const sigData = canvasRef.current?.toDataURL() || null
-    await supabase.from('policy_acknowledgements').insert({
+    const { error: ackError } = await supabase.from('policy_acknowledgements').insert({
       policy_id: policy.id,
       user_id: user.id,
       version_acknowledged: policy.version,
       signature_data: sigData,
     })
+    if (ackError) {
+      toast({ type: 'error', message: 'Failed to acknowledge: ' + ackError.message })
+      return
+    }
     if (user) {
-      await supabase.from('activity_log').insert({
+      const { error: logError } = await supabase.from('activity_log').insert({
         user_id: user.id, action: 'acknowledged_policy', entity_type: 'policy', entity_id: policy.id,
         details: `Acknowledged policy "${policy.title}" v${policy.version}`,
       })
+      if (logError) console.error('Failed to log activity:', logError.message)
     }
     await load()
   }

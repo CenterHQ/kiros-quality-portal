@@ -7,6 +7,7 @@ import { createClient } from '@/lib/supabase/client'
 import type { PolicyCategory, ServiceDetail, Profile, ReviewFrequency } from '@/lib/types'
 import { REVIEW_FREQUENCY_LABELS, QA_COLORS } from '@/lib/types'
 import { useProfile } from '@/lib/ProfileContext'
+import { useToast } from '@/components/ui/toast'
 
 export default function NewPolicyPage() {
   const supabase = createClient()
@@ -15,6 +16,7 @@ export default function NewPolicyPage() {
   const [categories, setCategories] = useState<PolicyCategory[]>([])
   const [serviceDetails, setServiceDetails] = useState<ServiceDetail[]>([])
   const [saving, setSaving] = useState(false)
+  const { toast } = useToast()
 
   const [title, setTitle] = useState('')
   const [categoryId, setCategoryId] = useState<number | null>(null)
@@ -62,7 +64,7 @@ export default function NewPolicyPage() {
       finalContent = finalContent.replace(new RegExp(`\\{\\{${sd.key}\\}\\}`, 'g'), sd.value)
     }
 
-    const { data: newPolicy } = await supabase.from('policies').insert({
+    const { data: newPolicy, error: insertError } = await supabase.from('policies').insert({
       title: title.trim(),
       category_id: categoryId,
       content: finalContent,
@@ -78,21 +80,32 @@ export default function NewPolicyPage() {
       owner_id: user?.id,
       published_at: status === 'published' ? new Date().toISOString() : null,
     }).select().single()
+    if (insertError) {
+      toast({ type: 'error', message: 'Failed to create policy: ' + insertError.message })
+      setSaving(false)
+      return
+    }
 
     if (newPolicy) {
       // Save initial version
-      await supabase.from('policy_versions').insert({
+      const { error: versionError } = await supabase.from('policy_versions').insert({
         policy_id: newPolicy.id,
         version: 1,
         content: finalContent,
         change_summary: 'Initial version',
         created_by: user?.id,
       })
+      if (versionError) {
+        toast({ type: 'error', message: 'Failed to save version: ' + versionError.message })
+        setSaving(false)
+        return
+      }
       if (user) {
-        await supabase.from('activity_log').insert({
+        const { error: logError } = await supabase.from('activity_log').insert({
           user_id: user.id, action: 'created_policy', entity_type: 'policy', entity_id: newPolicy.id,
           details: `Created policy: ${title}`,
         })
+        if (logError) console.error('Failed to log activity:', logError.message)
       }
     }
     setSaving(false)

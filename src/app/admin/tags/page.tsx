@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import { useToast } from '@/components/ui/toast'
 
 interface Tag {
   id: number
@@ -17,6 +18,7 @@ export default function TagsPage() {
   const [tags, setTags] = useState<Tag[]>([])
   const [newTag, setNewTag] = useState({ name: '', color: '#470DA8', category: 'custom' })
   const [loading, setLoading] = useState(true)
+  const { toast } = useToast()
   const supabase = createClient()
 
   const loadTags = async () => {
@@ -29,20 +31,36 @@ export default function TagsPage() {
 
   const addTag = async () => {
     if (!newTag.name.trim()) return
-    await supabase.from('tags').insert(newTag)
+    const { error } = await supabase.from('tags').insert(newTag)
+    if (error) {
+      toast({ type: 'error', message: 'Failed to add tag' })
+      return
+    }
     setNewTag({ name: '', color: '#470DA8', category: 'custom' })
     loadTags()
   }
 
   const updateColor = async (id: number, color: string) => {
-    await supabase.from('tags').update({ color }).eq('id', id)
+    const { error } = await supabase.from('tags').update({ color }).eq('id', id)
+    if (error) {
+      console.error('Failed to update tag color:', error)
+      return
+    }
     setTags(prev => prev.map(t => t.id === id ? { ...t, color } : t))
   }
 
   const deleteTag = async (id: number, name: string) => {
     if (!confirm(`Delete tag "${name}"? This will remove it from all items.`)) return
-    await supabase.from('entity_tags').delete().eq('tag_id', id)
-    await supabase.from('tags').delete().eq('id', id)
+    const { error: entityError } = await supabase.from('entity_tags').delete().eq('tag_id', id)
+    if (entityError) {
+      toast({ type: 'error', message: 'Failed to remove tag associations' })
+      return
+    }
+    const { error } = await supabase.from('tags').delete().eq('id', id)
+    if (error) {
+      toast({ type: 'error', message: 'Failed to delete tag' })
+      return
+    }
     loadTags()
   }
 
