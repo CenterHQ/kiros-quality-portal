@@ -29,7 +29,7 @@ const STATUS_BADGES: Record<string, { label: string; className: string }> = {
 export default function MarketingSettingsPage() {
   const searchParams = useSearchParams()
   const [accounts, setAccounts] = useState<MarketingSocialAccount[]>([])
-  const [loading, setLoading] = useState(true)
+  const [, setLoading] = useState(true)
 
   const connectedParam = searchParams.get('connected')
   const errorParam = searchParams.get('error')

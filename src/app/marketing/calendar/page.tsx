@@ -24,7 +24,7 @@ export default function ContentCalendarPage() {
   const [entries, setEntries] = useState<MarketingCalendarEntry[]>([])
   const [currentDate, setCurrentDate] = useState(new Date())
   const [view, setView] = useState<'month' | 'week'>('month')
-  const [loading, setLoading] = useState(true)
+  const [, setLoading] = useState(true)
 
   const year = currentDate.getFullYear()
   const month = currentDate.getMonth()

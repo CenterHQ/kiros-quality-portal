@@ -1,5 +1,7 @@
 import { redirect } from 'next/navigation'
+import { headers } from 'next/headers'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
+import ProtectedLayout from '@/components/ProtectedLayout'
 
 export default async function MarketingLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createServerSupabaseClient()
@@ -16,5 +18,5 @@ export default async function MarketingLayout({ children }: { children: React.Re
     redirect('/dashboard')
   }
 
-  return <>{children}</>
+  return <ProtectedLayout>{children}</ProtectedLayout>
 }

@@ -3,7 +3,6 @@
 import { useEffect, useState, useRef } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useMarketingChatStream } from '@/hooks/useMarketingChatStream'
-import { PageHeader } from '@/components/ui/page-header'
 import MarkdownRenderer from '@/components/chat/MarkdownRenderer'
 import { Send, Bot, User, Loader2, Plus, MessageSquare, Wrench } from 'lucide-react'
 import type { MarketingConversation, MarketingMessage } from '@/lib/marketing/types'
@@ -13,7 +12,7 @@ export default function MarketingChatPage() {
   const [activeConvId, setActiveConvId] = useState<string | null>(null)
   const [messages, setMessages] = useState<MarketingMessage[]>([])
   const [input, setInput] = useState('')
-  const [loadingMessages, setLoadingMessages] = useState(false)
+  const [, setLoadingMessages] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
   const { streamingMessage, activeTools, error, sendMessage, abort } = useMarketingChatStream()
@@ -101,7 +100,7 @@ export default function MarketingChatPage() {
   }
 
   return (
-    <div className="flex h-[calc(100vh-7rem)] animate-fade-in">
+    <div className="flex h-[calc(100vh-8rem)] animate-fade-in border border-border rounded-lg overflow-hidden">
       {/* Conversation sidebar */}
       <div className="w-64 border-r border-border flex flex-col shrink-0 hidden md:flex">
         <div className="p-3 border-b border-border">

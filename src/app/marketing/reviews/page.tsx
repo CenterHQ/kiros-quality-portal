@@ -6,7 +6,7 @@ import { useProfile } from '@/lib/ProfileContext'
 import { PageHeader } from '@/components/ui/page-header'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Star, Globe, Bot, Send, CheckCircle, XCircle } from 'lucide-react'
+import { Star, Bot, Send, CheckCircle } from 'lucide-react'
 import { PLATFORM_ICONS } from '@/components/marketing/PlatformIcon'
 import type { MarketingReview, ReviewResponseStatus } from '@/lib/marketing/types'
 

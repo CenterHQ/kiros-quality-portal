@@ -5,12 +5,12 @@ import { StatCard } from '@/components/ui/stat-card'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import {
-  Megaphone, PenSquare, CalendarDays, Star,
-  BadgeDollarSign, TrendingUp, Bot, Plus,
+  Megaphone, PenSquare, Star,
+  BadgeDollarSign, Bot, Plus,
   Globe,
 } from 'lucide-react'
 import { PLATFORM_ICONS } from '@/components/marketing/PlatformIcon'
-import type { ContentStatus, ReviewResponseStatus, CampaignStatus } from '@/lib/marketing/types'
+import type { ContentStatus } from '@/lib/marketing/types'
 
 const STATUS_COLORS: Record<ContentStatus, string> = {
   draft: 'bg-gray-100 text-gray-700',
@@ -46,7 +46,7 @@ export default async function MarketingHubPage() {
   const accountsList = accounts || []
 
   const publishedCount = contentList.filter(c => c.status === 'published').length
-  const pendingReviewCount = contentList.filter(c => c.status === 'pending_review').length
+  const _pendingReviewCount = contentList.filter(c => c.status === 'pending_review').length
   const scheduledCount = contentList.filter(c => c.status === 'scheduled').length
   const unreadReviews = reviewsList.filter(r => r.response_status === 'unread').length
   const activeCampaigns = campaignsList.filter(c => c.status === 'active').length

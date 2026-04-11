@@ -8,8 +8,7 @@ import { PageHeader } from '@/components/ui/page-header'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import {
-  Globe, ArrowLeft,
-  Save, Send, CheckCircle, XCircle, ExternalLink, Trash2,
+  Save, Send, CheckCircle, XCircle, Trash2,
 } from 'lucide-react'
 import { PLATFORM_ICONS } from '@/components/marketing/PlatformIcon'
 import type { MarketingContent, ContentStatus } from '@/lib/marketing/types'

@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { PageHeader } from '@/components/ui/page-header'
 import { Badge } from '@/components/ui/badge'
-import { Plus, Globe, Search, Filter } from 'lucide-react'
+import { Plus, Globe, Search } from 'lucide-react'
 import { PLATFORM_ICONS } from '@/components/marketing/PlatformIcon'
 import type { MarketingContent, ContentStatus } from '@/lib/marketing/types'
 
