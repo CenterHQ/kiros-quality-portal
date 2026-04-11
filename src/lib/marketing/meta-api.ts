@@ -292,6 +292,96 @@ export async function getCampaignInsights(
 
 // ─── Webhook Verification ────────────────────────────────────────────────────
 
+// ─── Messaging (Facebook Messenger / Instagram DMs) ─────────────────────────
+
+export async function getPageConversations(
+  pageToken: string,
+  pageId: string,
+): Promise<{ id: string; link: string; updated_time: string; participants: { data: { name: string; id: string }[] } }[]> {
+  const data = await metaFetch<{ data: { id: string; link: string; updated_time: string; participants: { data: { name: string; id: string }[] } }[] }>(
+    pageToken,
+    `/${pageId}/conversations?fields=id,link,updated_time,participants`,
+  )
+  return data.data || []
+}
+
+export async function getConversationMessages(
+  pageToken: string,
+  conversationId: string,
+): Promise<{ id: string; message: string; from: { name: string; id: string }; created_time: string }[]> {
+  const data = await metaFetch<{ data: { id: string; message: string; from: { name: string; id: string }; created_time: string }[] }>(
+    pageToken,
+    `/${conversationId}/messages?fields=id,message,from,created_time&limit=50`,
+  )
+  return data.data || []
+}
+
+export async function sendPageMessage(
+  pageToken: string,
+  pageId: string,
+  recipientId: string,
+  messageText: string,
+): Promise<string> {
+  const data = await metaFetch<{ message_id: string }>(pageToken, `/${pageId}/messages`, {
+    method: 'POST',
+    body: {
+      recipient: { id: recipientId },
+      message: { text: messageText },
+      messaging_type: 'RESPONSE',
+    },
+  })
+  return data.message_id
+}
+
+// ─── Post Feed ───────────────────────────────────────────────────────────────
+
+export async function getPagePosts(
+  pageToken: string,
+  pageId: string,
+  limit: number = 25,
+): Promise<{
+  id: string
+  message?: string
+  created_time: string
+  full_picture?: string
+  permalink_url?: string
+  shares?: { count: number }
+  likes: { summary: { total_count: number } }
+  comments: { summary: { total_count: number } }
+}[]> {
+  const data = await metaFetch<{ data: unknown[] }>(
+    pageToken,
+    `/${pageId}/posts?fields=id,message,created_time,full_picture,permalink_url,shares,likes.summary(true),comments.summary(true)&limit=${limit}`,
+  )
+  return (data.data || []) as {
+    id: string; message?: string; created_time: string; full_picture?: string;
+    permalink_url?: string; shares?: { count: number };
+    likes: { summary: { total_count: number } }; comments: { summary: { total_count: number } }
+  }[]
+}
+
+export async function getPostEngagement(
+  pageToken: string,
+  postId: string,
+): Promise<{ likes: number; comments: number; shares: number; reach: number; impressions: number }> {
+  const [reactionsData, insightsData] = await Promise.all([
+    metaFetch<{ summary: { total_count: number } }>(pageToken, `/${postId}/likes?summary=true`).catch(() => ({ summary: { total_count: 0 } })),
+    metaFetch<{ data: { name: string; values: { value: number }[] }[] }>(pageToken, `/${postId}/insights?metric=post_impressions,post_engaged_users,post_clicks`).catch(() => ({ data: [] })),
+  ])
+
+  const getMetric = (name: string) => insightsData.data?.find(m => m.name === name)?.values?.[0]?.value || 0
+
+  return {
+    likes: reactionsData.summary?.total_count || 0,
+    comments: 0, // fetched separately
+    shares: 0,
+    reach: getMetric('post_engaged_users'),
+    impressions: getMetric('post_impressions'),
+  }
+}
+
+// ─── Webhook Verification ────────────────────────────────────────────────────
+
 export async function verifyWebhookSignature(
   signature: string,
   body: string,

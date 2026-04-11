@@ -192,6 +192,65 @@ export interface MarketingCalendarEntry {
   campaign?: MarketingAdCampaign
 }
 
+// ─── Inbox & Engagement Types ────────────────────────────────────────────────
+
+export interface MarketingInboxMessage {
+  id: string
+  platform: 'facebook' | 'instagram'
+  thread_id: string
+  sender_id: string
+  sender_name: string | null
+  sender_avatar_url: string | null
+  message_text: string | null
+  media_url: string | null
+  direction: 'inbound' | 'outbound'
+  platform_message_id: string | null
+  is_read: boolean
+  replied_at: string | null
+  replied_by: string | null
+  metadata: Record<string, unknown>
+  message_time: string
+  created_at: string
+}
+
+export interface MarketingComment {
+  id: string
+  platform: 'facebook' | 'instagram' | 'youtube'
+  post_id: string
+  content_id: string | null
+  comment_id: string
+  parent_comment_id: string | null
+  author_name: string | null
+  author_id: string | null
+  author_avatar_url: string | null
+  comment_text: string
+  like_count: number
+  is_hidden: boolean
+  is_read: boolean
+  reply_text: string | null
+  replied_at: string | null
+  replied_by: string | null
+  comment_time: string
+  created_at: string
+}
+
+export interface MarketingPostEngagement {
+  id: string
+  content_id: string
+  platform: string
+  platform_post_id: string
+  likes: number
+  comments: number
+  shares: number
+  reach: number
+  impressions: number
+  saves: number
+  clicks: number
+  engagement_rate: number
+  last_synced_at: string
+  created_at: string
+}
+
 // ─── API / Component Types ───────────────────────────────────────────────────
 
 export interface PlatformMetrics {

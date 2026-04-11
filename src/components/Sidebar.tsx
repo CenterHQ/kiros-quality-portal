@@ -100,6 +100,9 @@ const navGroups: NavGroup[] = [
     items: [
       { href: '/marketing', label: 'Marketing Hub', icon: Megaphone },
       { href: '/marketing/content', label: 'Content', icon: PenSquare },
+      { href: '/marketing/feed', label: 'Post Feed', icon: FileStack },
+      { href: '/marketing/inbox', label: 'Inbox', icon: MessageSquare },
+      { href: '/marketing/comments', label: 'Comments', icon: MessageSquare },
       { href: '/marketing/calendar', label: 'Calendar', icon: CalendarDays },
       { href: '/marketing/reviews', label: 'Reviews', icon: Star },
       { href: '/marketing/ads', label: 'Ads', icon: BadgeDollarSign },
