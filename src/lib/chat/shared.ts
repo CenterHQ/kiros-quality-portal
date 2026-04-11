@@ -445,13 +445,20 @@ export async function executeTool(
   switch (toolName) {
     case 'search_centre_context': {
       let query = supabase.from('centre_context').select('context_type, title, content, related_qa, related_element_codes, source_quote').eq('is_active', true)
+      // Text search: filter by query against title and content
+      if (toolInput.query && typeof toolInput.query === 'string' && toolInput.query.trim()) {
+        const searchTerms = toolInput.query.trim().split(/\s+/).filter(Boolean)
+        // Use OR across title/content for each term to find relevant entries
+        const orConditions = searchTerms.map(term => `title.ilike.%${term}%,content.ilike.%${term}%`).join(',')
+        query = query.or(orConditions)
+      }
       if (Array.isArray(toolInput.context_types) && toolInput.context_types.length) {
         query = query.in('context_type', toolInput.context_types)
       }
       if (Array.isArray(toolInput.qa_numbers) && toolInput.qa_numbers.length) {
         query = query.overlaps('related_qa', toolInput.qa_numbers)
       }
-      const { data } = await query.limit(10)
+      const { data } = await query.limit(20)
       return JSON.stringify(data || [])
     }
 
