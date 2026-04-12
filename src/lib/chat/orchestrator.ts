@@ -14,6 +14,9 @@ export interface AgentTask {
   context: string
   model?: string
   maxIterations?: number
+  temperature?: number
+  tokenBudget?: number
+  agentDefinitionId?: string
 }
 
 export interface AgentResult {
@@ -24,13 +27,21 @@ export interface AgentResult {
   durationMs: number
 }
 
+export type AgentProgressCallback = (event: {
+  type: 'agent_start' | 'agent_progress' | 'agent_result'
+  agentName: string
+  description?: string
+  status?: 'running' | 'completed' | 'failed'
+  summary?: string
+}) => void
+
 type SupabaseClient = ReturnType<typeof createServiceRoleClient>
 
 // ---------------------------------------------------------------------------
 // Single agent runner (non-streaming, with tool loop)
 // ---------------------------------------------------------------------------
 
-async function runAgent(
+export async function runAgent(
   task: AgentTask,
   supabase: SupabaseClient,
 ): Promise<AgentResult> {
@@ -38,6 +49,7 @@ async function runAgent(
   const anthropic = getAnthropicClient()
   const model = task.model || 'claude-sonnet-4-20250514'
   const maxIter = task.maxIterations || 3
+  const maxTokens = task.tokenBudget || 8192
   let totalTokens = 0
 
   const messages: Anthropic.MessageParam[] = [
@@ -51,7 +63,8 @@ async function runAgent(
     while (continueLoop && iterations < maxIter) {
       const response = await anthropic.messages.create({
         model,
-        max_tokens: 8192,
+        max_tokens: maxTokens,
+        ...(task.temperature !== undefined ? { temperature: task.temperature } : {}),
         system: task.systemPrompt,
         tools: task.tools,
         messages,
@@ -125,7 +138,7 @@ async function runAgent(
 }
 
 // ---------------------------------------------------------------------------
-// Orchestrator — runs multiple agents in parallel
+// Orchestrator — runs multiple agents in parallel with progress events
 // ---------------------------------------------------------------------------
 
 export async function orchestrateAgents(params: {
@@ -133,8 +146,9 @@ export async function orchestrateAgents(params: {
   messageId: string
   tasks: AgentTask[]
   supabase: SupabaseClient
+  onProgress?: AgentProgressCallback
 }): Promise<AgentResult[]> {
-  const { tasks, supabase } = params
+  const { tasks, supabase, onProgress } = params
 
   // Create session records for tracking (non-critical — failures don't block agent work)
   const sessionIds: string[] = []
@@ -145,6 +159,8 @@ export async function orchestrateAgents(params: {
         .insert({
           conversation_id: params.conversationId || null,
           message_id: params.messageId || null,
+          agent_id: task.agentDefinitionId || null,
+          agent_name: task.agentName,
           task_description: task.description,
           context: { agentName: task.agentName, model: task.model },
           status: 'running',
@@ -159,39 +175,78 @@ export async function orchestrateAgents(params: {
     }
   }
 
-  // Run all agents in parallel
-  const settled = await Promise.allSettled(
-    tasks.map(task => runAgent(task, supabase))
-  )
+  // Run all agents in parallel with individual progress events
+  const promises = tasks.map(async (task, i) => {
+    // Emit start event
+    onProgress?.({
+      type: 'agent_start',
+      agentName: task.agentName,
+      description: task.description,
+    })
+    onProgress?.({
+      type: 'agent_progress',
+      agentName: task.agentName,
+      status: 'running',
+    })
 
-  // Collect results and update session records
-  const results: AgentResult[] = settled.map((outcome, i) => {
-    if (outcome.status === 'fulfilled') {
-      return outcome.value
-    }
-    return {
-      agentName: tasks[i].agentName,
-      status: 'failed' as const,
-      output: `Error: ${outcome.reason}`,
-      tokensUsed: 0,
-      durationMs: 0,
+    try {
+      const result = await runAgent(task, supabase)
+
+      // Emit completion
+      onProgress?.({
+        type: 'agent_progress',
+        agentName: task.agentName,
+        status: result.status,
+      })
+      onProgress?.({
+        type: 'agent_result',
+        agentName: task.agentName,
+        summary: result.output.substring(0, 300),
+      })
+
+      // Update session record
+      if (sessionIds[i]) {
+        await supabase
+          .from('ai_agent_sessions')
+          .update({
+            status: result.status,
+            result: { output: result.output },
+            tokens_used: result.tokensUsed,
+            completed_at: new Date().toISOString(),
+          })
+          .eq('id', sessionIds[i])
+      }
+
+      return result
+    } catch (err) {
+      onProgress?.({
+        type: 'agent_progress',
+        agentName: task.agentName,
+        status: 'failed',
+      })
+
+      const errorResult: AgentResult = {
+        agentName: task.agentName,
+        status: 'failed',
+        output: `Error: ${err instanceof Error ? err.message : 'Unknown error'}`,
+        tokensUsed: 0,
+        durationMs: 0,
+      }
+
+      if (sessionIds[i]) {
+        await supabase
+          .from('ai_agent_sessions')
+          .update({
+            status: 'failed',
+            result: { error: errorResult.output },
+            completed_at: new Date().toISOString(),
+          })
+          .eq('id', sessionIds[i])
+      }
+
+      return errorResult
     }
   })
 
-  // Update session records with results
-  for (let i = 0; i < results.length; i++) {
-    if (sessionIds[i]) {
-      await supabase
-        .from('ai_agent_sessions')
-        .update({
-          status: results[i].status,
-          result: { output: results[i].output },
-          tokens_used: results[i].tokensUsed,
-          completed_at: new Date().toISOString(),
-        })
-        .eq('id', sessionIds[i])
-    }
-  }
-
-  return results
+  return Promise.all(promises)
 }

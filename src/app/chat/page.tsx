@@ -49,7 +49,7 @@ export default function ChatPage() {
   const [uploading, setUploading] = useState(false)
   const [isRecording, setIsRecording] = useState(false)
   const [speechSupported, setSpeechSupported] = useState(false)
-  const { streamingMessage, activeTools, error: streamError, model: activeModel, sendMessage: sendStreamMessage, abort: abortStream } = useChatStream()
+  const { streamingMessage, activeTools, activeAgents, error: streamError, model: activeModel, sendMessage: sendStreamMessage, abort: abortStream } = useChatStream()
   const { toast } = useToast()
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
@@ -719,6 +719,26 @@ export default function ChatPage() {
                     </div>
                   )}
 
+                  {/* Agent activity indicators */}
+                  {activeAgents.length > 0 && (
+                    <div className="mt-2 space-y-1.5 p-3 rounded-lg bg-blue-50 border border-blue-200">
+                      <div className="text-xs font-medium text-blue-800 mb-1">Consulting specialist agents...</div>
+                      {activeAgents.map(agent => (
+                        <div key={agent.name} className="flex items-center gap-2 text-xs text-blue-700">
+                          {(agent.status === 'running' || agent.status === 'starting') ? (
+                            <div className="w-3 h-3 rounded-full border-2 border-blue-400 border-t-transparent animate-spin flex-shrink-0" />
+                          ) : agent.status === 'completed' ? (
+                            <svg className="w-3 h-3 text-green-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
+                          ) : (
+                            <svg className="w-3 h-3 text-red-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                          )}
+                          <span className="font-medium">{agent.name}</span>
+                          <span className="text-blue-500 truncate">{agent.description}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
                   {/* Model badge */}
                   {activeModel && (
                     <div className="text-xs text-muted-foreground">
@@ -760,6 +780,26 @@ export default function ChatPage() {
                         <div key={tool} className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-purple-50 border border-purple-200 text-xs text-purple-700">
                           <div className="w-1.5 h-1.5 rounded-full bg-purple-500 animate-pulse" />
                           {TOOL_LABELS[tool] || tool}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Agent activity indicators during initial load */}
+                  {activeAgents.length > 0 && (
+                    <div className="mt-2 space-y-1.5 p-3 rounded-lg bg-blue-50 border border-blue-200">
+                      <div className="text-xs font-medium text-blue-800 mb-1">Consulting specialist agents...</div>
+                      {activeAgents.map(agent => (
+                        <div key={agent.name} className="flex items-center gap-2 text-xs text-blue-700">
+                          {(agent.status === 'running' || agent.status === 'starting') ? (
+                            <div className="w-3 h-3 rounded-full border-2 border-blue-400 border-t-transparent animate-spin flex-shrink-0" />
+                          ) : agent.status === 'completed' ? (
+                            <svg className="w-3 h-3 text-green-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
+                          ) : (
+                            <svg className="w-3 h-3 text-red-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                          )}
+                          <span className="font-medium">{agent.name}</span>
+                          <span className="text-blue-500 truncate">{agent.description}</span>
                         </div>
                       ))}
                     </div>

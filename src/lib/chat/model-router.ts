@@ -11,7 +11,10 @@ export interface ModelConfig {
 
 export function selectModelConfig(message: string): ModelConfig {
   if (COMPLEX_SIGNALS.test(message)) {
-    return { model: MODEL_OPUS, thinking: { type: 'enabled' as const, budget_tokens: 10000 } }
+    // NOTE: Extended thinking is NOT compatible with tool use in the Anthropic API.
+    // Since our chat always sends tools, we route to Opus for complex queries
+    // but WITHOUT thinking enabled. This prevents the API from crashing.
+    return { model: MODEL_OPUS }
   }
   return { model: MODEL_SONNET }
 }

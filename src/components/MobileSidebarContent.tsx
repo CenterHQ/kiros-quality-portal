@@ -13,7 +13,7 @@ import {
   Link2, Activity, BarChart3, HelpCircle,
   GraduationCap, BookOpen, Route, Target, Grid3X3, Award,
   Baby, Clock, Users, Wallet, FileInput, HeartPulse,
-  Plug, UserCog, Bell, Tag, Cloud, Brain, LogOut,
+  Plug, UserCog, Bell, Tag, Cloud, Brain, Bot, LogOut,
   type LucideIcon,
 } from 'lucide-react'
 
@@ -39,6 +39,7 @@ const navGroups: NavGroup[] = [
       { href: '/policies', label: 'Policies', icon: FileText },
       { href: '/compliance', label: 'Compliance', icon: Scale },
       { href: '/documents', label: 'Documents', icon: FolderOpen },
+      { href: '/documents/library', label: 'AI Documents', icon: FileStack },
       { href: '/registers', label: 'Registers', icon: FileStack },
       { href: '/forms', label: 'Forms', icon: FormInput },
     ],
@@ -85,6 +86,7 @@ const navGroups: NavGroup[] = [
       { href: '/admin/tags', label: 'Tags', icon: Tag },
       { href: '/admin/sharepoint', label: 'SharePoint', icon: Cloud },
       { href: '/admin/context', label: 'AI Context', icon: Brain },
+      { href: '/admin/agents', label: 'AI Agents', icon: Bot },
     ],
   },
 ]

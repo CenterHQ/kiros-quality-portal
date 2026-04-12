@@ -5,6 +5,7 @@
   "crons": [
     { "path": "/api/marketing/cron/publish", "schedule": "*/5 * * * *" },
     { "path": "/api/marketing/cron/token-refresh", "schedule": "0 3 * * *" },
-    { "path": "/api/marketing/cron/analytics-sync", "schedule": "0 6 * * *" }
+    { "path": "/api/marketing/cron/analytics-sync", "schedule": "0 6 * * *" },
+    { "path": "/api/documents/cron/sync", "schedule": "*/30 * * * *" }
   ]
 }

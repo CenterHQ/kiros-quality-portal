@@ -7,6 +7,10 @@ export type SSEEvent =
   | { type: 'model'; model: string }
   | { type: 'done'; messageId: string; documents: unknown[]; pending_actions: unknown[] }
   | { type: 'error'; message: string }
+  // Agent orchestration events
+  | { type: 'agent_start'; agentName: string; description: string }
+  | { type: 'agent_progress'; agentName: string; status: 'running' | 'completed' | 'failed' }
+  | { type: 'agent_result'; agentName: string; summary: string }
 
 export const TOOL_LABELS: Record<string, string> = {
   search_centre_context: 'Searching centre knowledge base',
@@ -32,4 +36,5 @@ export const TOOL_LABELS: Record<string, string> = {
   update_item: 'Preparing item update',
   create_checklist_instance: 'Preparing checklist',
   export_document: 'Preparing document export',
+  delegate_to_agents: 'Consulting specialist agents',
 }

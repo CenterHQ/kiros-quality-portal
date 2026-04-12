@@ -116,6 +116,49 @@ RESPONSE RULES:
 9. Today's date is ${new Date().toISOString().split('T')[0]}`
 }
 
+// Build agent registry section for the master prompt — lists active specialist agents
+async function buildAgentRegistrySection(
+  supabase: ReturnType<typeof createServiceRoleClient>,
+): Promise<string> {
+  try {
+    const { data: agents } = await supabase
+      .from('ai_agent_definitions')
+      .select('name, description, routing_description, domain_tags, routing_keywords, priority')
+      .eq('is_active', true)
+      .order('priority', { ascending: true })
+
+    if (!agents || agents.length === 0) return ''
+
+    const agentLines = agents.map((a: { name: string; routing_description?: string; description?: string; domain_tags?: string[]; routing_keywords?: string[] }) => {
+      const tags = (a.domain_tags || []).join(', ')
+      const keywords = (a.routing_keywords || []).join(', ')
+      return `- **${a.name}**: ${a.routing_description || a.description || 'Specialist agent'}
+  Domain: ${tags || 'General'}
+  Keywords: ${keywords || 'N/A'}`
+    }).join('\n')
+
+    return `SPECIALIST AGENTS:
+You have access to specialist agents via the delegate_to_agents tool.
+When a user's question falls within a specialist's domain, delegate to them for in-depth analysis rather than answering directly with general knowledge.
+You may delegate to multiple agents in parallel if the question spans multiple domains.
+After receiving agent results, synthesise them into a single cohesive response for the user. Cite which agent provided which insight.
+Only delegate for substantive domain questions — for simple greetings, clarifications, or general chat, respond directly.
+
+Available agents:
+${agentLines}
+
+ROUTING RULES:
+1. If the query clearly maps to one agent's domain, delegate to that single agent.
+2. If the query spans multiple domains (e.g., "How are we doing on QA1 and QA4?"), delegate to multiple agents in parallel.
+3. For general operations questions that don't need specialist depth, answer directly using your tools.
+4. Always pass relevant conversation context to delegated agents.
+5. When presenting agent results, cite which agent provided which insight.
+6. You may still use your own tools alongside delegation when needed.`
+  } catch {
+    return '' // Non-critical — master agent works fine without specialist routing
+  }
+}
+
 // DB-driven system prompt — loads editable sections from ai_system_prompts table
 export async function buildSystemPromptFromDB(
   role: string,
@@ -175,6 +218,12 @@ export async function buildSystemPromptFromDB(
     }
     for (const [key, val] of Object.entries(vars)) {
       assembled = assembled.replace(new RegExp(`\\{${key}\\}`, 'g'), val)
+    }
+
+    // Append agent registry section
+    const agentRegistry = await buildAgentRegistrySection(supabase)
+    if (agentRegistry) {
+      assembled += '\n\n' + agentRegistry
     }
 
     return assembled
@@ -351,8 +400,9 @@ export const ALL_TOOLS: (Anthropic.Tool & { allowedRoles: string[] })[] = [
         document_type: { type: 'string', enum: ['report', 'letter', 'policy', 'plan', 'checklist', 'agenda', 'communication', 'guide', 'summary', 'other'], description: 'Type of document' },
         content: { type: 'string', description: 'Full document content in well-structured Markdown. REQUIRED formatting rules: (1) Use heading hierarchy — # for document title, ## for major sections, ### for subsections. (2) Start with a metadata block as a table: Date, Author (Kiros AI Assistant), Recipient if applicable, Version 1.0. (3) Include an executive summary or purpose statement for reports, plans, and policies. (4) Use markdown tables for any structured, comparative, or tabular data. (5) Use **bold** for key terms, definitions, and emphasis. (6) Use bullet or numbered lists for sequences, action items, and collections. (7) Use blockquotes (>) for important callouts, regulatory references, or NQS citations. (8) Content must be comprehensive and suitable for board or regulatory review. (9) Australian English spelling (organisation, behaviour, colour). (10) Follow the document-type template specified in the system prompt.' },
         recipient: { type: 'string', description: 'Who this document is for (if applicable)' },
+        topic_folder: { type: 'string', description: 'Topic-based folder name for organising in SharePoint. Choose based on the subject matter. Examples: "QA1 Programming", "QA2 Health & Safety", "QA3 Physical Environment", "QA4 Staffing", "QA5 Relationships", "QA6 Partnerships", "QA7 Governance", "Staff Training", "Board Reports", "Family Communication", "Compliance & Regulatory", "Policies & Procedures", "Meeting Minutes".' },
       },
-      required: ['title', 'document_type', 'content'],
+      required: ['title', 'document_type', 'content', 'topic_folder'],
     },
     allowedRoles: ['admin', 'manager', 'ns', 'el', 'educator'],
   },
@@ -571,17 +621,48 @@ export const ALL_TOOLS: (Anthropic.Tool & { allowedRoles: string[] })[] = [
     },
     allowedRoles: ['admin', 'manager', 'ns', 'el'],
   },
+  {
+    name: 'delegate_to_agents',
+    description: 'Delegate a task to one or more specialist agents who will research and respond in parallel. Use this when the user\'s question falls within a specialist agent\'s domain. You should synthesise the results into a cohesive response. Each agent has domain-specific knowledge and tools.',
+    input_schema: {
+      type: 'object' as const,
+      properties: {
+        delegations: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              agent_name: { type: 'string', description: 'The name of the specialist agent to invoke (must match a registered agent name exactly)' },
+              task_description: { type: 'string', description: 'What you want this agent to research or answer' },
+              context: { type: 'string', description: 'Any relevant context from the conversation to pass to the agent' },
+            },
+            required: ['agent_name', 'task_description'],
+          },
+          description: 'Array of agent delegations to run in parallel (1-5 agents)',
+        },
+      },
+      required: ['delegations'],
+    },
+    allowedRoles: ['admin', 'manager', 'ns', 'el', 'educator'],
+  },
 ]
 
 // Supabase client type that works for both cookie-based and service-role clients
 type SupabaseClient = ReturnType<typeof createServiceRoleClient>
+
+// Options for executeTool — extended context and callbacks
+export interface ExecuteToolOptions {
+  conversationId?: string
+  onAgentProgress?: import('@/lib/chat/orchestrator').AgentProgressCallback
+}
 
 export async function executeTool(
   toolName: string,
   toolInput: Record<string, unknown>,
   supabase: SupabaseClient,
   userId: string,
-  userRole: string = 'educator'
+  userRole: string = 'educator',
+  options?: ExecuteToolOptions,
 ): Promise<string> {
   // Validate role-based access before executing any tool
   const toolDef = ALL_TOOLS.find(t => t.name === toolName)
@@ -767,14 +848,52 @@ export async function executeTool(
     }
 
     case 'generate_document': {
-      return JSON.stringify({
-        type: 'document',
-        title: toolInput.title,
-        document_type: toolInput.document_type,
-        content: toolInput.content,
-        recipient: toolInput.recipient || null,
-        generated_at: new Date().toISOString(),
-      })
+      // Store document and upload to SharePoint
+      try {
+        const { storeAndUploadDocument } = await import('@/lib/document-storage')
+
+        // Sanitise topic_folder from AI — strip any path traversal or slashes
+        const rawTopicFolder = ((toolInput.topic_folder as string) || 'General').trim()
+        const safeTopicFolder = rawTopicFolder
+          .replace(/\.\./g, '')
+          .replace(/[/\\]/g, '')
+          .replace(/[<>:"|?*]/g, '')
+          .trim() || 'General'
+
+        const storeResult = await storeAndUploadDocument({
+          title: toolInput.title as string,
+          documentType: toolInput.document_type as string,
+          markdownContent: toolInput.content as string,
+          topicFolder: safeTopicFolder,
+          conversationId: options?.conversationId,
+          userId,
+          recipient: toolInput.recipient as string | undefined,
+        })
+
+        return JSON.stringify({
+          type: 'document',
+          title: toolInput.title,
+          document_type: toolInput.document_type,
+          content: toolInput.content,
+          recipient: toolInput.recipient || null,
+          generated_at: new Date().toISOString(),
+          document_id: storeResult.documentId,
+          sharepoint_folder: storeResult.sharepointFolderPath,
+          sharepoint_urls: storeResult.sharepointUrls,
+          format_variants: storeResult.formatVariants,
+        })
+      } catch (err) {
+        // Fallback: return document without SharePoint storage
+        console.error('Document storage failed, returning without SharePoint:', err)
+        return JSON.stringify({
+          type: 'document',
+          title: toolInput.title,
+          document_type: toolInput.document_type,
+          content: toolInput.content,
+          recipient: toolInput.recipient || null,
+          generated_at: new Date().toISOString(),
+        })
+      }
     }
 
     case 'get_policies': {
@@ -1078,6 +1197,69 @@ export async function executeTool(
         failed: results.filter(r => r.status === 'failed').length,
         total_tokens: results.reduce((sum, r) => sum + r.tokensUsed, 0),
         findings: synthesis,
+      })
+    }
+
+    case 'delegate_to_agents': {
+      const { orchestrateAgents } = await import('@/lib/chat/orchestrator')
+      const delegations = toolInput.delegations as Array<{ agent_name: string; task_description: string; context?: string }>
+
+      // Load agent definitions from DB
+      const agentNames = delegations.map(d => d.agent_name)
+      const { data: agentDefs } = await supabase
+        .from('ai_agent_definitions')
+        .select('*')
+        .in('name', agentNames)
+        .eq('is_active', true)
+
+      if (!agentDefs || agentDefs.length === 0) {
+        return JSON.stringify({ error: 'No matching active agents found', requested: agentNames })
+      }
+
+      // Build tasks from DB definitions
+      const agentTasks = delegations
+        .map(d => {
+          const def = agentDefs.find((a: { name: string }) => a.name === d.agent_name)
+          if (!def) return null
+          return {
+            agentName: def.name,
+            agentDefinitionId: def.id,
+            description: d.task_description,
+            systemPrompt: def.system_prompt,
+            tools: ALL_TOOLS
+              .filter(t => (def.available_tools || []).includes(t.name))
+              .map(({ allowedRoles: _r, ...rest }) => rest) as Anthropic.Tool[],
+            context: d.context || `Centre: Kiros Early Education, Bidwill NSW. Today: ${new Date().toISOString().split('T')[0]}`,
+            model: def.model || 'claude-sonnet-4-20250514',
+            maxIterations: def.max_iterations || 3,
+            temperature: def.temperature ?? undefined,
+            tokenBudget: def.token_budget || 8192,
+          }
+        })
+        .filter((t): t is NonNullable<typeof t> => t !== null)
+
+      if (agentTasks.length === 0) {
+        return JSON.stringify({ error: 'No matching active agents found for delegation', requested: agentNames })
+      }
+
+      const results = await orchestrateAgents({
+        conversationId: options?.conversationId || '',
+        messageId: '',
+        tasks: agentTasks,
+        supabase,
+        onProgress: options?.onAgentProgress,
+      })
+
+      return JSON.stringify({
+        type: 'agent_delegation',
+        agents_consulted: results.length,
+        results: results.map(r => ({
+          agent: r.agentName,
+          status: r.status,
+          output: r.output,
+          tokens: r.tokensUsed,
+          duration_ms: r.durationMs,
+        })),
       })
     }
 

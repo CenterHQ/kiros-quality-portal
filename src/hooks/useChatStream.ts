@@ -9,9 +9,17 @@ interface StreamMessage {
   messageId: string | null
 }
 
+export interface AgentStatus {
+  name: string
+  description: string
+  status: 'starting' | 'running' | 'completed' | 'failed'
+  summary?: string
+}
+
 interface UseChatStreamReturn {
   streamingMessage: StreamMessage | null
   activeTools: string[]
+  activeAgents: AgentStatus[]
   error: string | null
   model: string | null
   sendMessage: (params: {
@@ -25,6 +33,7 @@ interface UseChatStreamReturn {
 export function useChatStream(): UseChatStreamReturn {
   const [streamingMessage, setStreamingMessage] = useState<StreamMessage | null>(null)
   const [activeTools, setActiveTools] = useState<string[]>([])
+  const [activeAgents, setActiveAgents] = useState<AgentStatus[]>([])
   const [error, setError] = useState<string | null>(null)
   const [model, setModel] = useState<string | null>(null)
   const abortControllerRef = useRef<AbortController | null>(null)
@@ -43,6 +52,7 @@ export function useChatStream(): UseChatStreamReturn {
     // Reset state
     setError(null)
     setActiveTools([])
+    setActiveAgents([])
     setModel(null)
     textBufferRef.current = ''
     setStreamingMessage({
@@ -108,6 +118,28 @@ export function useChatStream(): UseChatStreamReturn {
                 if (data.conversationId) {
                   resolvedConvId = data.conversationId
                 }
+              } else if (eventType === 'agent') {
+                // Agent orchestration events
+                const agentEvent = data as SSEEvent
+                if (agentEvent.type === 'agent_start') {
+                  setActiveAgents(prev => [...prev, {
+                    name: agentEvent.agentName,
+                    description: agentEvent.description,
+                    status: 'starting',
+                  }])
+                } else if (agentEvent.type === 'agent_progress') {
+                  setActiveAgents(prev => prev.map(a =>
+                    a.name === agentEvent.agentName
+                      ? { ...a, status: agentEvent.status }
+                      : a
+                  ))
+                } else if (agentEvent.type === 'agent_result') {
+                  setActiveAgents(prev => prev.map(a =>
+                    a.name === agentEvent.agentName
+                      ? { ...a, summary: agentEvent.summary, status: 'completed' as const }
+                      : a
+                  ))
+                }
               } else if (eventType === 'delta' || eventType === 'status' || eventType === 'done' || eventType === 'error') {
                 const sseEvent = data as SSEEvent
 
@@ -141,6 +173,7 @@ export function useChatStream(): UseChatStreamReturn {
                       pendingActions: sseEvent.pending_actions,
                     } : null)
                     setActiveTools([])
+                    setActiveAgents([])
                     break
 
                   case 'error':
@@ -170,5 +203,5 @@ export function useChatStream(): UseChatStreamReturn {
     return { conversationId: resolvedConvId }
   }, [])
 
-  return { streamingMessage, activeTools, error, model, sendMessage, abort }
+  return { streamingMessage, activeTools, activeAgents, error, model, sendMessage, abort }
 }
