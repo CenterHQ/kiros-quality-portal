@@ -50,6 +50,8 @@ export function getMetaAuthUrl(redirectUri: string, state: string): string {
     scope: META_SCOPES,
     response_type: 'code',
     state,
+    // Re-request previously denied scopes and force page selection
+    auth_type: 'rerequest',
   })
   return `https://www.facebook.com/${API_VERSION}/dialog/oauth?${params}`
 }

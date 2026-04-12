@@ -4,6 +4,8 @@ import {
   exchangeCodeForToken,
   exchangeForLongLivedToken,
   getPageAccounts,
+  inspectToken,
+  metaFetch,
 } from '@/lib/marketing/meta-api'
 
 export const dynamic = 'force-dynamic'
@@ -43,13 +45,30 @@ export async function GET(request: NextRequest) {
     // Exchange for long-lived user token (60-day expiry)
     const longLived = await exchangeForLongLivedToken(shortLived.access_token)
 
+    // Inspect the token to check granted scopes
+    const tokenInfo = await inspectToken(longLived.access_token)
+    const grantedScopes = tokenInfo?.scopes || []
+
     // Fetch managed pages and their Instagram business accounts
     // Page tokens from /me/accounts with a long-lived user token are permanent (never expire)
     const pages = await getPageAccounts(longLived.access_token)
 
     if (pages.length === 0) {
+      // Fetch raw /me response for debugging
+      let debugInfo = `Granted scopes: [${grantedScopes.join(', ')}]`
+      try {
+        const me = await metaFetch<{ id: string; name: string }>(longLived.access_token, '/me?fields=id,name')
+        debugInfo += ` | User: ${me.name} (${me.id})`
+      } catch { /* ignore */ }
+
+      // Check if pages_show_list was granted
+      if (!grantedScopes.includes('pages_show_list')) {
+        debugInfo += ' | Missing pages_show_list scope — enable "Access Pages" Use Case in Meta App Dashboard'
+      }
+
+      const errorMsg = `No Facebook Pages found. ${debugInfo}. Make sure: (1) your Facebook account is an admin/editor of at least one Page, (2) you selected the Page during the OAuth dialog, (3) "pages_show_list" permission is granted.`
       return NextResponse.redirect(
-        new URL('/marketing/settings?error=No+Facebook+Pages+found.+Make+sure+your+account+manages+at+least+one+Page.', request.url),
+        new URL(`/marketing/settings?error=${encodeURIComponent(errorMsg)}`, request.url),
       )
     }
 
