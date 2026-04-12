@@ -3,16 +3,26 @@
 import Link from 'next/link'
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { usePathname } from 'next/navigation'
+import { createClient } from '@/lib/supabase/client'
 import { useProfile } from '@/lib/ProfileContext'
 import { ROLE_LABELS } from '@/lib/types'
 import { useChatStream } from '@/hooks/useChatStream'
 import { TOOL_LABELS } from '@/lib/chat/sse-protocol'
 import MarkdownRenderer from '@/components/chat/MarkdownRenderer'
 
+interface GeneratedDocument {
+  title: string
+  document_type: string
+  content: string
+  recipient?: string
+  generated_at: string
+}
+
 interface Message {
   id: string
   role: 'user' | 'assistant'
   content: string
+  documents?: GeneratedDocument[]
   timestamp: Date
 }
 
@@ -25,6 +35,7 @@ export default function ChatAssistant() {
   const [loading, setLoading] = useState(false)
   const [conversationId, setConversationId] = useState<string | null>(null)
   const [hasNewMessage, setHasNewMessage] = useState(false)
+  const [documentNotification, setDocumentNotification] = useState<string | null>(null)
   const [isRecording, setIsRecording] = useState(false)
   const { streamingMessage, activeTools, error: streamError, sendMessage: sendStreamMessage, abort: abortStream } = useChatStream()
   const [speechSupported, setSpeechSupported] = useState(false)
@@ -44,16 +55,23 @@ export default function ChatAssistant() {
   useEffect(() => {
     if (streamingMessage && !streamingMessage.isStreaming) {
       if (streamingMessage.text) {
+        const docs = (streamingMessage.documents || []) as GeneratedDocument[]
         setMessages(prev => {
           if (streamingMessage.messageId && prev.some(m => m.id === streamingMessage.messageId)) return prev
           return [...prev, {
             id: streamingMessage.messageId || `stream-${Date.now()}`,
             role: 'assistant' as const,
             content: streamingMessage.text,
+            documents: docs,
             timestamp: new Date(),
           }]
         })
-        if (!isOpen) setHasNewMessage(true)
+        if (!isOpen) {
+          setHasNewMessage(true)
+          if (docs.length > 0) {
+            setDocumentNotification(`Document ready: ${docs[0].title}`)
+          }
+        }
       }
       // Always clear loading when streaming is done, even if text is empty
       setLoading(false)
@@ -77,6 +95,58 @@ export default function ChatAssistant() {
   useEffect(() => {
     setSpeechSupported('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)
   }, [])
+
+  // Realtime subscription: catch assistant messages delivered in the background
+  // (SSE stream may have dropped if user navigated away or connection timed out)
+  useEffect(() => {
+    if (!conversationId) return
+
+    const supabase = createClient()
+    const channel = supabase
+      .channel(`widget-chat-${conversationId}`)
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'chat_messages',
+        filter: `conversation_id=eq.${conversationId}`,
+      }, (payload) => {
+        const msg = payload.new as { id: string; role: string; content: string; metadata?: Record<string, unknown>; created_at: string }
+        if (msg.role === 'assistant') {
+          const meta = msg.metadata as Record<string, unknown> | undefined
+          const docs = meta && 'documents' in meta
+            ? meta.documents as GeneratedDocument[]
+            : undefined
+
+          setMessages(prev => {
+            if (prev.some(m => m.id === msg.id)) return prev
+            return [...prev, {
+              id: msg.id,
+              role: 'assistant',
+              content: msg.content,
+              documents: docs || [],
+              timestamp: new Date(msg.created_at),
+            }]
+          })
+
+          // Notify user of new message / document
+          if (!isOpen) {
+            setHasNewMessage(true)
+            setDocumentNotification(
+              docs && docs.length > 0
+                ? `Document ready: ${docs[0].title}`
+                : null
+            )
+          }
+
+          setLoading(false)
+        }
+      })
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(channel)
+    }
+  }, [conversationId, isOpen])
 
   // Don't show the floating widget on the full chat page
   if (pathname === '/chat') return null
@@ -141,13 +211,22 @@ export default function ChatAssistant() {
     <>
       {/* Hidden on mobile — bottom nav has AI Chat tab instead */}
       {/* Status indicator — visible when processing or new message, even with panel closed */}
-      {!isOpen && (loading || hasNewMessage) && (
-        <div className={`hidden md:block fixed bottom-[88px] right-6 z-50 rounded-full px-3 py-1.5 text-xs font-medium shadow-lg whitespace-nowrap transition-all ${
-          hasNewMessage
-            ? 'bg-green-500 text-white animate-bounce'
-            : 'bg-card text-primary border border-primary/20'
+      {!isOpen && (loading || hasNewMessage || documentNotification) && (
+        <div className={`hidden md:block fixed bottom-[88px] right-6 z-50 rounded-full px-3 py-1.5 text-xs font-medium shadow-lg whitespace-nowrap transition-all max-w-[280px] truncate ${
+          documentNotification
+            ? 'bg-blue-500 text-white animate-bounce'
+            : hasNewMessage
+              ? 'bg-green-500 text-white animate-bounce'
+              : 'bg-card text-primary border border-primary/20'
         }`}>
-          {hasNewMessage ? '\u2713 New response ready' : (
+          {documentNotification ? (
+            <span className="flex items-center gap-1.5">
+              <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+              {documentNotification}
+            </span>
+          ) : hasNewMessage ? '\u2713 New response ready' : (
             <span className="flex items-center gap-1.5">
               <span className="w-1.5 h-1.5 rounded-full bg-purple-500 animate-pulse" />
               Kiros AI is working...
@@ -158,7 +237,7 @@ export default function ChatAssistant() {
 
       {/* Floating button */}
       <button
-        onClick={() => { setIsOpen(!isOpen); if (!isOpen) setHasNewMessage(false) }}
+        onClick={() => { setIsOpen(!isOpen); if (!isOpen) { setHasNewMessage(false); setDocumentNotification(null) } }}
         className={`hidden md:flex fixed bottom-6 right-6 w-14 h-14 rounded-full shadow-lg items-center justify-center text-primary-foreground z-50 hover:scale-105 transition-transform bg-primary ${hasNewMessage && !isOpen ? 'animate-pulse ring-4 ring-purple-300/50' : ''}`}
         aria-label={isOpen ? 'Close chat assistant' : 'Open chat assistant'}
         title="Kiros AI Assistant"
@@ -239,7 +318,26 @@ export default function ChatAssistant() {
                     : 'bg-muted text-foreground rounded-bl-md'
                 }`}>
                   {msg.role === 'assistant' ? (
-                    <MarkdownRenderer content={msg.content} compact />
+                    <>
+                      <MarkdownRenderer content={msg.content} compact />
+                      {msg.documents && msg.documents.length > 0 && (
+                        <div className="mt-2 space-y-1">
+                          {msg.documents.map((doc, i) => (
+                            <Link
+                              key={i}
+                              href="/chat"
+                              className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-blue-50 border border-blue-200 text-xs text-blue-700 hover:bg-blue-100 transition-colors"
+                            >
+                              <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                              </svg>
+                              <span className="truncate font-medium">{doc.title}</span>
+                              <span className="text-blue-400 ml-auto flex-shrink-0">Open &rarr;</span>
+                            </Link>
+                          ))}
+                        </div>
+                      )}
+                    </>
                   ) : (
                     <div className="whitespace-pre-wrap">{msg.content}</div>
                   )}
