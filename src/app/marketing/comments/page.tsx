@@ -25,6 +25,7 @@ export default function CommentsPage() {
   const [replyingTo, setReplyingTo] = useState<string | null>(null)
   const [replyText, setReplyText] = useState('')
   const [saving, setSaving] = useState(false)
+  const [syncStatus, setSyncStatus] = useState<string | null>(null)
 
   useEffect(() => { loadComments() }, [])
 
@@ -42,12 +43,31 @@ export default function CommentsPage() {
 
   async function syncComments() {
     setSyncing(true)
+    setSyncStatus(null)
     try {
       const res = await fetch('/api/marketing/comments/sync', { method: 'POST' })
-      if (!res.ok) throw new Error('Sync failed')
+      const data = await res.json()
+
+      const parts: string[] = []
+      if (!res.ok) {
+        parts.push(data.error || 'Sync failed')
+      } else if (data.error) {
+        parts.push(data.error)
+      } else if (data.errors?.length > 0) {
+        parts.push(...data.errors)
+      }
+      if (data.synced > 0) {
+        parts.unshift(`Synced ${data.synced} comment(s).`)
+      } else if (parts.length === 0) {
+        parts.push('No comments found on your Page posts.')
+      }
+      if (data.debug?.length > 0) {
+        parts.push('Debug: ' + data.debug.join(' | '))
+      }
+      setSyncStatus(parts.join('\n\n'))
       await loadComments()
     } catch (err) {
-      console.error('Sync error:', err)
+      setSyncStatus(err instanceof Error ? err.message : 'Sync failed')
     }
     setSyncing(false)
   }
@@ -106,6 +126,12 @@ export default function CommentsPage() {
           </button>
         }
       />
+
+      {syncStatus && (
+        <div className="p-4 rounded-lg bg-amber-50 border border-amber-200 text-sm text-amber-800 whitespace-pre-wrap">
+          {syncStatus}
+        </div>
+      )}
 
       {/* Tabs */}
       <div className="flex gap-1 border-b border-border">
