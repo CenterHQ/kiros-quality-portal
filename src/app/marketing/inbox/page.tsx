@@ -104,8 +104,13 @@ export default function InboxPage() {
         setSyncError(data.error || 'Sync failed')
         return
       }
-      if (data.synced === 0 && data.errors?.length > 0) {
+      // Show any errors (singular or plural)
+      if (data.error) {
+        setSyncError(data.error)
+      } else if (data.errors?.length > 0) {
         setSyncError(data.errors.join('; '))
+      } else if (data.synced === 0) {
+        setSyncError('No messages found. Make sure your Facebook Page has received messages and you have the "Manager messaging" use case enabled in your Meta App Dashboard.')
       }
       await loadThreads()
       if (activeThread) await loadMessages(activeThread)
