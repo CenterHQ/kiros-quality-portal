@@ -48,14 +48,20 @@ export async function GET(request: NextRequest) {
     // Inspect the token to check granted scopes
     const tokenInfo = await inspectToken(longLived.access_token)
     const grantedScopes = tokenInfo?.scopes || []
+    const granularScopes = tokenInfo?.granular_scopes || []
 
-    // Fetch managed pages and their Instagram business accounts
-    // Page tokens from /me/accounts with a long-lived user token are permanent (never expire)
-    const pages = await getPageAccounts(longLived.access_token)
+    // Fetch managed pages — try long-lived token first, fall back to short-lived
+    let pages = await getPageAccounts(longLived.access_token)
+    if (pages.length === 0) {
+      pages = await getPageAccounts(shortLived.access_token)
+    }
 
     if (pages.length === 0) {
       // Fetch debug info to diagnose why no pages were returned
-      const debugParts: string[] = [`Scopes: [${grantedScopes.join(', ')}]`]
+      const debugParts: string[] = [
+        `Scopes: [${grantedScopes.join(', ')}]`,
+        `Granular: ${JSON.stringify(granularScopes)}`,
+      ]
       try {
         const me = await metaFetch<{ id: string; name: string }>(longLived.access_token, '/me?fields=id,name')
         debugParts.push(`User: ${me.name} (${me.id})`)
