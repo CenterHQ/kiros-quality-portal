@@ -35,6 +35,15 @@ const AVAILABLE_TOOLS = [
   { name: 'create_checklist_instance', description: 'Create checklist from template' },
   { name: 'export_document', description: 'Export documents in various formats' },
   { name: 'run_deep_analysis', description: 'Spawn parallel research agents' },
+  { name: 'delegate_to_agents', description: 'Delegate to specialist agents' },
+]
+
+const ROLE_OPTIONS = [
+  { value: 'admin', label: 'Approved Provider' },
+  { value: 'manager', label: 'Operations Manager' },
+  { value: 'ns', label: 'Nominated Supervisor' },
+  { value: 'el', label: 'Educational Leader' },
+  { value: 'educator', label: 'Educator' },
 ]
 
 interface AgentDefinition {
@@ -90,6 +99,17 @@ const EMPTY_AGENT: EditingAgent = {
   is_active: true,
 }
 
+interface SystemPromptRow {
+  id: string
+  section: string
+  role: string | null
+  title: string
+  template: string
+  sort_order: number
+  is_active: boolean
+  version: number
+}
+
 interface TestResult {
   output: string
   tokensUsed: number
@@ -97,9 +117,74 @@ interface TestResult {
   status: string
 }
 
+// The hardcoded default master system prompt (used as fallback/seed)
+const DEFAULT_MASTER_PROMPT = `You are Kiros AI — the intelligent operations assistant for Kiros Early Education Centre.
+
+IDENTITY & EXPERTISE:
+- You are an expert in Australian Early Childhood Education and Care (ECEC)
+- You specialise in the National Quality Framework (NQF), National Quality Standard (NQS), and the 7 Quality Areas
+- You are deeply knowledgeable about the Early Years Learning Framework (EYLF) V2.0
+- You understand NSW Education and Care Services National Law and National Regulations
+- You are trained on the Assessment and Rating (A&R) process under ACECQA
+- You provide practical guidance on early childhood centre operations, programming, compliance, and best practice
+
+RESPONSE RULES:
+1. ALWAYS cite your sources when referencing centre information:
+   - For QIP goals: [Source: QIP Goal — {title}]
+   - For policies: [Source: Policy — {title}]
+   - For procedures: [Source: Procedure — {title}]
+   - For philosophy: [Source: Philosophy — {title}]
+   - For teaching approaches: [Source: Teaching Approach — {title}]
+   - For NSW regulations: [Source: NSW Regulation {number}]
+   - For NQS elements: [Source: NQS Element {code}]
+
+2. Use Markdown formatting in ALL responses:
+   - Use ## headings for sections
+   - Use **bold** for key terms and names
+   - Use bullet lists for multiple points
+   - Use tables for structured data
+   - Use > blockquotes for direct policy/regulation quotes
+
+3. When suggesting actions (create task, assign training, update items):
+   - ALWAYS use confirmation — return pending_action objects so the user can approve/cancel
+   - Include specific details: who, what, when, priority
+   - Explain WHY you are suggesting this action, linked to QIP goals or compliance
+
+4. When answering operational questions:
+   - Query the relevant platform data using tools (do not guess)
+   - Present data in structured tables or lists
+   - Highlight items needing attention (overdue, expired, non-compliant)
+   - Suggest next actions with rationale
+
+5. SCOPE: Only discuss early childhood education, centre operations, compliance, and related topics. Politely redirect off-topic queries.
+
+6. Use Australian English spelling (organisation, programme is acceptable for EYLF references, colour, etc.)
+
+7. Reference NQS element codes (e.g., 1.1.1, 2.2.3) and NSW regulation numbers (e.g., Regulation 77, Regulation 155, Section 165) where relevant.`
+
+const DEFAULT_ROLE_INSTRUCTIONS: Record<string, string> = {
+  admin: 'You are speaking with the Approved Provider. Provide strategic executive-level insights. Summarise data comprehensively with metrics. Support governance decisions. When asked for reports, generate comprehensive documents with real platform data. Help prepare for board meetings, regulatory submissions, and strategic planning.',
+  manager: 'You are speaking with the Operations Manager. Focus on operational improvements, educator coaching strategies, and practical implementation. When you suggest improvements, ALWAYS use the suggest_improvement tool so it goes through the NS/AP approval workflow. Help with daily operations, roster planning, and staff mentoring.',
+  ns: 'You are speaking with the Nominated Supervisor. Support daily operations, compliance monitoring, staff management, and programming oversight. You can create tasks and assign training directly (with confirmation). Help monitor regulatory compliance, supervise programming quality, and manage incident responses.',
+  el: 'You are speaking with the Educational Leader. Focus on pedagogical leadership, programming quality, EYLF V2.0 alignment, and educator mentoring. Support curriculum decision-making, critical reflection practices, and documentation quality. Help develop professional learning plans.',
+  educator: 'You are speaking with an Educator. Provide practical, room-level guidance grounded in centre policies and NQS best practice. Help with daily interactions, programming ideas, behaviour guidance strategies, and professional development. Reference the centre\'s specific teaching approaches and philosophy.',
+}
+
 export default function AgentManagementPage() {
   const profile = useProfile()
   const supabase = createClient()
+
+  // Master AI state
+  const [masterTab, setMasterTab] = useState<'prompt' | 'roles' | 'settings'>('prompt')
+  const [masterPrompt, setMasterPrompt] = useState(DEFAULT_MASTER_PROMPT)
+  const [masterPromptId, setMasterPromptId] = useState<string | null>(null)
+  const [roleInstructions, setRoleInstructions] = useState<Record<string, { text: string; id: string | null }>>(
+    Object.fromEntries(ROLE_OPTIONS.map(r => [r.value, { text: DEFAULT_ROLE_INSTRUCTIONS[r.value] || '', id: null }]))
+  )
+  const [masterExpanded, setMasterExpanded] = useState(true)
+  const [masterSaving, setMasterSaving] = useState(false)
+
+  // Specialist agent state
   const [agents, setAgents] = useState<AgentDefinition[]>([])
   const [loading, setLoading] = useState(true)
   const [editing, setEditing] = useState<EditingAgent | null>(null)
@@ -110,6 +195,7 @@ export default function AgentManagementPage() {
 
   useEffect(() => {
     loadAgents()
+    loadMasterConfig()
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
@@ -120,6 +206,112 @@ export default function AgentManagementPage() {
     }
   }, [flash])
 
+  // ---------------------------------------------------------------------------
+  // Load master AI configuration from ai_system_prompts
+  // ---------------------------------------------------------------------------
+  async function loadMasterConfig() {
+    const { data: prompts } = await supabase
+      .from('ai_system_prompts')
+      .select('*')
+      .order('sort_order', { ascending: true })
+
+    if (prompts && prompts.length > 0) {
+      // Find the master identity/expertise prompt
+      const masterRow = prompts.find((p: SystemPromptRow) => p.section === 'identity' && !p.role)
+      if (masterRow) {
+        setMasterPrompt(masterRow.template)
+        setMasterPromptId(masterRow.id)
+      }
+
+      // Find role-specific instructions
+      const roleRows = prompts.filter((p: SystemPromptRow) => p.section === 'role_instructions' && p.role)
+      if (roleRows.length > 0) {
+        const updated = { ...roleInstructions }
+        for (const row of roleRows) {
+          if (row.role && updated[row.role]) {
+            updated[row.role] = { text: row.template, id: row.id }
+          }
+        }
+        setRoleInstructions(updated)
+      }
+    }
+    // If no DB rows, we keep the defaults (hardcoded fallback is used by the chat API)
+  }
+
+  async function saveMasterPrompt() {
+    setMasterSaving(true)
+    try {
+      if (masterPromptId) {
+        // Update existing
+        const { error } = await supabase
+          .from('ai_system_prompts')
+          .update({ template: masterPrompt, updated_at: new Date().toISOString(), updated_by: profile?.id })
+          .eq('id', masterPromptId)
+        if (error) throw error
+      } else {
+        // Insert new
+        const { data, error } = await supabase
+          .from('ai_system_prompts')
+          .insert({
+            section: 'identity',
+            role: null,
+            title: 'Master AI System Prompt',
+            template: masterPrompt,
+            sort_order: 0,
+            is_active: true,
+            version: 1,
+            created_by: profile?.id,
+          })
+          .select('id')
+          .single()
+        if (error) throw error
+        setMasterPromptId(data.id)
+      }
+      setFlash({ type: 'success', message: 'Master AI system prompt saved' })
+    } catch (err) {
+      setFlash({ type: 'error', message: `Failed to save: ${err instanceof Error ? err.message : 'Unknown error'}` })
+    }
+    setMasterSaving(false)
+  }
+
+  async function saveRoleInstruction(role: string) {
+    setMasterSaving(true)
+    const entry = roleInstructions[role]
+    try {
+      if (entry.id) {
+        const { error } = await supabase
+          .from('ai_system_prompts')
+          .update({ template: entry.text, updated_at: new Date().toISOString(), updated_by: profile?.id })
+          .eq('id', entry.id)
+        if (error) throw error
+      } else {
+        const { data, error } = await supabase
+          .from('ai_system_prompts')
+          .insert({
+            section: 'role_instructions',
+            role,
+            title: `Role Instructions: ${ROLE_OPTIONS.find(r => r.value === role)?.label || role}`,
+            template: entry.text,
+            sort_order: 10,
+            is_active: true,
+            version: 1,
+            created_by: profile?.id,
+          })
+          .select('id')
+          .single()
+        if (error) throw error
+        setRoleInstructions(prev => ({ ...prev, [role]: { ...prev[role], id: data.id } }))
+      }
+      setFlash({ type: 'success', message: `${ROLE_OPTIONS.find(r => r.value === role)?.label} instructions saved` })
+    } catch (err) {
+      setFlash({ type: 'error', message: `Failed to save: ${err instanceof Error ? err.message : 'Unknown error'}` })
+    }
+    setMasterSaving(false)
+  }
+
+  // ---------------------------------------------------------------------------
+  // Specialist agent CRUD
+  // ---------------------------------------------------------------------------
   async function loadAgents() {
     setLoading(true)
     const { data, error } = await supabase
@@ -283,11 +475,232 @@ export default function AgentManagementPage() {
         </div>
       )}
 
-      {/* Header */}
+      {/* Page Header */}
+      <div>
+        <h1 className="text-2xl font-bold">AI Configuration</h1>
+        <p className="text-sm text-muted-foreground mt-1">Configure the master Kiros AI and specialist agents</p>
+      </div>
+
+      {/* ================================================================== */}
+      {/*  MASTER AI CONFIGURATION                                           */}
+      {/* ================================================================== */}
+      <div className="border rounded-xl bg-card overflow-hidden">
+        <button
+          onClick={() => setMasterExpanded(!masterExpanded)}
+          className="w-full px-6 py-4 flex items-center justify-between hover:bg-muted/30 transition-colors"
+        >
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-primary-foreground font-bold text-sm">K</div>
+            <div className="text-left">
+              <h2 className="text-lg font-semibold">Kiros AI (Master)</h2>
+              <p className="text-xs text-muted-foreground">System prompt, role instructions, and behaviour configuration</p>
+            </div>
+          </div>
+          <svg className={`w-5 h-5 text-muted-foreground transition-transform ${masterExpanded ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+          </svg>
+        </button>
+
+        {masterExpanded && (
+          <div className="border-t">
+            {/* Tab bar */}
+            <div className="flex border-b px-6">
+              {([
+                { key: 'prompt', label: 'System Prompt' },
+                { key: 'roles', label: 'Role Instructions' },
+                { key: 'settings', label: 'Settings' },
+              ] as const).map(tab => (
+                <button
+                  key={tab.key}
+                  onClick={() => setMasterTab(tab.key)}
+                  className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
+                    masterTab === tab.key
+                      ? 'border-primary text-primary'
+                      : 'border-transparent text-muted-foreground hover:text-foreground'
+                  }`}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
+
+            <div className="p-6">
+              {/* System Prompt Tab */}
+              {masterTab === 'prompt' && (
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-xs font-medium mb-1">
+                      Master System Prompt
+                      <span className="text-muted-foreground font-normal ml-2">
+                        This is the core identity and behaviour of Kiros AI. Centre context, staff list, and service details are injected automatically.
+                      </span>
+                    </label>
+                    <textarea
+                      value={masterPrompt}
+                      onChange={e => setMasterPrompt(e.target.value)}
+                      className="w-full px-3 py-2 rounded-lg border text-sm font-mono focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                      rows={24}
+                    />
+                    <div className="flex items-center justify-between mt-2">
+                      <p className="text-[10px] text-muted-foreground">{masterPrompt.length} characters</p>
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => { setMasterPrompt(DEFAULT_MASTER_PROMPT); setFlash({ type: 'success', message: 'Reset to default — click Save to apply' }) }}
+                          className="px-3 py-1.5 text-xs border rounded-lg hover:bg-muted transition-colors text-muted-foreground"
+                        >
+                          Reset to Default
+                        </button>
+                        <button
+                          onClick={saveMasterPrompt}
+                          disabled={masterSaving}
+                          className="px-4 py-1.5 text-xs font-medium bg-primary text-primary-foreground rounded-lg hover:opacity-90 disabled:opacity-50 transition-opacity"
+                        >
+                          {masterSaving ? 'Saving...' : 'Save System Prompt'}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Role Instructions Tab */}
+              {masterTab === 'roles' && (
+                <div className="space-y-6">
+                  <p className="text-xs text-muted-foreground">
+                    Each role gets a tailored instruction injected into the system prompt. This controls how Kiros AI behaves for each user type.
+                  </p>
+                  {ROLE_OPTIONS.map(role => (
+                    <div key={role.value} className="border rounded-lg p-4">
+                      <div className="flex items-center justify-between mb-2">
+                        <label className="text-sm font-medium">{role.label}</label>
+                        <button
+                          onClick={() => saveRoleInstruction(role.value)}
+                          disabled={masterSaving}
+                          className="px-3 py-1 text-xs font-medium bg-primary text-primary-foreground rounded-lg hover:opacity-90 disabled:opacity-50 transition-opacity"
+                        >
+                          {masterSaving ? 'Saving...' : 'Save'}
+                        </button>
+                      </div>
+                      <textarea
+                        value={roleInstructions[role.value]?.text || ''}
+                        onChange={e => setRoleInstructions(prev => ({
+                          ...prev,
+                          [role.value]: { ...prev[role.value], text: e.target.value },
+                        }))}
+                        className="w-full px-3 py-2 rounded-lg border text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                        rows={4}
+                      />
+                      {roleInstructions[role.value]?.id && (
+                        <p className="text-[10px] text-green-600 mt-1">Saved in database (overrides default)</p>
+                      )}
+                      {!roleInstructions[role.value]?.id && (
+                        <p className="text-[10px] text-muted-foreground mt-1">Using default — save to customise</p>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Settings Tab */}
+              {masterTab === 'settings' && (
+                <div className="space-y-6">
+                  <p className="text-xs text-muted-foreground">
+                    These settings control how the master AI operates. Changes here are informational — model routing and limits are configured in the codebase.
+                  </p>
+
+                  <div className="grid grid-cols-2 gap-6">
+                    <div className="border rounded-lg p-4 space-y-3">
+                      <h3 className="text-sm font-semibold">Model Routing</h3>
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between text-xs">
+                          <span className="text-muted-foreground">Simple queries</span>
+                          <span className="font-medium px-2 py-0.5 rounded bg-blue-50 text-blue-700">Claude Sonnet 4</span>
+                        </div>
+                        <div className="flex items-center justify-between text-xs">
+                          <span className="text-muted-foreground">Complex analysis</span>
+                          <span className="font-medium px-2 py-0.5 rounded bg-purple-50 text-purple-700">Claude Opus 4</span>
+                        </div>
+                      </div>
+                      <p className="text-[10px] text-muted-foreground">
+                        Opus triggers on: analyse, compare, evaluate, strategic plan, deep dive, improvement plan, board report, regulatory submission, gap analysis, critical reflection
+                      </p>
+                    </div>
+
+                    <div className="border rounded-lg p-4 space-y-3">
+                      <h3 className="text-sm font-semibold">Runtime Limits</h3>
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between text-xs">
+                          <span className="text-muted-foreground">Max tokens per response</span>
+                          <span className="font-medium">16,384</span>
+                        </div>
+                        <div className="flex items-center justify-between text-xs">
+                          <span className="text-muted-foreground">Max tool iterations</span>
+                          <span className="font-medium">5</span>
+                        </div>
+                        <div className="flex items-center justify-between text-xs">
+                          <span className="text-muted-foreground">Conversation history</span>
+                          <span className="font-medium">40 messages</span>
+                        </div>
+                        <div className="flex items-center justify-between text-xs">
+                          <span className="text-muted-foreground">Vercel timeout</span>
+                          <span className="font-medium">300s (5 min)</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="border rounded-lg p-4 space-y-3">
+                      <h3 className="text-sm font-semibold">Tools Available</h3>
+                      <div className="text-xs text-muted-foreground">
+                        The master AI has access to <strong className="text-foreground">{AVAILABLE_TOOLS.length} tools</strong>, filtered by the user&apos;s role.
+                        Admin sees all tools. Educators see a restricted set.
+                      </div>
+                      <div className="flex flex-wrap gap-1 max-h-32 overflow-y-auto">
+                        {AVAILABLE_TOOLS.map(t => (
+                          <span key={t.name} className="px-1.5 py-0.5 rounded text-[10px] bg-gray-50 text-gray-600 border border-gray-100">{t.name}</span>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="border rounded-lg p-4 space-y-3">
+                      <h3 className="text-sm font-semibold">Features</h3>
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between text-xs">
+                          <span className="text-muted-foreground">Prompt caching</span>
+                          <span className="font-medium text-green-600">Enabled</span>
+                        </div>
+                        <div className="flex items-center justify-between text-xs">
+                          <span className="text-muted-foreground">SSE streaming</span>
+                          <span className="font-medium text-green-600">Enabled</span>
+                        </div>
+                        <div className="flex items-center justify-between text-xs">
+                          <span className="text-muted-foreground">Agent delegation</span>
+                          <span className="font-medium text-green-600">Enabled ({activeCount} agents)</span>
+                        </div>
+                        <div className="flex items-center justify-between text-xs">
+                          <span className="text-muted-foreground">SharePoint auto-upload</span>
+                          <span className="font-medium text-green-600">Enabled</span>
+                        </div>
+                        <div className="flex items-center justify-between text-xs">
+                          <span className="text-muted-foreground">Background processing</span>
+                          <span className="font-medium text-green-600">Enabled</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* ================================================================== */}
+      {/*  SPECIALIST AGENTS                                                 */}
+      {/* ================================================================== */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold">AI Specialist Agents</h1>
-          <p className="text-sm text-muted-foreground mt-1">Configure specialist agents for the master AI to delegate to</p>
+          <h2 className="text-lg font-semibold">Specialist Agents</h2>
+          <p className="text-xs text-muted-foreground mt-0.5">Agents the master AI can delegate to for domain-specific analysis</p>
         </div>
         <button
           onClick={() => setEditing({ ...EMPTY_AGENT })}
