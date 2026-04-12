@@ -145,7 +145,7 @@ export default function Sidebar({ profile, badgeCounts = {} }: { profile: Profil
   const pathname = usePathname()
   const router = useRouter()
   const [collapsed, setCollapsed] = useState(false)
-  const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set(navGroups.map(g => g.label)))
+  const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set())
 
   const handleSignOut = async () => {
     const supabase = createClient()
@@ -186,7 +186,7 @@ export default function Sidebar({ profile, badgeCounts = {} }: { profile: Profil
             : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
         )}
       >
-        <Icon className={cn('shrink-0', collapsed ? 'size-5' : 'size-[18px]')} />
+        <Icon className={cn('shrink-0', collapsed ? 'size-5' : 'size-[18px]', !isActive && 'text-kiros-purple/50')} />
         {!collapsed && <span className="truncate">{item.label}</span>}
         {badgeCount > 0 && !collapsed && (
           <span className="ml-auto min-w-5 h-5 rounded-full bg-destructive text-destructive-foreground text-xs font-bold flex items-center justify-center px-1">
@@ -256,12 +256,15 @@ export default function Sidebar({ profile, badgeCounts = {} }: { profile: Profil
                   onClick={() => toggleGroup(group.label)}
                   className="flex items-center justify-between w-full px-3 pt-4 pb-1 group"
                 >
-                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                    {group.label}
-                  </p>
+                  <div className="flex items-center gap-2">
+                    <span className="w-[3px] h-3.5 rounded-full bg-kiros-purple/30" />
+                    <p className="text-[11px] font-bold text-kiros-purple/70 uppercase tracking-wider">
+                      {group.label}
+                    </p>
+                  </div>
                   <ChevronDown
                     className={cn(
-                      'size-3.5 text-muted-foreground/50 transition-transform duration-200',
+                      'size-3.5 text-kiros-purple/40 transition-transform duration-200',
                       !isExpanded && '-rotate-90'
                     )}
                   />
