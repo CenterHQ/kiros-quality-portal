@@ -1,7 +1,9 @@
 import { NextResponse } from 'next/server'
 import { createServerSupabaseClient, createServiceRoleClient } from '@/lib/supabase/server'
 import { withTokenRefresh } from '@/lib/marketing/token-manager'
-import { getPageConversations, getConversationMessages } from '@/lib/marketing/meta-api'
+import { getPageConversations, getConversationMessages, inspectToken } from '@/lib/marketing/meta-api'
+
+const REQUIRED_MESSAGING_SCOPES = ['pages_messaging', 'pages_read_engagement']
 
 export const dynamic = 'force-dynamic'
 
@@ -55,6 +57,23 @@ export async function POST() {
       const pageId = (account.metadata as Record<string, string>)?.page_id || account.platform_account_id
       debug.push(`Processing page: ${account.account_name} (${pageId})`)
 
+      // Inspect the Page token to report exactly which scopes were granted
+      const tokenInfo = await inspectToken(account.access_token)
+      if (tokenInfo) {
+        debug.push(`Token valid=${tokenInfo.is_valid}, scopes=[${(tokenInfo.scopes || []).join(', ')}]`)
+        if (!tokenInfo.is_valid) {
+          errors.push(`${account.account_name}: Token is invalid (${tokenInfo.error?.message || 'unknown'}). Reconnect at /marketing/settings.`)
+          continue
+        }
+        const missing = REQUIRED_MESSAGING_SCOPES.filter(s => !tokenInfo.scopes?.includes(s))
+        if (missing.length > 0) {
+          errors.push(`${account.account_name}: Token is missing required scopes: ${missing.join(', ')}. Current scopes: ${(tokenInfo.scopes || []).join(', ') || '(none)'}. Enable "Manager messaging" in your Meta App Dashboard Use Cases, then reconnect.`)
+          continue
+        }
+      } else {
+        debug.push(`Token inspection failed for ${account.account_name} (continuing anyway)`)
+      }
+
       try {
         const conversations = await withTokenRefresh(account.id, async (token) => {
           return getPageConversations(token, pageId)
@@ -63,7 +82,7 @@ export async function POST() {
         debug.push(`Found ${conversations.length} conversation(s) for ${account.account_name}`)
 
         if (conversations.length === 0) {
-          errors.push(`${account.account_name}: No conversations found. Either the page has no Messenger messages, or the "pages_messaging" permission is missing. Go to Meta App Dashboard > Use Cases > "Manager messaging" to enable it, then reconnect at /marketing/settings.`)
+          errors.push(`${account.account_name}: Token has the required scopes but the Graph API returned zero conversations. This page likely has no Messenger threads yet. Send a test message to the page from another account, then re-sync.`)
           continue
         }
 

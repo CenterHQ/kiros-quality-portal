@@ -62,20 +62,51 @@ async function refreshToken(account: MarketingSocialAccount): Promise<string> {
   const platform = account.platform
 
   if (platform === 'facebook' || platform === 'instagram') {
-    // Meta: exchange current token for a new long-lived one
-    const result = await exchangeForLongLivedToken(account.access_token)
-    const expiresAt = new Date(Date.now() + result.expires_in * 1000).toISOString()
+    // Meta Page tokens obtained via a long-lived user token never expire.
+    // If we stored the user token as refresh_token, exchange it for a fresh long-lived user token
+    // then re-fetch the page token. Otherwise, the page token is already permanent.
+    const userToken = account.refresh_token
+    if (!userToken) {
+      // No user token stored — page token should be permanent, clear the erroneous expiry
+      await supabase
+        .from('marketing_social_accounts')
+        .update({ token_expires_at: null, updated_at: new Date().toISOString() })
+        .eq('id', account.id)
+      return account.access_token
+    }
 
+    // Exchange the stored user token for a fresh long-lived user token
+    const result = await exchangeForLongLivedToken(userToken)
+
+    // Re-fetch page accounts to get fresh page tokens
+    const { getPageAccounts } = await import('./meta-api')
+    const pages = await getPageAccounts(result.access_token)
+    const page = pages.find(p => p.id === account.platform_account_id)
+
+    if (page) {
+      // Page token from a long-lived user token is permanent — no expiry
+      await supabase
+        .from('marketing_social_accounts')
+        .update({
+          access_token: page.access_token,
+          refresh_token: result.access_token,
+          token_expires_at: null,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', account.id)
+      return page.access_token
+    }
+
+    // Page not found — just update the user token and keep current page token
     await supabase
       .from('marketing_social_accounts')
       .update({
-        access_token: result.access_token,
-        token_expires_at: expiresAt,
+        refresh_token: result.access_token,
+        token_expires_at: null,
         updated_at: new Date().toISOString(),
       })
       .eq('id', account.id)
-
-    return result.access_token
+    return account.access_token
   }
 
   if (['google_business', 'google_ads', 'google_analytics', 'youtube'].includes(platform)) {

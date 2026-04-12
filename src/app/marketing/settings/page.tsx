@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
-import { createClient } from '@/lib/supabase/client'
 import { PageHeader } from '@/components/ui/page-header'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -39,29 +38,46 @@ export default function MarketingSettingsPage() {
   }, [])
 
   async function loadAccounts() {
-    const supabase = createClient()
-    const { data } = await supabase
-      .from('marketing_social_accounts')
-      .select('*')
-      .order('platform')
-    setAccounts(data || [])
-    setLoading(false)
+    try {
+      const res = await fetch('/api/marketing/accounts', { cache: 'no-store' })
+      const json = await res.json()
+      if (res.ok) {
+        setAccounts(json.accounts || [])
+      } else {
+        console.error('Failed to load accounts:', json.error)
+        setAccounts([])
+      }
+    } catch (err) {
+      console.error('Load accounts error:', err)
+      setAccounts([])
+    } finally {
+      setLoading(false)
+    }
   }
 
   async function disconnectAccount(id: string) {
     if (!confirm('Are you sure you want to disconnect this account?')) return
-    const supabase = createClient()
-    await supabase
-      .from('marketing_social_accounts')
-      .update({ status: 'disconnected' })
-      .eq('id', id)
+    const res = await fetch(`/api/marketing/accounts/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status: 'disconnected' }),
+    })
+    if (!res.ok) {
+      const json = await res.json().catch(() => ({}))
+      alert(`Disconnect failed: ${json.error || res.statusText}`)
+      return
+    }
     loadAccounts()
   }
 
   async function deleteAccount(id: string) {
     if (!confirm('Are you sure you want to permanently remove this account?')) return
-    const supabase = createClient()
-    await supabase.from('marketing_social_accounts').delete().eq('id', id)
+    const res = await fetch(`/api/marketing/accounts/${id}`, { method: 'DELETE' })
+    if (!res.ok) {
+      const json = await res.json().catch(() => ({}))
+      alert(`Remove failed: ${json.error || res.statusText}`)
+      return
+    }
     loadAccounts()
   }
 

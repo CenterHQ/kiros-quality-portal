@@ -89,6 +89,38 @@ export async function exchangeForLongLivedToken(
   return res.json()
 }
 
+// ─── Token Inspection ────────────────────────────────────────────────────────
+
+export interface TokenDebugInfo {
+  app_id: string
+  type: string
+  application: string
+  expires_at: number
+  is_valid: boolean
+  scopes: string[]
+  granular_scopes?: { scope: string; target_ids?: string[] }[]
+  user_id?: string
+  error?: { code: number; message: string }
+}
+
+/**
+ * Inspect a token's granted scopes, validity, and expiry via /debug_token.
+ * Uses an app access token (app_id|app_secret) as the inspector.
+ * Returns null if the inspection call itself fails.
+ */
+export async function inspectToken(inputToken: string): Promise<TokenDebugInfo | null> {
+  try {
+    const appToken = `${process.env.META_APP_ID}|${process.env.META_APP_SECRET}`
+    const params = new URLSearchParams({ input_token: inputToken, access_token: appToken })
+    const res = await fetch(`${BASE_URL}/debug_token?${params}`)
+    if (!res.ok) return null
+    const json = await res.json()
+    return json.data as TokenDebugInfo
+  } catch {
+    return null
+  }
+}
+
 // ─── Generic Graph Fetch ─────────────────────────────────────────────────────
 
 export async function metaFetch<T = Record<string, unknown>>(

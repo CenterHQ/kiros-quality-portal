@@ -35,7 +35,10 @@ export default function InboxPage() {
   const [syncError, setSyncError] = useState<string | null>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
-  useEffect(() => { loadThreads() }, [])
+  useEffect(() => {
+    // Load cached threads from DB first, then auto-sync from Facebook
+    loadThreads().then(() => syncMessages())
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (activeThread) loadMessages(activeThread)
@@ -54,22 +57,29 @@ export default function InboxPage() {
 
     if (!data) { setLoading(false); return }
 
-    // Group by thread
+    // Group by thread — show the other person's name (not the page's name)
     const threadMap = new Map<string, Thread>()
     for (const msg of data) {
       if (!threadMap.has(msg.thread_id)) {
         threadMap.set(msg.thread_id, {
           thread_id: msg.thread_id,
           platform: msg.platform,
-          sender_name: msg.sender_name || 'Unknown',
-          sender_avatar_url: msg.sender_avatar_url,
+          // Use first inbound sender as thread name (will be updated below)
+          sender_name: msg.direction === 'inbound' ? (msg.sender_name || 'Unknown') : 'Unknown',
+          sender_avatar_url: msg.direction === 'inbound' ? msg.sender_avatar_url : null,
           last_message: msg.message_text || '',
           last_time: msg.message_time,
           unread_count: 0,
         })
       }
+      // Prefer inbound sender name for the thread label
+      const thread = threadMap.get(msg.thread_id)!
+      if (msg.direction === 'inbound' && thread.sender_name === 'Unknown') {
+        thread.sender_name = msg.sender_name || 'Unknown'
+        thread.sender_avatar_url = msg.sender_avatar_url
+      }
       if (!msg.is_read && msg.direction === 'inbound') {
-        threadMap.get(msg.thread_id)!.unread_count++
+        thread.unread_count++
       }
     }
 
