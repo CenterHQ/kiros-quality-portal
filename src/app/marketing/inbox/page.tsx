@@ -159,17 +159,23 @@ export default function InboxPage() {
   async function handleSendReply() {
     if (!reply.trim() || !activeThread) return
     setSending(true)
+    setSyncError(null)
     try {
       const res = await fetch('/api/marketing/inbox/reply', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ threadId: activeThread, message: reply }),
       })
-      if (!res.ok) throw new Error('Send failed')
+      const data = await res.json()
+      if (!res.ok) {
+        setSyncError(`Reply failed: ${data.error || res.statusText}`)
+        setSending(false)
+        return
+      }
       setReply('')
       await loadMessages(activeThread)
     } catch (err) {
-      console.error('Reply error:', err)
+      setSyncError(`Reply failed: ${err instanceof Error ? err.message : 'Unknown error'}`)
     }
     setSending(false)
   }
