@@ -151,7 +151,10 @@ export async function metaFetch<T = Record<string, unknown>>(
 
 // ─── Page & Instagram Discovery ──────────────────────────────────────────────
 
-export async function getPageAccounts(userToken: string): Promise<PageAccount[]> {
+export async function getPageAccounts(
+  userToken: string,
+  granularScopes?: { scope: string; target_ids?: string[] }[],
+): Promise<PageAccount[]> {
   // Try standard /me/accounts first
   const data = await metaFetch<{ data: PageAccount[] }>(
     userToken,
@@ -159,29 +162,31 @@ export async function getPageAccounts(userToken: string): Promise<PageAccount[]>
   )
   if (data.data && data.data.length > 0) return data.data
 
-  // Fallback: try without instagram_business_account field (some API versions/apps)
-  const fallback = await metaFetch<{ data: PageAccount[] }>(
-    userToken,
-    '/me/accounts?fields=id,name,access_token',
-  ).catch(() => ({ data: [] as PageAccount[] }))
-  if (fallback.data && fallback.data.length > 0) return fallback.data
-
-  // Fallback: check if Pages are owned via Business Manager
-  // Query /me/businesses first, then each business's pages
-  try {
-    const businesses = await metaFetch<{ data: { id: string; name: string }[] }>(
-      userToken,
-      '/me/businesses?fields=id,name',
-    )
-    for (const biz of businesses.data || []) {
-      const bizPages = await metaFetch<{ data: PageAccount[] }>(
-        userToken,
-        `/${biz.id}/owned_pages?fields=id,name,access_token,instagram_business_account`,
-      ).catch(() => ({ data: [] as PageAccount[] }))
-      if (bizPages.data && bizPages.data.length > 0) return bizPages.data
+  // Fallback: if /me/accounts is empty but granular_scopes has page IDs,
+  // query each page directly (works when Pages are under Business Manager)
+  if (granularScopes && granularScopes.length > 0) {
+    const pageIdList: string[] = []
+    for (const gs of granularScopes) {
+      for (const id of gs.target_ids || []) {
+        if (!pageIdList.includes(id)) pageIdList.push(id)
+      }
     }
-  } catch {
-    // /me/businesses may not be available — that's ok
+
+    const pages: PageAccount[] = []
+    for (const pageId of pageIdList) {
+      try {
+        const page = await metaFetch<PageAccount>(
+          userToken,
+          `/${pageId}?fields=id,name,access_token,instagram_business_account`,
+        )
+        if (page.id && page.access_token) {
+          pages.push(page)
+        }
+      } catch {
+        // Page might not be accessible — skip
+      }
+    }
+    if (pages.length > 0) return pages
   }
 
   return []

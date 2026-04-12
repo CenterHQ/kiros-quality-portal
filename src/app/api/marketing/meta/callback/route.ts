@@ -51,9 +51,10 @@ export async function GET(request: NextRequest) {
     const granularScopes = tokenInfo?.granular_scopes || []
 
     // Fetch managed pages — try long-lived token first, fall back to short-lived
-    let pages = await getPageAccounts(longLived.access_token)
+    // Pass granular scopes so we can query pages directly if /me/accounts is empty
+    let pages = await getPageAccounts(longLived.access_token, granularScopes)
     if (pages.length === 0) {
-      pages = await getPageAccounts(shortLived.access_token)
+      pages = await getPageAccounts(shortLived.access_token, granularScopes)
     }
 
     if (pages.length === 0) {
