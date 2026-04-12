@@ -54,19 +54,22 @@ export async function GET(request: NextRequest) {
     const pages = await getPageAccounts(longLived.access_token)
 
     if (pages.length === 0) {
-      // Fetch raw /me response for debugging
-      let debugInfo = `Granted scopes: [${grantedScopes.join(', ')}]`
+      // Fetch debug info to diagnose why no pages were returned
+      const debugParts: string[] = [`Scopes: [${grantedScopes.join(', ')}]`]
       try {
         const me = await metaFetch<{ id: string; name: string }>(longLived.access_token, '/me?fields=id,name')
-        debugInfo += ` | User: ${me.name} (${me.id})`
+        debugParts.push(`User: ${me.name} (${me.id})`)
       } catch { /* ignore */ }
 
-      // Check if pages_show_list was granted
-      if (!grantedScopes.includes('pages_show_list')) {
-        debugInfo += ' | Missing pages_show_list scope — enable "Access Pages" Use Case in Meta App Dashboard'
+      // Fetch raw /me/accounts to see what Meta actually returns
+      try {
+        const rawAccounts = await metaFetch<Record<string, unknown>>(longLived.access_token, '/me/accounts')
+        debugParts.push(`Raw /me/accounts: ${JSON.stringify(rawAccounts)}`)
+      } catch (e) {
+        debugParts.push(`/me/accounts error: ${e instanceof Error ? e.message : String(e)}`)
       }
 
-      const errorMsg = `No Facebook Pages found. ${debugInfo}. Make sure: (1) your Facebook account is an admin/editor of at least one Page, (2) you selected the Page during the OAuth dialog, (3) "pages_show_list" permission is granted.`
+      const errorMsg = `No Facebook Pages found. ${debugParts.join(' | ')}. During the OAuth dialog, make sure you select at least one Page to grant access to.`
       return NextResponse.redirect(
         new URL(`/marketing/settings?error=${encodeURIComponent(errorMsg)}`, request.url),
       )
