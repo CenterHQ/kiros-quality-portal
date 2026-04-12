@@ -100,18 +100,30 @@ export default function InboxPage() {
     try {
       const res = await fetch('/api/marketing/inbox/sync', { method: 'POST' })
       const data = await res.json()
+
+      // Build status message
+      const parts: string[] = []
+
       if (!res.ok) {
-        setSyncError(data.error || 'Sync failed')
-        return
-      }
-      // Show any errors (singular or plural)
-      if (data.error) {
-        setSyncError(data.error)
+        parts.push(data.error || 'Sync failed')
+      } else if (data.error) {
+        parts.push(data.error)
       } else if (data.errors?.length > 0) {
-        setSyncError(data.errors.join('; '))
-      } else if (data.synced === 0) {
-        setSyncError('No messages found. Make sure your Facebook Page has received messages and you have the "Manager messaging" use case enabled in your Meta App Dashboard.')
+        parts.push(...data.errors)
       }
+
+      // Show debug info
+      if (data.debug?.length > 0) {
+        parts.push('Debug: ' + data.debug.join(' | '))
+      }
+
+      if (data.synced > 0) {
+        parts.unshift(`Synced ${data.synced} message(s).`)
+      } else if (parts.length === 0) {
+        parts.push('No messages found. Make sure your Facebook Page has Messenger conversations and the "Manager messaging" use case is enabled in your Meta App Dashboard.')
+      }
+
+      setSyncError(parts.join('\n\n'))
       await loadThreads()
       if (activeThread) await loadMessages(activeThread)
     } catch (err) {
@@ -163,8 +175,8 @@ export default function InboxPage() {
       />
 
       {syncError && (
-        <div className="p-4 rounded-lg bg-red-50 border border-red-200 text-sm text-red-700">
-          <strong>Sync error:</strong> {syncError}
+        <div className="p-4 rounded-lg bg-amber-50 border border-amber-200 text-sm text-amber-800 whitespace-pre-wrap">
+          {syncError}
         </div>
       )}
 
