@@ -32,6 +32,7 @@ export default function InboxPage() {
   const [loading, setLoading] = useState(true)
   const [sending, setSending] = useState(false)
   const [syncing, setSyncing] = useState(false)
+  const [syncError, setSyncError] = useState<string | null>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => { loadThreads() }, [])
@@ -95,15 +96,24 @@ export default function InboxPage() {
 
   async function syncMessages() {
     setSyncing(true)
+    setSyncError(null)
     try {
       const res = await fetch('/api/marketing/inbox/sync', { method: 'POST' })
-      if (!res.ok) throw new Error('Sync failed')
+      const data = await res.json()
+      if (!res.ok) {
+        setSyncError(data.error || 'Sync failed')
+        return
+      }
+      if (data.synced === 0 && data.errors?.length > 0) {
+        setSyncError(data.errors.join('; '))
+      }
       await loadThreads()
       if (activeThread) await loadMessages(activeThread)
     } catch (err) {
-      console.error('Sync error:', err)
+      setSyncError(err instanceof Error ? err.message : 'Sync failed')
+    } finally {
+      setSyncing(false)
     }
-    setSyncing(false)
   }
 
   async function handleSendReply() {
@@ -146,6 +156,12 @@ export default function InboxPage() {
           </button>
         }
       />
+
+      {syncError && (
+        <div className="p-4 rounded-lg bg-red-50 border border-red-200 text-sm text-red-700">
+          <strong>Sync error:</strong> {syncError}
+        </div>
+      )}
 
       <div className="flex border border-border rounded-lg overflow-hidden h-[calc(100vh-14rem)]">
         {/* Thread list */}

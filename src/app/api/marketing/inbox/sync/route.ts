@@ -25,9 +25,18 @@ export async function POST() {
       .eq('platform', 'facebook')
       .eq('status', 'connected')
 
-    let synced = 0
+    if (!fbAccounts || fbAccounts.length === 0) {
+      return NextResponse.json({
+        success: false,
+        synced: 0,
+        error: 'No connected Facebook accounts found. Go to Marketing > Settings to connect your Facebook Page.',
+      })
+    }
 
-    for (const account of fbAccounts || []) {
+    let synced = 0
+    const errors: string[] = []
+
+    for (const account of fbAccounts) {
       const pageId = (account.metadata as Record<string, string>)?.page_id || account.platform_account_id
 
       try {
@@ -35,37 +44,53 @@ export async function POST() {
           return getPageConversations(token, pageId)
         })
 
+        if (conversations.length === 0) {
+          errors.push(`${account.account_name}: No conversations found. This may require the "pages_messaging" permission — enable the "Manage messaging" use case in your Meta App Dashboard.`)
+          continue
+        }
+
         for (const conv of conversations) {
-          const messages = await withTokenRefresh(account.id, async (token) => {
-            return getConversationMessages(token, conv.id)
-          })
+          try {
+            const messages = await withTokenRefresh(account.id, async (token) => {
+              return getConversationMessages(token, conv.id)
+            })
 
-          const participant = conv.participants?.data?.find(p => p.id !== pageId)
+            for (const msg of messages) {
+              const isFromPage = msg.from.id === pageId
 
-          for (const msg of messages) {
-            const isFromPage = msg.from.id === pageId
+              await serviceClient.from('marketing_messages_inbox').upsert({
+                platform: 'facebook',
+                thread_id: conv.id,
+                sender_id: msg.from.id,
+                sender_name: msg.from.name,
+                message_text: msg.message,
+                direction: isFromPage ? 'outbound' : 'inbound',
+                platform_message_id: msg.id,
+                is_read: isFromPage,
+                message_time: msg.created_time,
+              }, { onConflict: 'platform_message_id' })
 
-            await serviceClient.from('marketing_messages_inbox').upsert({
-              platform: 'facebook',
-              thread_id: conv.id,
-              sender_id: msg.from.id,
-              sender_name: msg.from.name,
-              message_text: msg.message,
-              direction: isFromPage ? 'outbound' : 'inbound',
-              platform_message_id: msg.id,
-              is_read: isFromPage,
-              message_time: msg.created_time,
-            }, { onConflict: 'platform_message_id' })
-
-            synced++
+              synced++
+            }
+          } catch (msgErr) {
+            console.error(`Failed to fetch messages for conversation ${conv.id}:`, msgErr)
           }
         }
       } catch (err) {
-        console.error(`Inbox sync failed for account ${account.id}:`, err)
+        const msg = err instanceof Error ? err.message : 'Unknown error'
+        console.error(`Inbox sync failed for account ${account.id}:`, msg)
+
+        if (msg.includes('190') || msg.includes('OAuthException')) {
+          errors.push(`${account.account_name}: Permission denied. Enable the "Manage messaging" use case in your Meta App Dashboard and reconnect.`)
+        } else if (msg.includes('100') || msg.includes('Unsupported')) {
+          errors.push(`${account.account_name}: Messaging API not available. You need the "pages_messaging" permission — go to Meta App Dashboard > Use Cases > "Manager messaging" and customize it.`)
+        } else {
+          errors.push(`${account.account_name}: ${msg}`)
+        }
       }
     }
 
-    return NextResponse.json({ success: true, synced })
+    return NextResponse.json({ success: synced > 0, synced, errors })
   } catch (error: unknown) {
     console.error('Inbox sync error:', error)
     return NextResponse.json({ error: error instanceof Error ? error.message : 'Sync failed' }, { status: 500 })

@@ -7,12 +7,17 @@ const BASE_URL = `https://graph.facebook.com/${API_VERSION}`
 
 // ─── Scopes ──────────────────────────────────────────────────────────────────
 
-// Scopes available in development mode without App Review.
-// Additional scopes (pages_manage_posts, instagram_content_publish, etc.)
-// must be added via Use Cases in the Meta App Dashboard before use.
+// Meta OAuth scopes. Additional scopes require enabling Use Cases in the
+// Meta App Dashboard before they will be accepted during OAuth.
+// Enable these Use Cases for full functionality:
+//   - "Manage everything on your page" → pages_manage_posts, pages_read_engagement
+//   - "Manager messaging" → pages_messaging, pages_manage_metadata
+//   - "Engage with customers" → instagram_basic, instagram_manage_comments
 export const META_SCOPES = [
   'pages_show_list',
   'pages_read_engagement',
+  'pages_messaging',
+  'pages_manage_metadata',
 ].join(',')
 
 // ─── Types ───────────────────────────────────────────────────────────────────
