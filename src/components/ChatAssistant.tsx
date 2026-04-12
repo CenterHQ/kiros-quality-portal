@@ -10,6 +10,13 @@ import { useChatStream } from '@/hooks/useChatStream'
 import { TOOL_LABELS } from '@/lib/chat/sse-protocol'
 import MarkdownRenderer from '@/components/chat/MarkdownRenderer'
 
+// ---------------------------------------------------------------------------
+// localStorage keys — persist widget state across page navigations
+// ---------------------------------------------------------------------------
+const LS_CONV_ID = 'kiros-widget-conversation-id'
+const LS_LOADING = 'kiros-widget-loading'
+const LS_MESSAGES = 'kiros-widget-messages'
+
 interface GeneratedDocument {
   title: string
   document_type: string
@@ -24,6 +31,52 @@ interface Message {
   content: string
   documents?: GeneratedDocument[]
   timestamp: Date
+}
+
+// Serializable version for localStorage
+interface SerializedMessage {
+  id: string
+  role: 'user' | 'assistant'
+  content: string
+  documents?: GeneratedDocument[]
+  timestamp: string
+}
+
+function saveWidgetState(convId: string | null, loading: boolean, messages: Message[]) {
+  try {
+    if (convId) {
+      localStorage.setItem(LS_CONV_ID, convId)
+    } else {
+      localStorage.removeItem(LS_CONV_ID)
+    }
+    localStorage.setItem(LS_LOADING, loading ? '1' : '0')
+    // Only keep last 20 messages to avoid quota issues
+    const serialized: SerializedMessage[] = messages.slice(-20).map(m => ({
+      id: m.id,
+      role: m.role,
+      content: m.content,
+      documents: m.documents,
+      timestamp: m.timestamp.toISOString(),
+    }))
+    localStorage.setItem(LS_MESSAGES, JSON.stringify(serialized))
+  } catch { /* localStorage may be full or unavailable */ }
+}
+
+function loadWidgetState(): { convId: string | null; loading: boolean; messages: Message[] } {
+  try {
+    const convId = localStorage.getItem(LS_CONV_ID) || null
+    const loading = localStorage.getItem(LS_LOADING) === '1'
+    const raw = localStorage.getItem(LS_MESSAGES)
+    const messages: Message[] = raw
+      ? (JSON.parse(raw) as SerializedMessage[]).map(m => ({
+          ...m,
+          timestamp: new Date(m.timestamp),
+        }))
+      : []
+    return { convId, loading, messages }
+  } catch {
+    return { convId: null, loading: false, messages: [] }
+  }
 }
 
 export default function ChatAssistant() {
@@ -43,6 +96,7 @@ export default function ChatAssistant() {
   const inputRef = useRef<HTMLTextAreaElement>(null)
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const recognitionRef = useRef<any>(null)
+  const initRef = useRef(false)
 
   const scrollToBottom = useCallback(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -50,6 +104,34 @@ export default function ChatAssistant() {
 
   useEffect(() => { scrollToBottom() }, [messages, scrollToBottom])
   useEffect(() => { if (isOpen && inputRef.current) inputRef.current.focus() }, [isOpen])
+
+  // ---------------------------------------------------------------------------
+  // RESTORE state from localStorage on mount (survives page navigation)
+  // ---------------------------------------------------------------------------
+  useEffect(() => {
+    if (initRef.current) return
+    initRef.current = true
+
+    const saved = loadWidgetState()
+    if (saved.convId) {
+      setConversationId(saved.convId)
+      setMessages(saved.messages)
+      if (saved.loading) {
+        // Was loading when we navigated — show indicator and let realtime pick up the response
+        setLoading(true)
+        setHasNewMessage(false)
+      }
+    }
+  }, [])
+
+  // ---------------------------------------------------------------------------
+  // PERSIST state to localStorage whenever it changes
+  // ---------------------------------------------------------------------------
+  useEffect(() => {
+    // Only persist after initial load
+    if (!initRef.current) return
+    saveWidgetState(conversationId, loading, messages)
+  }, [conversationId, loading, messages])
 
   // When streaming completes, add message
   useEffect(() => {
@@ -73,7 +155,6 @@ export default function ChatAssistant() {
           }
         }
       }
-      // Always clear loading when streaming is done, even if text is empty
       setLoading(false)
     }
   }, [streamingMessage?.isStreaming, streamingMessage?.messageId, streamingMessage?.text, isOpen])
@@ -96,8 +177,13 @@ export default function ChatAssistant() {
     setSpeechSupported('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)
   }, [])
 
-  // Realtime subscription: catch assistant messages delivered in the background
-  // (SSE stream may have dropped if user navigated away or connection timed out)
+  // ---------------------------------------------------------------------------
+  // Realtime subscription: catch assistant messages in the background
+  // This fires when:
+  //   1. SSE stream dropped (user navigated away while AI was working)
+  //   2. waitUntil background processing on the old /api/chat route
+  //   3. Document generation completed asynchronously
+  // ---------------------------------------------------------------------------
   useEffect(() => {
     if (!conversationId) return
 
@@ -128,7 +214,7 @@ export default function ChatAssistant() {
             }]
           })
 
-          // Notify user of new message / document
+          // Notify user
           if (!isOpen) {
             setHasNewMessage(true)
             setDocumentNotification(
@@ -147,6 +233,62 @@ export default function ChatAssistant() {
       supabase.removeChannel(channel)
     }
   }, [conversationId, isOpen])
+
+  // ---------------------------------------------------------------------------
+  // On mount with a loading conversationId: poll once to check if response
+  // already arrived while we were unmounted (covers the gap between unmount
+  // and realtime subscription reconnect)
+  // ---------------------------------------------------------------------------
+  useEffect(() => {
+    if (!conversationId || !loading) return
+
+    const checkForResponse = async () => {
+      try {
+        const supabase = createClient()
+        const { data } = await supabase
+          .from('chat_messages')
+          .select('id, role, content, metadata, created_at')
+          .eq('conversation_id', conversationId)
+          .eq('role', 'assistant')
+          .order('created_at', { ascending: false })
+          .limit(1)
+
+        if (data && data.length > 0) {
+          const latest = data[0]
+          setMessages(prev => {
+            // Check if this message is newer than the last user message
+            const lastUserIdx = [...prev].reverse().findIndex(m => m.role === 'user')
+            if (lastUserIdx === -1) return prev
+            const lastUserMsg = prev[prev.length - 1 - lastUserIdx]
+            const assistantTime = new Date(latest.created_at)
+            if (assistantTime <= lastUserMsg.timestamp) return prev // response is older than last question
+
+            if (prev.some(m => m.id === latest.id)) return prev
+
+            const meta = latest.metadata as Record<string, unknown> | undefined
+            const docs = meta && 'documents' in meta
+              ? meta.documents as GeneratedDocument[]
+              : undefined
+
+            return [...prev, {
+              id: latest.id,
+              role: 'assistant' as const,
+              content: latest.content,
+              documents: docs || [],
+              timestamp: new Date(latest.created_at),
+            }]
+          })
+
+          setLoading(false)
+          if (!isOpen) setHasNewMessage(true)
+        }
+      } catch { /* non-critical */ }
+    }
+
+    // Small delay to let realtime subscription connect first
+    const timer = setTimeout(checkForResponse, 1000)
+    return () => clearTimeout(timer)
+  }, [conversationId, loading, isOpen])
 
   // Don't show the floating widget on the full chat page
   if (pathname === '/chat') return null
@@ -201,6 +343,14 @@ export default function ChatAssistant() {
     if (!conversationId && result.conversationId) setConversationId(result.conversationId)
   }
 
+  const startNewConversation = () => {
+    setMessages([])
+    setConversationId(null)
+    setLoading(false)
+    setHasNewMessage(false)
+    setDocumentNotification(null)
+  }
+
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage() }
   }
@@ -209,7 +359,6 @@ export default function ChatAssistant() {
 
   return (
     <>
-      {/* Hidden on mobile — bottom nav has AI Chat tab instead */}
       {/* Status indicator — visible when processing or new message, even with panel closed */}
       {!isOpen && (loading || hasNewMessage || documentNotification) && (
         <div className={`hidden md:block fixed bottom-[88px] right-6 z-50 rounded-full px-3 py-1.5 text-xs font-medium shadow-lg whitespace-nowrap transition-all max-w-[280px] truncate ${
@@ -238,7 +387,7 @@ export default function ChatAssistant() {
       {/* Floating button */}
       <button
         onClick={() => { setIsOpen(!isOpen); if (!isOpen) { setHasNewMessage(false); setDocumentNotification(null) } }}
-        className={`hidden md:flex fixed bottom-6 right-6 w-14 h-14 rounded-full shadow-lg items-center justify-center text-primary-foreground z-50 hover:scale-105 transition-transform bg-primary ${hasNewMessage && !isOpen ? 'animate-pulse ring-4 ring-purple-300/50' : ''}`}
+        className={`hidden md:flex fixed bottom-6 right-6 w-14 h-14 rounded-full shadow-lg items-center justify-center text-primary-foreground z-50 hover:scale-105 transition-transform bg-primary ${(hasNewMessage || documentNotification) && !isOpen ? 'animate-pulse ring-4 ring-purple-300/50' : ''}`}
         aria-label={isOpen ? 'Close chat assistant' : 'Open chat assistant'}
         title="Kiros AI Assistant"
       >
@@ -277,7 +426,7 @@ export default function ChatAssistant() {
                 </svg>
               </Link>
               <button
-                onClick={() => { setMessages([]); setConversationId(null) }}
+                onClick={startNewConversation}
                 className="p-1.5 rounded-lg hover:bg-white/20 text-white transition-colors"
                 aria-label="Start new conversation"
                 title="New conversation"
@@ -291,7 +440,7 @@ export default function ChatAssistant() {
 
           {/* Messages */}
           <div className="flex-1 overflow-y-auto px-4 py-3 space-y-3">
-            {messages.length === 0 && (
+            {messages.length === 0 && !loading && (
               <div className="flex flex-col items-center justify-center h-full text-center px-2">
                 <div className="w-10 h-10 rounded-full flex items-center justify-center text-primary-foreground text-sm font-bold mb-3 bg-primary">K</div>
                 <div className="text-sm font-medium text-foreground mb-1">Kiros AI</div>
@@ -365,7 +514,7 @@ export default function ChatAssistant() {
               </div>
             )}
 
-            {/* Loading indicator — before first tokens arrive */}
+            {/* Loading indicator — waiting for response (including background reconnect) */}
             {loading && (!streamingMessage?.text) && (
               <div className="flex justify-start">
                 <div className="bg-muted rounded-2xl rounded-bl-md px-3 py-2.5 space-y-1.5">
@@ -375,7 +524,7 @@ export default function ChatAssistant() {
                       <div className="w-1.5 h-1.5 rounded-full bg-purple-400 animate-bounce" style={{ animationDelay: '150ms' }} />
                       <div className="w-1.5 h-1.5 rounded-full bg-purple-400 animate-bounce" style={{ animationDelay: '300ms' }} />
                     </div>
-                    <span className="text-xs text-muted-foreground">Thinking...</span>
+                    <span className="text-xs text-muted-foreground">Kiros AI is working...</span>
                   </div>
                   {activeTools.length > 0 && (
                     <div className="flex flex-wrap gap-1">
