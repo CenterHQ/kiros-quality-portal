@@ -152,11 +152,39 @@ export async function metaFetch<T = Record<string, unknown>>(
 // ─── Page & Instagram Discovery ──────────────────────────────────────────────
 
 export async function getPageAccounts(userToken: string): Promise<PageAccount[]> {
+  // Try standard /me/accounts first
   const data = await metaFetch<{ data: PageAccount[] }>(
     userToken,
     '/me/accounts?fields=id,name,access_token,instagram_business_account',
   )
-  return data.data || []
+  if (data.data && data.data.length > 0) return data.data
+
+  // Fallback: try without instagram_business_account field (some API versions/apps)
+  const fallback = await metaFetch<{ data: PageAccount[] }>(
+    userToken,
+    '/me/accounts?fields=id,name,access_token',
+  ).catch(() => ({ data: [] as PageAccount[] }))
+  if (fallback.data && fallback.data.length > 0) return fallback.data
+
+  // Fallback: check if Pages are owned via Business Manager
+  // Query /me/businesses first, then each business's pages
+  try {
+    const businesses = await metaFetch<{ data: { id: string; name: string }[] }>(
+      userToken,
+      '/me/businesses?fields=id,name',
+    )
+    for (const biz of businesses.data || []) {
+      const bizPages = await metaFetch<{ data: PageAccount[] }>(
+        userToken,
+        `/${biz.id}/owned_pages?fields=id,name,access_token,instagram_business_account`,
+      ).catch(() => ({ data: [] as PageAccount[] }))
+      if (bizPages.data && bizPages.data.length > 0) return bizPages.data
+    }
+  } catch {
+    // /me/businesses may not be available — that's ok
+  }
+
+  return []
 }
 
 // ─── Facebook Publishing ─────────────────────────────────────────────────────

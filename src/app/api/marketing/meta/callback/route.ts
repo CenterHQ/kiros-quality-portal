@@ -64,9 +64,17 @@ export async function GET(request: NextRequest) {
       // Fetch raw /me/accounts to see what Meta actually returns
       try {
         const rawAccounts = await metaFetch<Record<string, unknown>>(longLived.access_token, '/me/accounts')
-        debugParts.push(`Raw /me/accounts: ${JSON.stringify(rawAccounts)}`)
+        debugParts.push(`/me/accounts: ${JSON.stringify(rawAccounts)}`)
       } catch (e) {
         debugParts.push(`/me/accounts error: ${e instanceof Error ? e.message : String(e)}`)
+      }
+
+      // Check if user has businesses (Business Manager)
+      try {
+        const businesses = await metaFetch<Record<string, unknown>>(longLived.access_token, '/me/businesses?fields=id,name')
+        debugParts.push(`/me/businesses: ${JSON.stringify(businesses)}`)
+      } catch (e) {
+        debugParts.push(`/me/businesses: ${e instanceof Error ? e.message : 'N/A'}`)
       }
 
       const errorMsg = `No Facebook Pages found. ${debugParts.join(' | ')}. During the OAuth dialog, make sure you select at least one Page to grant access to.`
