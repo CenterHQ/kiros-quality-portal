@@ -36,8 +36,8 @@ export default function InboxPage() {
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    // Load cached threads from DB first, then auto-sync from Facebook
-    loadThreads().then(() => syncMessages())
+    // Load cached threads from DB first, then auto-sync silently in background
+    loadThreads().then(() => silentSync())
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
@@ -45,8 +45,11 @@ export default function InboxPage() {
   }, [activeThread])
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
-  }, [messages])
+    // Only auto-scroll when viewing a thread, not on initial page load
+    if (activeThread && messages.length > 0) {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+    }
+  }, [messages, activeThread])
 
   async function loadThreads() {
     const supabase = createClient()
@@ -102,6 +105,16 @@ export default function InboxPage() {
       .update({ is_read: true })
       .eq('thread_id', threadId)
       .eq('is_read', false)
+  }
+
+  async function silentSync() {
+    try {
+      const res = await fetch('/api/marketing/inbox/sync', { method: 'POST' })
+      if (res.ok) {
+        await loadThreads()
+        if (activeThread) await loadMessages(activeThread)
+      }
+    } catch { /* silent */ }
   }
 
   async function syncMessages() {
