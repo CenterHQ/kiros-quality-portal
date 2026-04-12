@@ -1,7 +1,11 @@
 import { createHash } from 'crypto'
 import { createServiceRoleClient } from '@/lib/supabase/server'
 import { getAppToken, getSiteId, getDriveId, ensureFolderPath, uploadFile } from '@/lib/microsoft-graph'
-import { generatePdfDocument, generateWordDocument, type DocumentOptions } from '@/lib/document-templates'
+
+// IMPORTANT: Do NOT import document-templates at the top level.
+// @react-pdf/renderer (~20MB), docx, and exceljs are heavy and will crash
+// Vercel serverless functions if loaded eagerly during the streaming chat route.
+// Instead, we lazy-import them only when PDF/DOCX generation is actually needed.
 
 // ---------------------------------------------------------------------------
 // Types
@@ -109,15 +113,6 @@ export async function storeAndUploadDocument(
     recipient: input.recipient || null,
   }
 
-  // Generate format variants
-  const docOptions: DocumentOptions = {
-    title: input.title,
-    content: input.markdownContent,
-    recipient: input.recipient,
-    author: 'Kiros AI Assistant',
-    format: 'docx', // placeholder — each generator ignores this
-  }
-
   const formatVariants: string[] = ['md', 'json']
   const sharepointUrls: Record<string, string> = {}
   const sharepointItemIds: Record<string, string> = {}
@@ -136,20 +131,22 @@ export async function storeAndUploadDocument(
     sharepointFolderId = folder.id
     sharepointFolderWebUrl = folder.webUrl
 
-    // Upload .md file
+    // Upload .md file (lightweight — just text)
     const mdBuffer = Buffer.from(input.markdownContent, 'utf-8')
     const mdResult = await uploadFile(token, driveId, folderPath, `${baseFilename}.md`, mdBuffer, 'text/markdown')
     sharepointUrls.md = mdResult.webUrl
     sharepointItemIds.md = mdResult.id
 
-    // Upload .json metadata
+    // Upload .json metadata (lightweight — just text)
     const jsonBuffer = Buffer.from(JSON.stringify(jsonMetadata, null, 2), 'utf-8')
     const jsonResult = await uploadFile(token, driveId, folderPath, `${baseFilename}.json`, jsonBuffer, 'application/json')
     sharepointUrls.json = jsonResult.webUrl
     sharepointItemIds.json = jsonResult.id
 
-    // Generate and upload .docx
+    // Generate and upload .docx — LAZY import to avoid loading ~20MB at module level
     try {
+      const { generateWordDocument } = await import('@/lib/document-templates')
+      const docOptions = { title: input.title, content: input.markdownContent, recipient: input.recipient, author: 'Kiros AI Assistant', format: 'docx' as const }
       const docxBuffer = await generateWordDocument(input.title, input.markdownContent, docOptions)
       const docxResult = await uploadFile(token, driveId, folderPath, `${baseFilename}.docx`, docxBuffer, 'application/vnd.openxmlformats-officedocument.wordprocessingml.document')
       sharepointUrls.docx = docxResult.webUrl
@@ -159,8 +156,10 @@ export async function storeAndUploadDocument(
       console.error('DOCX generation/upload failed:', err)
     }
 
-    // Generate and upload .pdf
+    // Generate and upload .pdf — LAZY import to avoid loading @react-pdf/renderer at module level
     try {
+      const { generatePdfDocument } = await import('@/lib/document-templates')
+      const docOptions = { title: input.title, content: input.markdownContent, recipient: input.recipient, author: 'Kiros AI Assistant', format: 'pdf' as const }
       const pdfBuffer = await generatePdfDocument(input.title, input.markdownContent, docOptions)
       const pdfResult = await uploadFile(token, driveId, folderPath, `${baseFilename}.pdf`, pdfBuffer, 'application/pdf')
       sharepointUrls.pdf = pdfResult.webUrl
