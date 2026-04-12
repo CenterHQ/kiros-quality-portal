@@ -1,6 +1,56 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
 
+export const maxDuration = 60
+
+// POST — Save a document to SharePoint (manual trigger from chat UI)
+export async function POST(request: NextRequest) {
+  const supabase = await createServerSupabaseClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
+  const body = await request.json()
+  const { title, document_type, content, recipient, topic_folder } = body
+
+  if (!title || !content) {
+    return NextResponse.json({ error: 'Title and content are required' }, { status: 400 })
+  }
+
+  try {
+    const { storeAndUploadDocument } = await import('@/lib/document-storage')
+
+    // Sanitise topic_folder
+    const rawTopicFolder = (topic_folder || 'General').trim()
+    const safeTopicFolder = rawTopicFolder
+      .replace(/\.\./g, '')
+      .replace(/[/\\]/g, '')
+      .replace(/[<>:"|?*]/g, '')
+      .trim() || 'General'
+
+    const result = await storeAndUploadDocument({
+      title,
+      documentType: document_type || 'other',
+      markdownContent: content,
+      topicFolder: safeTopicFolder,
+      userId: user.id,
+      recipient,
+    })
+
+    return NextResponse.json({
+      document_id: result.documentId,
+      sharepoint_folder: result.sharepointFolderPath,
+      sharepoint_urls: result.sharepointUrls,
+      format_variants: result.formatVariants,
+    })
+  } catch (err) {
+    console.error('SharePoint save failed:', err)
+    const message = err instanceof Error ? err.message : 'SharePoint upload failed'
+    return NextResponse.json({ error: message }, { status: 500 })
+  }
+}
+
 export async function GET(request: NextRequest) {
   const supabase = await createServerSupabaseClient()
   const { data: { user } } = await supabase.auth.getUser()

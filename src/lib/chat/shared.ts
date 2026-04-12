@@ -883,8 +883,9 @@ export async function executeTool(
           format_variants: storeResult.formatVariants,
         })
       } catch (err) {
-        // Fallback: return document without SharePoint storage
-        console.error('Document storage failed, returning without SharePoint:', err)
+        // Fallback: return document without SharePoint storage but include the error
+        const errMsg = err instanceof Error ? err.message : 'Unknown error'
+        console.error('Document storage failed, returning without SharePoint:', errMsg)
         return JSON.stringify({
           type: 'document',
           title: toolInput.title,
@@ -892,6 +893,7 @@ export async function executeTool(
           content: toolInput.content,
           recipient: toolInput.recipient || null,
           generated_at: new Date().toISOString(),
+          sharepoint_error: errMsg,
         })
       }
     }
