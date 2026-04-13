@@ -15,7 +15,7 @@ import {
   Baby, Clock, Users, Wallet, FileInput, HeartPulse,
   Plug, UserCog, Bell, Tag, Cloud, Brain,
   PanelLeftClose, PanelLeftOpen, LogOut, ChevronDown,
-  Megaphone, PenSquare, Star, BadgeDollarSign, TrendingUp, Bot,
+  Megaphone, PenSquare, Star, BadgeDollarSign, TrendingUp, Bot, Settings,
   type LucideIcon,
 } from 'lucide-react'
 import { useState } from 'react'
@@ -127,6 +127,7 @@ const navGroups: NavGroup[] = [
       { href: '/admin/ai-prompts', label: 'AI Prompts', icon: MessageSquare },
       { href: '/admin/ai-learnings', label: 'AI Learnings', icon: Brain },
       { href: '/admin/ai-analytics', label: 'AI Analytics', icon: BarChart3 },
+      { href: '/admin/ai-config', label: 'AI Configuration', icon: Settings },
     ],
   },
 ]
