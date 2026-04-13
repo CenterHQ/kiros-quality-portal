@@ -49,7 +49,7 @@ export async function runAgent(
   const start = Date.now()
   const anthropic = getAnthropicClient()
   const model = task.model || MODEL_SONNET
-  const maxIter = task.maxIterations || 3
+  const maxIter = task.maxIterations || 5
   const maxTokens = task.tokenBudget || 8192
   let totalTokens = 0
 
@@ -86,6 +86,16 @@ export async function runAgent(
         // Execute tools and collect results
         const toolResults: Anthropic.ToolResultBlockParam[] = []
         for (const block of toolUseBlocks) {
+          // Validate tool is in agent's allowed set
+          const isAllowed = task.tools.some((t: { name: string }) => t.name === block.name)
+          if (!isAllowed) {
+            toolResults.push({
+              type: 'tool_result',
+              tool_use_id: block.id,
+              content: JSON.stringify({ error: `Tool "${block.name}" is not available for this agent` }),
+            })
+            continue
+          }
           const result = await executeTool(
             block.name,
             block.input as Record<string, unknown>,

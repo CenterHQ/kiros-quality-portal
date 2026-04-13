@@ -1334,11 +1334,25 @@ export async function executeTool(
       const { data: docs } = await docQuery.order('created_at', { ascending: false }).limit(20)
 
       // sharepoint_documents: file_name (not name), file_type, no category/qa_area/description columns
-      let spQuery = supabase.from('sharepoint_documents').select('id, file_name, file_type, document_type, created_at')
+      let spQuery = supabase.from('sharepoint_documents').select('id, file_name, file_type, document_type, created_at, extracted_text')
       if (toolInput.search) spQuery = spQuery.ilike('file_name', `%${toolInput.search}%`)
-      const { data: spDocs } = await spQuery.order('created_at', { ascending: false }).limit(20)
+      const { data: spData } = await spQuery.order('created_at', { ascending: false }).limit(20)
 
-      return JSON.stringify({ documents: docs || [], sharepoint_documents: spDocs || [] })
+      const enrichedSpDocs = (spData || []).map((d: Record<string, unknown>) => {
+        const text = d.extracted_text as string | null
+        return {
+          id: d.id,
+          file_name: d.file_name,
+          file_type: d.file_type,
+          document_type: d.document_type,
+          created_at: d.created_at,
+          extracted_text_preview: text ? text.substring(0, 500) + (text.length > 500 ? '...' : '') : null,
+          has_full_text: !!text,
+          char_count: text?.length || 0,
+        }
+      })
+
+      return JSON.stringify({ documents: docs || [], sharepoint_documents: enrichedSpDocs })
     }
 
     case 'read_document_content': {
@@ -1459,17 +1473,29 @@ export async function executeTool(
       const { orchestrateAgents } = await import('@/lib/chat/orchestrator')
       const areas = toolInput.analysis_areas as Array<{ focus: string; data_tools: string[] }>
 
-      const tasks = areas.map(area => ({
+      const ALLOWED_ANALYSIS_TOOLS = [
+        'search_centre_context', 'get_qa_progress', 'get_overdue_items',
+        'get_staff_training_status', 'get_dashboard_summary', 'get_policies',
+        'get_policy_detail', 'get_checklists', 'get_checklist_detail',
+        'get_documents', 'read_document_content',
+        'get_roster_data', 'get_registers', 'get_forms', 'get_learning_data',
+        'get_compliance_items', 'get_activity_log', 'get_room_data', 'search_platform',
+      ]
+
+      const tasks = areas.map(area => {
+        const safeDataTools = (area.data_tools as string[] || []).filter((t: string) => ALLOWED_ANALYSIS_TOOLS.includes(t))
+        return {
         agentName: area.focus.toLowerCase().replace(/\s+/g, '_').substring(0, 30),
         description: area.focus,
         systemPrompt: `You are a focused research agent for Kiros Early Education Centre (Bidwill, NSW). Your task is to analyse: ${area.focus}. Use the available tools to gather real data, then provide a concise analysis with key findings, issues identified, and specific recommendations. Be specific — cite data points, staff names, dates, NQS element codes. Use Australian English. Format your response with ## headings and bullet points.`,
         tools: ALL_TOOLS
-          .filter(t => area.data_tools.includes(t.name))
+          .filter(t => safeDataTools.includes(t.name))
           .map(({ allowedRoles: _r, ...rest }) => rest) as Anthropic.Tool[],
         context: `Centre: Kiros Early Education, Bidwill NSW. Today: ${new Date().toISOString().split('T')[0]}`,
         model: MODEL_SONNET,
         maxIterations: 3,
-      }))
+      }
+      })
 
       const results = await orchestrateAgents({
         conversationId: '',
