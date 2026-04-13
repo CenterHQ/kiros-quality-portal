@@ -4,6 +4,7 @@ import Anthropic from '@anthropic-ai/sdk'
 import { selectModelConfig, MODEL_SONNET } from '@/lib/chat/model-router'
 import type { SSEEvent } from '@/lib/chat/sse-protocol'
 import { ALL_TOOLS, buildSystemPromptCachedFromDB, executeTool, ROLE_LABELS, getAnthropicClient } from '@/lib/chat/shared'
+import { loadAIConfig, loadToolPermissions } from '@/lib/ai-config'
 
 export const dynamic = 'force-dynamic'
 export const maxDuration = 300 // Vercel Pro — 5 min for long agentic chains
@@ -142,9 +143,6 @@ export async function POST(request: NextRequest) {
     console.error('[Kiros AI] Failed to save user message:', userMsgError.message)
   }
 
-  // Select model based on message complexity
-  const { model, thinking } = selectModelConfig(message)
-
   // Use service role client for the streaming work (more reliable for long operations)
   const serviceSupabase = createServiceRoleClient()
 
@@ -153,12 +151,22 @@ export async function POST(request: NextRequest) {
   const stream = new ReadableStream({
     async start(controller) {
       try {
-        // Send model info
-        controller.enqueue(encodeSSE('status', { type: 'model', model }))
         // Send conversationId for new conversations
         controller.enqueue(new TextEncoder().encode(
           `event: conversation\ndata: ${JSON.stringify({ conversationId: convId })}\n\n`
         ))
+
+        // Load AI config + tool permissions first (needed for context query and model selection)
+        const [aiConfig, toolPerms] = await Promise.all([
+          loadAIConfig(serviceSupabase),
+          loadToolPermissions(serviceSupabase),
+        ])
+
+        // Select model based on message complexity
+        const { model, thinking } = selectModelConfig(message, aiConfig)
+
+        // Send model info
+        controller.enqueue(encodeSSE('status', { type: 'model', model }))
 
         // Load conversation history
         const { data: history } = await serviceSupabase.from('chat_messages')
@@ -166,7 +174,7 @@ export async function POST(request: NextRequest) {
           .eq('conversation_id', convId)
           .in('role', ['user', 'assistant', 'tool_call', 'tool_result'])
           .order('created_at', { ascending: true })
-          .limit(60)
+          .limit(aiConfig.chatHistoryLimit)
 
         const messages: Anthropic.MessageParam[] = reconstructMessages(history || [])
 
@@ -201,7 +209,7 @@ export async function POST(request: NextRequest) {
 
         // Load centre context, staff list, service details
         const [contextResult, staffResult, serviceResult] = await Promise.all([
-          serviceSupabase.from('centre_context').select('context_type, title, content, source_quote').eq('is_active', true).in('context_type', ['qip_goal', 'qip_strategy', 'philosophy_principle', 'service_value', 'leadership_goal']).limit(50),
+          serviceSupabase.from('centre_context').select('context_type, title, content, source_quote').eq('is_active', true).in('context_type', aiConfig.chatContextTypes).limit(50),
           serviceSupabase.from('profiles').select('full_name, role').order('full_name'),
           serviceSupabase.from('service_details').select('key, value, label'),
         ])
@@ -214,9 +222,13 @@ export async function POST(request: NextRequest) {
         const staffList = (staffResult.data || []).map(s => `${s.full_name} (${ROLE_LABELS[s.role] || s.role})`).join(', ')
         const serviceDetailsStr = (serviceResult.data || []).map(s => `${s.label}: ${s.value}`).join('\n')
 
-        // Filter tools by role
+        // Filter tools by role (DB permissions override hardcoded allowedRoles)
         const allowedTools: Anthropic.Tool[] = ALL_TOOLS
-          .filter(t => t.allowedRoles.includes(profile.role))
+          .filter(t => {
+            const dbRoles = toolPerms.get(t.name)
+            const roles = dbRoles || t.allowedRoles
+            return roles.includes(profile.role)
+          })
           .map(({ allowedRoles: _, ...tool }) => tool)
 
         // Build system prompt as cached content blocks
@@ -224,7 +236,7 @@ export async function POST(request: NextRequest) {
 
         // Log if system prompt is very large
         const promptSize = systemPromptBlocks.reduce((sum: number, block: { text?: string }) => sum + (block.text?.length || 0), 0)
-        if (promptSize > 100000) {
+        if (promptSize > aiConfig.promptSizeWarning) {
           console.warn(`[Kiros AI] System prompt is very large: ${promptSize} chars (~${Math.round(promptSize / 4)} tokens)`)
         }
 
@@ -247,10 +259,10 @@ export async function POST(request: NextRequest) {
         let continueLoop = true
         let usage: { input_tokens: number; output_tokens: number } | undefined
 
-        while (continueLoop && iterations < 5) {
+        while (continueLoop && iterations < aiConfig.chatMaxIterations) {
           const apiStream = anthropic.messages.stream({
             model,
-            max_tokens: 16384,
+            max_tokens: aiConfig.chatMaxTokens,
             ...(thinking && { thinking }),
             system: systemPromptBlocks,
             tools: toolsWithCache as Anthropic.Tool[],
@@ -387,11 +399,11 @@ export async function POST(request: NextRequest) {
         }
 
         // Update conversation title and timestamp
-        if (isNew && fullText.trim()) {
+        if (isNew && fullText.trim() && aiConfig.titleGenerationEnabled) {
           try {
             const titleResponse = await anthropic.messages.create({
               model: MODEL_SONNET,
-              max_tokens: 30,
+              max_tokens: aiConfig.titleMaxTokens,
               messages: [{ role: 'user', content: `Generate a 4-7 word title for this conversation. User asked: "${message.substring(0, 200)}". Assistant replied about: "${fullText.substring(0, 200)}". Return ONLY the title, no quotes or punctuation.` }],
             })
             const firstBlock = titleResponse.content[0]

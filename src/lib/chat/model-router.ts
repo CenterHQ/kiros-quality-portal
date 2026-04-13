@@ -1,4 +1,7 @@
 // Model routing — Opus by default, Sonnet only for trivial messages
+import type { AIConfig } from '@/lib/ai-config'
+
+// Keep existing constants as fallbacks
 export const MODEL_OPUS = 'claude-opus-4-20250514'
 export const MODEL_SONNET = 'claude-sonnet-4-20250514'
 
@@ -9,14 +12,19 @@ export interface ModelConfig {
   thinking?: { type: 'enabled'; budget_tokens: number }
 }
 
-export function selectModelConfig(message: string): ModelConfig {
-  if (SIMPLE_SIGNALS.test(message) && message.length < 50) {
-    return { model: MODEL_SONNET }
-  }
-  return { model: MODEL_OPUS, thinking: { type: 'enabled', budget_tokens: 10000 } }
-}
+export function selectModelConfig(message: string, config?: AIConfig): ModelConfig {
+  const opusModel = config?.modelOpus || MODEL_OPUS
+  const sonnetModel = config?.modelSonnet || MODEL_SONNET
+  const regex = config?.simpleSignalsRegex ? new RegExp(config.simpleSignalsRegex, 'i') : SIMPLE_SIGNALS
+  const maxLen = config?.simpleMessageMaxLength || 50
 
-// Backward-compatible export
-export function selectModel(message: string): string {
-  return selectModelConfig(message).model
+  if (regex.test(message) && message.length < maxLen) {
+    return { model: sonnetModel }
+  }
+
+  const thinkingEnabled = config?.thinkingEnabled !== false
+  return {
+    model: opusModel,
+    ...(thinkingEnabled ? { thinking: { type: 'enabled' as const, budget_tokens: config?.thinkingBudgetTokens || 10000 } } : {}),
+  }
 }

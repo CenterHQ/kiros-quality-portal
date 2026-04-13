@@ -6,6 +6,7 @@ import type { SSEEvent } from '@/lib/chat/sse-protocol'
 import { getAnthropicClient } from '@/lib/chat/shared'
 import { MARKETING_TOOLS, buildMarketingSystemPromptCached } from '@/lib/marketing/chat-config'
 import { executeMarketingTool } from '@/lib/marketing/tool-executor'
+import { loadAIConfig, loadToolPermissions } from '@/lib/ai-config'
 
 export const dynamic = 'force-dynamic'
 export const maxDuration = 300
@@ -135,7 +136,6 @@ export async function POST(request: NextRequest) {
     content: message,
   })
 
-  const { model, thinking } = selectModelConfig(message)
   const serviceSupabase = createServiceRoleClient()
 
   let fullText = ''
@@ -143,10 +143,19 @@ export async function POST(request: NextRequest) {
   const stream = new ReadableStream({
     async start(controller) {
       try {
-        controller.enqueue(encodeSSE('status', { type: 'model', model }))
         controller.enqueue(new TextEncoder().encode(
           `event: conversation\ndata: ${JSON.stringify({ conversationId: convId })}\n\n`,
         ))
+
+        // Load AI config + marketing tool permissions
+        const [aiConfig, toolPerms] = await Promise.all([
+          loadAIConfig(serviceSupabase),
+          loadToolPermissions(serviceSupabase, 'marketing'),
+        ])
+
+        // Select model based on message complexity
+        const { model, thinking } = selectModelConfig(message, aiConfig)
+        controller.enqueue(encodeSSE('status', { type: 'model', model }))
 
         // Load conversation history from marketing_messages
         const { data: history } = await serviceSupabase.from('marketing_messages')
@@ -154,13 +163,13 @@ export async function POST(request: NextRequest) {
           .eq('conversation_id', convId)
           .in('role', ['user', 'assistant', 'tool_call', 'tool_result'])
           .order('created_at', { ascending: true })
-          .limit(60)
+          .limit(aiConfig.chatHistoryLimit)
 
         const messages: Anthropic.MessageParam[] = reconstructMessages(history || [])
 
         // Load centre context and service details (marketing lens)
         const [contextResult, serviceResult] = await Promise.all([
-          serviceSupabase.from('centre_context').select('context_type, title, content').eq('is_active', true).limit(100),
+          serviceSupabase.from('centre_context').select('context_type, title, content').eq('is_active', true).in('context_type', aiConfig.chatContextTypes).limit(100),
           serviceSupabase.from('service_details').select('key, value, label'),
         ])
 
@@ -169,9 +178,13 @@ export async function POST(request: NextRequest) {
           .join('\n\n')
         const serviceDetailsStr = (serviceResult.data || []).map(s => `${s.label}: ${s.value}`).join('\n')
 
-        // Filter marketing tools by role
+        // Filter marketing tools by role (DB permissions override hardcoded allowedRoles)
         const allowedTools: Anthropic.Tool[] = MARKETING_TOOLS
-          .filter(t => t.allowedRoles.includes(profile.role))
+          .filter(t => {
+            const dbRoles = toolPerms.get(t.name)
+            const roles = dbRoles || t.allowedRoles
+            return roles.includes(profile.role)
+          })
           .map(({ allowedRoles: _allowedRoles, ...tool }) => tool)
 
         // Build marketing system prompt with caching
@@ -192,10 +205,10 @@ export async function POST(request: NextRequest) {
         let iterations = 0
         let continueLoop = true
 
-        while (continueLoop && iterations < 5) {
+        while (continueLoop && iterations < aiConfig.chatMaxIterations) {
           const apiStream = anthropic.messages.stream({
             model,
-            max_tokens: 16384,
+            max_tokens: aiConfig.chatMaxTokens,
             ...(thinking && { thinking }),
             system: systemPromptBlocks,
             tools: toolsWithCache as Anthropic.Tool[],

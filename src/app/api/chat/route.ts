@@ -4,6 +4,7 @@ import { createServerSupabaseClient, createServiceRoleClient } from '@/lib/supab
 import Anthropic from '@anthropic-ai/sdk'
 import { selectModelConfig } from '@/lib/chat/model-router'
 import { getAnthropicClient, ROLE_LABELS, ALL_TOOLS, buildSystemPrompt, executeTool } from '@/lib/chat/shared'
+import { loadAIConfig, loadToolPermissions } from '@/lib/ai-config'
 
 // Fallback route using waitUntil() for backward compatibility.
 // The primary streaming endpoint is /api/chat/stream/route.ts
@@ -106,13 +107,19 @@ async function processChat(
     // cookies() from next/headers is empty at this point, so the cookie-based client fails silently.
     const supabase = createServiceRoleClient()
 
+    // Load AI config + tool permissions
+    const [aiConfig, toolPerms] = await Promise.all([
+      loadAIConfig(supabase),
+      loadToolPermissions(supabase),
+    ])
+
     // Load conversation history
     const { data: history } = await supabase.from('chat_messages')
       .select('role, content, metadata')
       .eq('conversation_id', convId)
       .in('role', ['user', 'assistant', 'tool_call', 'tool_result'])
       .order('created_at', { ascending: true })
-      .limit(60)
+      .limit(aiConfig.chatHistoryLimit)
 
     const messages: Anthropic.MessageParam[] = reconstructMessages(history || [])
 
@@ -147,7 +154,7 @@ async function processChat(
 
     // Load centre context, staff list, service details in parallel
     const [contextResult, staffResult, serviceResult] = await Promise.all([
-      supabase.from('centre_context').select('context_type, title, content').eq('is_active', true).limit(100),
+      supabase.from('centre_context').select('context_type, title, content').eq('is_active', true).in('context_type', aiConfig.chatContextTypes).limit(100),
       supabase.from('profiles').select('full_name, role').order('full_name'),
       supabase.from('service_details').select('key, value, label'),
     ])
@@ -158,9 +165,13 @@ async function processChat(
     const staffList = (staffResult.data || []).map(s => `${s.full_name} (${ROLE_LABELS[s.role] || s.role})`).join(', ')
     const serviceDetailsStr = (serviceResult.data || []).map(s => `${s.label}: ${s.value}`).join('\n')
 
-    // Filter tools by role
+    // Filter tools by role (DB permissions override hardcoded allowedRoles)
     const allowedTools: Anthropic.Tool[] = ALL_TOOLS
-      .filter(t => t.allowedRoles.includes(userRole))
+      .filter(t => {
+        const dbRoles = toolPerms.get(t.name)
+        const roles = dbRoles || t.allowedRoles
+        return roles.includes(userRole)
+      })
       .map(({ allowedRoles: _, ...tool }) => tool)
 
     const systemPrompt = buildSystemPrompt(userRole, centreContext, staffList, serviceDetailsStr)
@@ -169,7 +180,7 @@ async function processChat(
     const pendingActions: Array<{ id: string; action_type: string; description: string; details: Record<string, unknown>; status: string }> = []
 
     const anthropic = getAnthropicClient()
-    const { model, thinking } = selectModelConfig(originalMessage)
+    const { model, thinking } = selectModelConfig(originalMessage, aiConfig)
 
     // Build cached system prompt blocks
     const systemBlocks: Anthropic.TextBlockParam[] = [
@@ -185,14 +196,14 @@ async function processChat(
       } as Anthropic.Tool & { cache_control: { type: 'ephemeral' } }
     }
 
-    const apiParams = { model, max_tokens: 16384, ...(thinking && { thinking }), system: systemBlocks, tools: toolsWithCache, messages }
+    const apiParams = { model, max_tokens: aiConfig.chatMaxTokens, ...(thinking && { thinking }), system: systemBlocks, tools: toolsWithCache, messages }
 
     // Call Claude with streaming
     let response = await callClaudeStreaming(anthropic, apiParams)
 
     // Tool-use loop
     let iterations = 0
-    while (response.stop_reason === 'tool_use' && iterations < 5) {
+    while (response.stop_reason === 'tool_use' && iterations < aiConfig.chatMaxIterations) {
       const toolUseBlocks = response.content.filter((b): b is Anthropic.ContentBlock & { type: 'tool_use' } => b.type === 'tool_use')
 
       // Execute tools in PARALLEL with error isolation
