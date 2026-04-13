@@ -67,7 +67,12 @@ export async function POST(request: NextRequest) {
           // eslint-disable-next-line @typescript-eslint/no-require-imports
           const pdfParse = require('pdf-parse')
           const pdfData = await pdfParse(buffer) as { text: string; numpages: number }
-          result.text = pdfData.text.substring(0, 50000)
+          const fullPdfText = pdfData.text
+          result.text = fullPdfText.substring(0, 50000)
+          if (fullPdfText.length > 50000) {
+            result.text = result.text + '\n\n[Note: Document content was truncated at 50,000 characters. Full document is ' + fullPdfText.length + ' characters.]'
+            result.truncated = true
+          }
           result.pageCount = pdfData.numpages
         } catch (e) {
           result.text = '[PDF text extraction failed]'
@@ -75,12 +80,22 @@ export async function POST(request: NextRequest) {
       } else if (isDocx) {
         try {
           const docResult = await mammoth.extractRawText({ buffer })
-          result.text = docResult.value.substring(0, 50000)
+          const fullDocxText = docResult.value
+          result.text = fullDocxText.substring(0, 50000)
+          if (fullDocxText.length > 50000) {
+            result.text = result.text + '\n\n[Note: Document content was truncated at 50,000 characters. Full document is ' + fullDocxText.length + ' characters.]'
+            result.truncated = true
+          }
         } catch (e) {
           result.text = '[DOCX text extraction failed]'
         }
       } else if (isText) {
-        result.text = buffer.toString('utf-8').substring(0, 50000)
+        const fullFileText = buffer.toString('utf-8')
+        result.text = fullFileText.substring(0, 50000)
+        if (fullFileText.length > 50000) {
+          result.text = result.text + '\n\n[Note: Document content was truncated at 50,000 characters. Full document is ' + fullFileText.length + ' characters.]'
+          result.truncated = true
+        }
       }
 
       results.push(result)

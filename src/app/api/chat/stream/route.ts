@@ -219,6 +219,12 @@ export async function POST(request: NextRequest) {
         // Build system prompt as cached content blocks
         const systemPromptBlocks = await buildSystemPromptCachedFromDB(profile.role, centreContext, staffList, serviceDetailsStr, serviceSupabase)
 
+        // Log if system prompt is very large
+        const promptSize = systemPromptBlocks.reduce((sum: number, block: { text?: string }) => sum + (block.text?.length || 0), 0)
+        if (promptSize > 100000) {
+          console.warn(`[Kiros AI] System prompt is very large: ${promptSize} chars (~${Math.round(promptSize / 4)} tokens)`)
+        }
+
         // Cache the tools array
         const toolsWithCache = [...allowedTools]
         if (toolsWithCache.length > 0) {

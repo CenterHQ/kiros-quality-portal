@@ -1167,9 +1167,11 @@ export async function executeTool(
         const { data } = await supabase.from('policy_acknowledgements').select('policy_id').in('policy_id', policyIds)
         acknowledgements = data || []
       }
+      const today = new Date().toISOString().split('T')[0]
       const result = (policies || []).map(p => ({
         ...p,
         acknowledgement_count: acknowledgements.filter(a => a.policy_id === p.id).length,
+        review_overdue: p.next_review_date ? p.next_review_date < today : false,
       }))
       return JSON.stringify(result)
     }
