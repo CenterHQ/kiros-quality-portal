@@ -591,6 +591,8 @@ export const ALL_TOOLS: (Anthropic.Tool & { allowedRoles: string[] })[] = [
       properties: {
         template_name: { type: 'string', description: 'Filter by template name' },
         date: { type: 'string', description: 'Date to check instances for (YYYY-MM-DD). Defaults to today.' },
+        date_from: { type: 'string', description: 'Start date for instance range (YYYY-MM-DD). If provided with date_to, returns instances in range instead of single date.' },
+        date_to: { type: 'string', description: 'End date for instance range (YYYY-MM-DD)' },
         status: { type: 'string', description: 'Filter instances by status' },
         category: { type: 'string', description: 'Filter by checklist category' },
       },
@@ -645,6 +647,7 @@ export const ALL_TOOLS: (Anthropic.Tool & { allowedRoles: string[] })[] = [
         form_type: { type: 'string', description: 'Filter by form type' },
         room: { type: 'string', description: 'Filter by room' },
         date_from: { type: 'string', description: 'Start date (YYYY-MM-DD)' },
+        date_to: { type: 'string', description: 'Filter by end date (YYYY-MM-DD)' },
         status: { type: 'string', description: 'Filter by submission status' },
       },
     },
@@ -974,17 +977,17 @@ export async function executeTool(
       const itemType = toolInput.item_type as string
       if (itemType === 'tasks' || itemType === 'all') {
         const { data } = await supabase.from('tasks').select('title, priority, due_date, status, profiles(full_name)')
-          .lt('due_date', today).neq('status', 'done').limit(10)
+          .lt('due_date', today).neq('status', 'done').limit(50)
         results.overdue_tasks = data || []
       }
       if (itemType === 'training' || itemType === 'all') {
         const { data } = await supabase.from('lms_enrollments').select('due_date, status, lms_modules(title), profiles(full_name)')
-          .lt('due_date', today).neq('status', 'completed').limit(10)
+          .lt('due_date', today).neq('status', 'completed').limit(50)
         results.overdue_training = data || []
       }
       if (itemType === 'checklists' || itemType === 'all') {
         const { data } = await supabase.from('checklist_instances').select('name, due_date, status')
-          .lt('due_date', today).in('status', ['pending', 'in_progress']).limit(10)
+          .lt('due_date', today).in('status', ['pending', 'in_progress']).limit(50)
         results.overdue_checklists = data || []
       }
       return JSON.stringify(results)
@@ -1177,9 +1180,13 @@ export async function executeTool(
       if (toolInput.category) templateQuery = templateQuery.ilike('checklist_categories.name', `%${toolInput.category}%`)
       const { data: templates } = await templateQuery.limit(20)
 
-      const targetDate = (toolInput.date as string) || new Date().toISOString().split('T')[0]
       let instanceQuery = supabase.from('checklist_instances').select('id, name, status, due_date, failed_items, total_items, completed_items, template_id, assigned_to')
-        .eq('due_date', targetDate)
+      if (toolInput.date_from && toolInput.date_to) {
+        instanceQuery = instanceQuery.gte('due_date', toolInput.date_from as string).lte('due_date', toolInput.date_to as string)
+      } else {
+        const targetDate = (toolInput.date as string) || new Date().toISOString().split('T')[0]
+        instanceQuery = instanceQuery.eq('due_date', targetDate)
+      }
       if (toolInput.status) instanceQuery = instanceQuery.eq('status', toolInput.status)
       const { data: instanceData } = await instanceQuery.limit(30)
 
@@ -1245,6 +1252,9 @@ export async function executeTool(
       if (toolInput.form_type) query = query.eq('form_type', toolInput.form_type)
       if (toolInput.room) query = query.ilike('room', `%${toolInput.room}%`)
       if (toolInput.date_from) query = query.gte('created_at', toolInput.date_from)
+      if (toolInput.date_to) {
+        query = query.lte('created_at', toolInput.date_to as string)
+      }
       if (toolInput.status) query = query.eq('status', toolInput.status)
       const { data } = await query.order('created_at', { ascending: false }).limit(20)
       return JSON.stringify(data || [])
@@ -1258,8 +1268,9 @@ export async function executeTool(
         staffFilter = userId
       } else if (toolInput.staff_name) {
         const { data: staffProfile } = await supabase.from('profiles').select('id, full_name')
-          .ilike('full_name', `%${toolInput.staff_name}%`).limit(1).single()
-        staffFilter = staffProfile?.id || null
+          .ilike('full_name', `%${toolInput.staff_name}%`).limit(1).maybeSingle()
+        if (!staffProfile) return JSON.stringify({ error: `Staff member "${toolInput.staff_name}" not found` })
+        staffFilter = staffProfile.id
       }
 
       const results: Record<string, unknown> = {}
@@ -1301,8 +1312,9 @@ export async function executeTool(
       if (toolInput.status) query = query.eq('status', toolInput.status)
       if (toolInput.assigned_to_name) {
         const { data: staffProfile } = await supabase.from('profiles').select('id')
-          .ilike('full_name', `%${toolInput.assigned_to_name}%`).limit(1).single()
-        if (staffProfile) query = query.eq('assigned_to', staffProfile.id)
+          .ilike('full_name', `%${toolInput.assigned_to_name}%`).limit(1).maybeSingle()
+        if (!staffProfile) return JSON.stringify({ error: `Staff member "${toolInput.assigned_to_name}" not found` })
+        query = query.eq('assigned_to', staffProfile.id)
       }
       const { data } = await query.limit(30)
       return JSON.stringify(data || [])
@@ -1319,8 +1331,9 @@ export async function executeTool(
       if (toolInput.entity_type) query = query.eq('entity_type', toolInput.entity_type)
       if (toolInput.user_name) {
         const { data: staffProfile } = await supabase.from('profiles').select('id')
-          .ilike('full_name', `%${toolInput.user_name}%`).limit(1).single()
-        if (staffProfile) query = query.eq('user_id', staffProfile.id)
+          .ilike('full_name', `%${toolInput.user_name}%`).limit(1).maybeSingle()
+        if (!staffProfile) return JSON.stringify({ error: `User "${toolInput.user_name}" not found` })
+        query = query.eq('user_id', staffProfile.id)
       }
       const { data } = await query.order('created_at', { ascending: false }).limit(limit)
       return JSON.stringify(data || [])
@@ -1619,7 +1632,7 @@ export async function executeTool(
         .select('id, title, content, times_reinforced, confidence')
         .eq('is_active', true)
         .eq('learning_type', learning_type)
-        .ilike('title', `%${title.substring(0, 30)}%`)
+        .eq('title', toolInput.title as string)
         .limit(3)
 
       if (existing && existing.length > 0) {
