@@ -26,6 +26,7 @@ export interface AgentResult {
   output: string
   tokensUsed: number
   durationMs: number
+  sessionId?: string
 }
 
 export type AgentProgressCallback = (event: {
@@ -228,7 +229,7 @@ export async function orchestrateAgents(params: {
           .eq('id', sessionIds[i])
       }
 
-      return result
+      return { ...result, sessionId: sessionIds[i] || undefined }
     } catch (err) {
       onProgress?.({
         type: 'agent_progress',
@@ -242,6 +243,7 @@ export async function orchestrateAgents(params: {
         output: `Error: ${err instanceof Error ? err.message : 'Unknown error'}`,
         tokensUsed: 0,
         durationMs: 0,
+        sessionId: sessionIds[i] || undefined,
       }
 
       if (sessionIds[i]) {

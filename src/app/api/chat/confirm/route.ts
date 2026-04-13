@@ -83,8 +83,9 @@ export async function POST(request: NextRequest) {
       case 'update_item': {
         const { item_type, item_id, updates } = details
         const table = item_type === 'task' ? 'tasks' : item_type === 'compliance_item' ? 'compliance_items' : 'qa_elements'
-        const { error } = await supabase.from(table).update(updates).eq('id', item_id)
+        const { data, error } = await supabase.from(table).update(updates).eq('id', item_id).select('id').maybeSingle()
         if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+        if (!data) return NextResponse.json({ error: `${item_type} with ID ${item_id} not found` }, { status: 404 })
         return NextResponse.json({ success: true, status: 'confirmed', message: `${item_type} updated successfully.` })
       }
 
@@ -95,6 +96,9 @@ export async function POST(request: NextRequest) {
           .limit(1).single()
         if (tplErr && tplErr.code !== 'PGRST116') return NextResponse.json({ error: `Template lookup failed: ${tplErr.message}` }, { status: 500 })
         if (!template) return NextResponse.json({ error: 'Template not found' }, { status: 404 })
+        if (!template.items || !Array.isArray(template.items)) {
+          return NextResponse.json({ error: 'Template has no checklist items defined' }, { status: 400 })
+        }
         let assignedTo = null
         if (details.assigned_to_name) {
           const { data: profile, error: profileErr } = await supabase

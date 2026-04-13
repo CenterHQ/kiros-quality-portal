@@ -252,7 +252,7 @@ async function buildLearningsSection(
     // Load the most important learnings: corrections first, then high-confidence insights
     const { data: learnings } = await supabase
       .from('ai_learnings')
-      .select('learning_type, category, title, content, confidence, times_reinforced, qa_areas, tags')
+      .select('learning_type, category, title, content, confidence, times_reinforced, qa_areas, tags, expires_at')
       .eq('is_active', true)
       .or(`applies_to_roles.eq.{},applies_to_roles.cs.{${role}}`)
       .order('learning_type', { ascending: true }) // corrections sort first alphabetically
@@ -264,7 +264,9 @@ async function buildLearningsSection(
 
     // Filter out expired
     const now = new Date()
-    const active = learnings
+    const active = (learnings || []).filter((l: { expires_at?: string | null }) =>
+      !l.expires_at || new Date(l.expires_at) > now
+    )
 
     // Group by type for readability
     const corrections = active.filter((l: { learning_type: string }) => l.learning_type === 'correction')
@@ -885,6 +887,7 @@ export const ALL_TOOLS: (Anthropic.Tool & { allowedRoles: string[] })[] = [
         feedback_type: { type: 'string', enum: ['accepted', 'corrected', 'rejected', 'supplemented', 'escalated'], description: 'How the response was received' },
         correction_detail: { type: 'string', description: 'For corrections/rejections: what was wrong and what was right' },
         response_quality: { type: 'integer', description: 'Quality 1-5 (1=wrong, 3=adequate, 5=excellent)' },
+        session_id: { type: 'string', description: 'Session ID from delegate_to_agents result (links feedback to specific agent invocation)' },
       },
       required: ['agent_name', 'query_summary', 'feedback_type'],
     },
@@ -1612,6 +1615,7 @@ export async function executeTool(
           output: r.output,
           tokens: r.tokensUsed,
           duration_ms: r.durationMs,
+          session_id: r.sessionId,
         })),
       })
     }
@@ -1763,6 +1767,7 @@ export async function executeTool(
           correction_detail: correction_detail || null,
           response_quality: response_quality || null,
           user_id: userId,
+          session_id: (toolInput.session_id as string) || null,
         })
         .select('id')
         .single()
@@ -1782,6 +1787,7 @@ export async function executeTool(
           learned_from_role: userRole,
           tags: ['agent_feedback', agent_name.toLowerCase().replace(/\s+/g, '_')],
           confidence: 0.9,
+          applies_to_roles: userRole ? [userRole] : [],
         })
       }
 
