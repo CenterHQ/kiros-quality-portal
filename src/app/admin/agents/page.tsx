@@ -194,9 +194,11 @@ export default function AgentManagementPage() {
   const [testQuery, setTestQuery] = useState('')
   const [testResult, setTestResult] = useState<TestResult | null>(null)
   const [testing, setTesting] = useState(false)
+  const [perfMap, setPerfMap] = useState<Map<string, { total_interactions: number; acceptance_rate: number; avg_quality: number | null; corrected_count: number }>>(new Map())
 
   useEffect(() => {
     loadAgents()
+    loadPerformanceData()
     loadMasterConfig()
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
@@ -207,6 +209,14 @@ export default function AgentManagementPage() {
       return () => clearTimeout(timer)
     }
   }, [flash])
+
+  // ---------------------------------------------------------------------------
+  // Load agent performance metrics
+  // ---------------------------------------------------------------------------
+  async function loadPerformanceData() {
+    const { data: perfData } = await supabase.from('ai_agent_performance').select('*')
+    setPerfMap(new Map((perfData || []).map((p: { agent_name: string; total_interactions: number; acceptance_rate: number; avg_quality: number | null; corrected_count: number }) => [p.agent_name, p])))
+  }
 
   // ---------------------------------------------------------------------------
   // Load master AI configuration from ai_system_prompts
@@ -749,6 +759,18 @@ export default function AgentManagementPage() {
                     </span>
                   </div>
                   <p className="text-xs text-muted-foreground mt-1 truncate">{agent.description || agent.routing_description || 'No description'}</p>
+                  {(() => {
+                    const perf = perfMap.get(agent.name)
+                    if (!perf) return <span className="text-xs text-muted-foreground mt-1 block">No interactions yet</span>
+                    return (
+                      <div className="flex gap-3 text-xs text-muted-foreground mt-1">
+                        <span>{perf.total_interactions} interactions</span>
+                        <span>{perf.acceptance_rate}% accepted</span>
+                        <span>Avg quality: {perf.avg_quality || 'N/A'}/5</span>
+                        {perf.corrected_count > 0 && <span className="text-amber-600">{perf.corrected_count} corrections</span>}
+                      </div>
+                    )
+                  })()}
                   <div className="flex flex-wrap gap-1 mt-2">
                     {(agent.domain_tags || []).map(tag => (
                       <span key={tag} className="px-1.5 py-0.5 rounded text-[10px] bg-blue-50 text-blue-600 border border-blue-100">{tag}</span>

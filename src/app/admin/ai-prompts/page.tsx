@@ -102,6 +102,10 @@ export default function AIPromptsPage() {
   const [saving, setSaving] = useState(false)
   const [flash, setFlash] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
   const [expandedId, setExpandedId] = useState<string | null>(null)
+  const [previewOpen, setPreviewOpen] = useState(false)
+  const [previewRole, setPreviewRole] = useState<string>('admin')
+  const [previewPrompt, setPreviewPrompt] = useState<string>('')
+  const [previewLoading, setPreviewLoading] = useState(false)
 
   // ── Load data ──────────────────────────────────────────────────────────────
 
@@ -150,6 +154,21 @@ export default function AIPromptsPage() {
   const showFlash = useCallback((type: 'success' | 'error', text: string) => {
     setFlash({ type, text })
     setTimeout(() => setFlash(null), 3000)
+  }, [])
+
+  // ── Preview ────────────────────────────────────────────────────────────────
+
+  const fetchPreview = useCallback(async (role: string) => {
+    setPreviewLoading(true)
+    try {
+      const res = await fetch(`/api/admin/preview-prompt?role=${encodeURIComponent(role)}`)
+      if (!res.ok) throw new Error('Failed to fetch prompt')
+      const data = await res.json()
+      setPreviewPrompt(data.prompt || '')
+    } catch (err) {
+      setPreviewPrompt(`Error: ${err instanceof Error ? err.message : 'Unknown error'}`)
+    }
+    setPreviewLoading(false)
   }, [])
 
   // ── CRUD ───────────────────────────────────────────────────────────────────
@@ -263,15 +282,27 @@ export default function AIPromptsPage() {
             Manage the system prompt sections that control Kiros AI behaviour
           </p>
         </div>
-        <button
-          onClick={() => setEditing({ ...EMPTY_PROMPT })}
-          className="px-4 py-2 text-sm font-medium text-white rounded-lg transition-colors flex items-center gap-2 bg-primary"
-        >
-          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-          </svg>
-          Add Section
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => { setPreviewOpen(true); fetchPreview(previewRole) }}
+            className="px-4 py-2 text-sm font-medium rounded-lg transition-colors flex items-center gap-2 border border-border text-foreground hover:bg-accent"
+          >
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+            </svg>
+            Preview Full Prompt
+          </button>
+          <button
+            onClick={() => setEditing({ ...EMPTY_PROMPT })}
+            className="px-4 py-2 text-sm font-medium text-white rounded-lg transition-colors flex items-center gap-2 bg-primary"
+          >
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+            </svg>
+            Add Section
+          </button>
+        </div>
       </div>
 
       {/* Flash message */}
@@ -492,6 +523,58 @@ export default function AIPromptsPage() {
                   {saving ? 'Saving...' : editing.id ? 'Update' : 'Create'}
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Preview Modal */}
+      {previewOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="bg-card rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col">
+            <div className="p-6 border-b border-border flex items-center justify-between flex-shrink-0">
+              <div className="flex items-center gap-3">
+                <h2 className="text-lg font-semibold text-foreground">Assembled System Prompt</h2>
+                <select
+                  value={previewRole}
+                  onChange={e => { setPreviewRole(e.target.value); fetchPreview(e.target.value) }}
+                  className="px-2 py-1 text-sm border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-200"
+                >
+                  <option value="admin">Admin</option>
+                  <option value="manager">Manager</option>
+                  <option value="ns">Nominated Supervisor</option>
+                  <option value="el">Educational Leader</option>
+                  <option value="educator">Educator</option>
+                </select>
+              </div>
+              <button onClick={() => setPreviewOpen(false)} className="p-1 rounded-lg hover:bg-accent">
+                <svg className="w-5 h-5 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <div className="p-6 overflow-y-auto flex-1">
+              {previewLoading ? (
+                <div className="flex items-center justify-center py-12">
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 rounded-full bg-purple-400 animate-bounce" style={{ animationDelay: '0ms' }} />
+                    <div className="w-2 h-2 rounded-full bg-purple-400 animate-bounce" style={{ animationDelay: '150ms' }} />
+                    <div className="w-2 h-2 rounded-full bg-purple-400 animate-bounce" style={{ animationDelay: '300ms' }} />
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <div className="flex items-center justify-between mb-3">
+                    <p className="text-xs text-muted-foreground">
+                      This is the full prompt assembled for the <strong>{previewRole}</strong> role. Dynamic variables (centre context, staff list, service details) are shown as placeholders.
+                    </p>
+                    <span className="text-xs text-muted-foreground flex-shrink-0 ml-4">{previewPrompt.length.toLocaleString()} chars</span>
+                  </div>
+                  <pre className="text-sm text-foreground leading-relaxed whitespace-pre-wrap font-mono bg-muted border border-border rounded-lg p-4 overflow-x-auto">
+                    {previewPrompt}
+                  </pre>
+                </>
+              )}
             </div>
           </div>
         </div>
