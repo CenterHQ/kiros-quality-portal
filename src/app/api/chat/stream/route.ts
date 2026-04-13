@@ -44,7 +44,7 @@ function reconstructMessages(
             const parsed = JSON.parse(tc.content)
             contentBlocks.push({
               type: 'tool_use',
-              id: (tc.metadata?.tool_use_id as string) || `tool_${Date.now()}`,
+              id: (tc.metadata?.tool_use_id as string) || `tool_${crypto.randomUUID()}`,
               name: parsed.name,
               input: parsed.input || {},
             })
@@ -60,7 +60,7 @@ function reconstructMessages(
           const tr = history[j]
           toolResults.push({
             type: 'tool_result',
-            tool_use_id: (tr.metadata?.tool_use_id as string) || '',
+            tool_use_id: (tr.metadata?.tool_use_id as string) || `tool_${crypto.randomUUID()}`,
             content: tr.content,
           })
           j++
@@ -133,11 +133,14 @@ export async function POST(request: NextRequest) {
   }
 
   // Save user message immediately
-  await supabase.from('chat_messages').insert({
+  const { error: userMsgError } = await supabase.from('chat_messages').insert({
     conversation_id: convId,
     role: 'user',
     content: message,
   })
+  if (userMsgError) {
+    console.error('[Kiros AI] Failed to save user message:', userMsgError.message)
+  }
 
   // Select model based on message complexity
   const { model, thinking } = selectModelConfig(message)
@@ -339,10 +342,14 @@ export async function POST(request: NextRequest) {
               }
 
               // Save tool call/result to DB
-              await serviceSupabase.from('chat_messages').insert([
-                { conversation_id: convId, role: 'tool_call', content: JSON.stringify({ name: block.name, input: block.input }), metadata: { tool_use_id: block.id } },
-                { conversation_id: convId, role: 'tool_result', content: result, metadata: { tool_use_id: block.id } },
-              ])
+              try {
+                await serviceSupabase.from('chat_messages').insert([
+                  { conversation_id: convId, role: 'tool_call', content: JSON.stringify({ name: block.name, input: block.input }), metadata: { tool_use_id: block.id } },
+                  { conversation_id: convId, role: 'tool_result', content: result, metadata: { tool_use_id: block.id } },
+                ])
+              } catch (dbErr) {
+                console.error(`[Kiros AI] Failed to save tool result for ${block.name}:`, dbErr)
+              }
 
               return { block, result }
             })
@@ -363,7 +370,7 @@ export async function POST(request: NextRequest) {
         }
 
         // Save final assistant response to Supabase
-        const { data: savedMsg } = await serviceSupabase.from('chat_messages').insert({
+        const { data: savedMsg, error: saveMsgError } = await serviceSupabase.from('chat_messages').insert({
           conversation_id: convId,
           role: 'assistant',
           content: fullText,
@@ -375,6 +382,9 @@ export async function POST(request: NextRequest) {
             model,
           },
         }).select('id').single()
+        if (saveMsgError) {
+          console.error('[Kiros AI] Failed to save assistant message:', saveMsgError.message)
+        }
 
         // Update conversation title and timestamp
         if (isNew && fullText.trim()) {

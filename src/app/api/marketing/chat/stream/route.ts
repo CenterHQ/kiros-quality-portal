@@ -44,7 +44,7 @@ function reconstructMessages(
             const parsed = JSON.parse(tc.content)
             contentBlocks.push({
               type: 'tool_use',
-              id: (tc.metadata?.tool_use_id as string) || `tool_${Date.now()}`,
+              id: (tc.metadata?.tool_use_id as string) || `tool_${crypto.randomUUID()}`,
               name: parsed.name,
               input: parsed.input || {},
             })
@@ -59,7 +59,7 @@ function reconstructMessages(
           const tr = history[j]
           toolResults.push({
             type: 'tool_result',
-            tool_use_id: (tr.metadata?.tool_use_id as string) || '',
+            tool_use_id: (tr.metadata?.tool_use_id as string) || `tool_${crypto.randomUUID()}`,
             content: tr.content,
           })
           j++

@@ -45,7 +45,7 @@ function reconstructMessages(
             const parsed = JSON.parse(tc.content)
             contentBlocks.push({
               type: 'tool_use',
-              id: (tc.metadata?.tool_use_id as string) || `tool_${Date.now()}`,
+              id: (tc.metadata?.tool_use_id as string) || `tool_${crypto.randomUUID()}`,
               name: parsed.name,
               input: parsed.input || {},
             })
@@ -60,7 +60,7 @@ function reconstructMessages(
           const tr = history[j]
           toolResults.push({
             type: 'tool_result',
-            tool_use_id: (tr.metadata?.tool_use_id as string) || '',
+            tool_use_id: (tr.metadata?.tool_use_id as string) || `tool_${crypto.randomUUID()}`,
             content: tr.content,
           })
           j++
@@ -299,11 +299,14 @@ export async function POST(request: NextRequest) {
     if (!convId) return NextResponse.json({ error: 'Failed to create conversation' }, { status: 500 })
 
     // Save user message immediately
-    await supabase.from('chat_messages').insert({
+    const { error: userMsgError } = await supabase.from('chat_messages').insert({
       conversation_id: convId,
       role: 'user',
       content: message,
     })
+    if (userMsgError) {
+      console.error('[Kiros AI] Failed to save user message:', userMsgError.message)
+    }
 
     // Schedule heavy processing to run in the background via waitUntil
     waitUntil(processChat(convId, user.id, profile.role, isNew, message, attachments))

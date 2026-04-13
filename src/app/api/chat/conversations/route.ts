@@ -13,6 +13,18 @@ export async function GET(request: NextRequest) {
 
   // If specific conversation requested, return its messages with document metadata
   if (conversationId) {
+    // Verify user owns this conversation
+    const { data: conv, error: convErr } = await supabase
+      .from('chat_conversations')
+      .select('id')
+      .eq('id', conversationId)
+      .eq('user_id', user.id)
+      .single()
+
+    if (convErr || !conv) {
+      return NextResponse.json({ error: 'Conversation not found' }, { status: 404 })
+    }
+
     const { data: messages } = await supabase
       .from('chat_messages')
       .select('id, role, content, metadata, created_at')

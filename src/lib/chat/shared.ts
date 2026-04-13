@@ -1760,7 +1760,7 @@ export async function executeTool(
         .from('ai_agent_definitions')
         .select('id')
         .eq('name', agent_name)
-        .single()
+        .maybeSingle()
 
       const { data, error } = await supabase
         .from('ai_agent_feedback')

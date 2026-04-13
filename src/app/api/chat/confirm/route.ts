@@ -82,7 +82,15 @@ export async function POST(request: NextRequest) {
 
       case 'update_item': {
         const { item_type, item_id, updates } = details
-        const table = item_type === 'task' ? 'tasks' : item_type === 'compliance_item' ? 'compliance_items' : 'qa_elements'
+        const TABLE_MAP: Record<string, string> = {
+          task: 'tasks',
+          compliance_item: 'compliance_items',
+          qa_element: 'qa_elements',
+        }
+        const table = TABLE_MAP[item_type]
+        if (!table) {
+          return NextResponse.json({ error: `Invalid item type: ${item_type}` }, { status: 400 })
+        }
         const { data, error } = await supabase.from(table).update(updates).eq('id', item_id).select('id').maybeSingle()
         if (error) return NextResponse.json({ error: error.message }, { status: 500 })
         if (!data) return NextResponse.json({ error: `${item_type} with ID ${item_id} not found` }, { status: 404 })

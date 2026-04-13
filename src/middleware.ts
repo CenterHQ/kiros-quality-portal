@@ -9,6 +9,13 @@ function isRateLimited(key: string): boolean {
   const now = Date.now()
   const record = rateLimitMap.get(key)
 
+  // Clean up expired entries periodically (every 100 checks)
+  if (rateLimitMap.size > 100) {
+    rateLimitMap.forEach((v, k) => {
+      if (now > v.resetTime) rateLimitMap.delete(k)
+    })
+  }
+
   if (!record || now > record.resetTime) {
     rateLimitMap.set(key, { count: 1, resetTime: now + WINDOW_MS })
     return false
