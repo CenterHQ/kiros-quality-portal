@@ -572,6 +572,18 @@ export const ALL_TOOLS: (Anthropic.Tool & { allowedRoles: string[] })[] = [
     allowedRoles: ['admin', 'manager', 'ns', 'el', 'educator'],
   },
   {
+    name: 'get_policy_detail',
+    description: 'Get the FULL content of a specific policy by ID. Use this after get_policies to read the actual policy text, version history, review status, and staff acknowledgements.',
+    input_schema: {
+      type: 'object' as const,
+      properties: {
+        policy_id: { type: 'string', description: 'UUID of the policy to read (from get_policies results)' },
+      },
+      required: ['policy_id'],
+    },
+    allowedRoles: ['admin', 'manager', 'ns', 'el', 'educator'],
+  },
+  {
     name: 'get_checklists',
     description: 'Get checklist templates, today\'s instances, and completion status',
     input_schema: {
@@ -582,6 +594,18 @@ export const ALL_TOOLS: (Anthropic.Tool & { allowedRoles: string[] })[] = [
         status: { type: 'string', description: 'Filter instances by status' },
         category: { type: 'string', description: 'Filter by checklist category' },
       },
+    },
+    allowedRoles: ['admin', 'manager', 'ns', 'el', 'educator'],
+  },
+  {
+    name: 'get_checklist_detail',
+    description: 'Get full detail of a specific checklist instance including all responses, items snapshot, and completion data. Use after get_checklists to see what was actually checked and any notes/photos.',
+    input_schema: {
+      type: 'object' as const,
+      properties: {
+        instance_id: { type: 'string', description: 'UUID of the checklist instance to read (from get_checklists results)' },
+      },
+      required: ['instance_id'],
     },
     allowedRoles: ['admin', 'manager', 'ns', 'el', 'educator'],
   },
@@ -674,6 +698,19 @@ export const ALL_TOOLS: (Anthropic.Tool & { allowedRoles: string[] })[] = [
         qa_area: { type: 'integer', description: 'Filter by related QA area (1-7)' },
         search: { type: 'string', description: 'Search keyword in document name or description' },
       },
+    },
+    allowedRoles: ['admin', 'manager', 'ns', 'el', 'educator'],
+  },
+  {
+    name: 'read_document_content',
+    description: 'Read the full content of a specific document by ID. Works for AI-generated documents (markdown content) and SharePoint-synced documents (extracted text). Use after get_documents to read the actual document text.',
+    input_schema: {
+      type: 'object' as const,
+      properties: {
+        document_id: { type: 'string', description: 'UUID of the document to read' },
+        source: { type: 'string', enum: ['ai_generated', 'sharepoint'], description: 'Which document store to read from. Default: ai_generated' },
+      },
+      required: ['document_id'],
     },
     allowedRoles: ['admin', 'manager', 'ns', 'el', 'educator'],
   },
@@ -1123,19 +1160,46 @@ export async function executeTool(
       return JSON.stringify(result)
     }
 
+    case 'get_policy_detail': {
+      const { data, error } = await supabase
+        .from('policies')
+        .select('id, title, content, summary, version, status, review_frequency, next_review_date, last_reviewed_at, related_qa, related_regulations, is_family_facing, tags, policy_categories(name)')
+        .eq('id', toolInput.policy_id as string)
+        .single()
+      if (error || !data) return JSON.stringify({ error: error?.message || 'Policy not found' })
+      const { count } = await supabase.from('policy_acknowledgements').select('id', { count: 'exact', head: true }).eq('policy_id', data.id)
+      return JSON.stringify({ ...data, acknowledgement_count: count || 0 })
+    }
+
     case 'get_checklists': {
-      let templateQuery = supabase.from('checklist_templates').select('id, name, frequency, checklist_categories(name)')
+      let templateQuery = supabase.from('checklist_templates').select('id, name, description, frequency, items, related_qa, checklist_categories(name)')
       if (toolInput.template_name) templateQuery = templateQuery.ilike('name', `%${toolInput.template_name}%`)
       if (toolInput.category) templateQuery = templateQuery.ilike('checklist_categories.name', `%${toolInput.category}%`)
       const { data: templates } = await templateQuery.limit(20)
 
       const targetDate = (toolInput.date as string) || new Date().toISOString().split('T')[0]
-      let instanceQuery = supabase.from('checklist_instances').select('id, name, status, due_date, failed_items, template_id')
+      let instanceQuery = supabase.from('checklist_instances').select('id, name, status, due_date, failed_items, total_items, completed_items, template_id, assigned_to')
         .eq('due_date', targetDate)
       if (toolInput.status) instanceQuery = instanceQuery.eq('status', toolInput.status)
-      const { data: instances } = await instanceQuery.limit(30)
+      const { data: instanceData } = await instanceQuery.limit(30)
 
-      return JSON.stringify({ templates: templates || [], instances: instances || [] })
+      const enrichedInstances = (instanceData || []).map((i: Record<string, unknown>) => ({
+        ...i,
+        completion_percentage: (i.total_items as number) ? Math.round(((i.completed_items as number || 0) / (i.total_items as number)) * 100) : null,
+      }))
+
+      return JSON.stringify({ templates: templates || [], instances: enrichedInstances })
+    }
+
+    case 'get_checklist_detail': {
+      const { data, error } = await supabase
+        .from('checklist_instances')
+        .select('id, name, status, due_date, due_time, assigned_to, completed_by, completed_at, responses, items_snapshot, notes, total_items, completed_items, failed_items, event_type, event_description, created_at, checklist_templates(name, items)')
+        .eq('id', toolInput.instance_id as string)
+        .single()
+      if (error || !data) return JSON.stringify({ error: error?.message || 'Checklist instance not found' })
+      const completion_percentage = data.total_items ? Math.round(((data.completed_items || 0) / data.total_items) * 100) : null
+      return JSON.stringify({ ...data, completion_percentage })
     }
 
     case 'get_roster_data': {
@@ -1275,6 +1339,27 @@ export async function executeTool(
       const { data: spDocs } = await spQuery.order('created_at', { ascending: false }).limit(20)
 
       return JSON.stringify({ documents: docs || [], sharepoint_documents: spDocs || [] })
+    }
+
+    case 'read_document_content': {
+      const source = (toolInput.source as string) || 'ai_generated'
+      if (source === 'sharepoint') {
+        const { data, error } = await supabase
+          .from('sharepoint_documents')
+          .select('id, file_name, file_type, document_type, extracted_text, file_size, last_modified_at')
+          .eq('id', toolInput.document_id as string)
+          .single()
+        if (error || !data) return JSON.stringify({ error: error?.message || 'SharePoint document not found' })
+        return JSON.stringify({ ...data, char_count: data.extracted_text?.length || 0 })
+      } else {
+        const { data, error } = await supabase
+          .from('ai_generated_documents')
+          .select('id, title, document_type, topic_folder, markdown_content, version, created_at, sharepoint_urls')
+          .eq('id', toolInput.document_id as string)
+          .single()
+        if (error || !data) return JSON.stringify({ error: error?.message || 'AI-generated document not found' })
+        return JSON.stringify({ ...data, char_count: data.markdown_content?.length || 0 })
+      }
     }
 
     case 'get_room_data': {
