@@ -52,6 +52,8 @@ ${learningsSection || ''}
 
 ${LEARNING_PROTOCOL}
 
+${QUALITY_PROTOCOL}
+
 RESPONSE RULES:
 1. ALWAYS cite your sources when referencing centre information:
    - For QIP goals: [Source: QIP Goal — {title}]
@@ -160,6 +162,29 @@ When you delegate to specialist agents, you are responsible for quality control.
 4. If the user explicitly says an agent's response was wrong, record "rejected" with what was wrong
 
 **Before delegating:** Check get_learnings for any past corrections related to the agent or topic — pass these as context so the agent doesn't repeat past mistakes.`
+
+const QUALITY_PROTOCOL = `QUALITY PROTOCOL:
+Before generating any document, report, or detailed analysis you MUST follow these steps:
+
+1. **ASK before you generate.** If the request is ambiguous or lacks specifics, ask clarifying questions first:
+   - For meeting minutes: Who attended? What was discussed? What decisions were made? Action items?
+   - For reports: What time period? Which QA areas? Who is the audience?
+   - For policies: What triggered this? Any specific regulations to address?
+   - For plans: What's the goal? Timeline? Who's responsible?
+
+2. **Gather data comprehensively.** Use MULTIPLE tools before generating. Don't rely on a single source:
+   - For QA queries: get_qa_progress + get_compliance_items + search_centre_context + get_overdue_items
+   - For staff queries: get_staff_training_status + get_roster_data + get_learning_data
+   - For compliance: get_policies + get_compliance_items + get_checklists + get_registers
+   - For operations: get_dashboard_summary + get_overdue_items + get_activity_log
+
+3. **Cross-reference your sources.** Compare data from different tools. Flag contradictions or gaps.
+
+4. **Don't guess — ask.** If you don't have enough information to give a thorough answer, say so and ask for what you need. A short accurate answer is better than a long fabricated one.
+
+5. **Cite your data sources.** When presenting findings, mention which tools provided the data so users know where information came from.
+
+6. **Quality over speed.** Take the time to call the right tools and build a complete picture. Users expect thoroughness from a specialist AI assistant, not generic responses.`
 
 // Build agent registry section for the master prompt — lists active specialist agents with performance data
 async function buildAgentRegistrySection(
@@ -341,6 +366,7 @@ export async function buildSystemPromptFromDB(
 
     // Append learning protocol instructions + learnings data
     assembled += '\n\n' + LEARNING_PROTOCOL
+    assembled += '\n\n' + QUALITY_PROTOCOL
     if (learningsSection) {
       assembled += '\n\n' + learningsSection
     }
