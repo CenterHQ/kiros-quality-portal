@@ -6,14 +6,14 @@ const SIMPLE_SIGNALS = /^(hi|hello|hey|thanks|thank you|ok|yes|no|sure|got it|ch
 
 export interface ModelConfig {
   model: string
-  thinking?: { type: 'adaptive' }
+  thinking?: { type: 'enabled'; budget_tokens: number }
 }
 
 export function selectModelConfig(message: string): ModelConfig {
   if (SIMPLE_SIGNALS.test(message) && message.length < 50) {
     return { model: MODEL_SONNET }
   }
-  return { model: MODEL_OPUS, thinking: { type: 'adaptive' } }
+  return { model: MODEL_OPUS, thinking: { type: 'enabled', budget_tokens: 10000 } }
 }
 
 // Backward-compatible export
