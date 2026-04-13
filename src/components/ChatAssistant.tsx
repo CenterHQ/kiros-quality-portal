@@ -42,7 +42,7 @@ interface SerializedMessage {
   timestamp: string
 }
 
-function saveWidgetState(convId: string | null, loading: boolean, messages: Message[]) {
+function saveWidgetState(convId: string | null, loading: boolean, messages: Message[], maxMessages = 20) {
   try {
     if (convId) {
       localStorage.setItem(LS_CONV_ID, convId)
@@ -50,8 +50,8 @@ function saveWidgetState(convId: string | null, loading: boolean, messages: Mess
       localStorage.removeItem(LS_CONV_ID)
     }
     localStorage.setItem(LS_LOADING, loading ? '1' : '0')
-    // Only keep last 20 messages to avoid quota issues
-    const serialized: SerializedMessage[] = messages.slice(-20).map(m => ({
+    // Only keep last N messages to avoid quota issues (configurable via ai_config)
+    const serialized: SerializedMessage[] = messages.slice(-maxMessages).map(m => ({
       id: m.id,
       role: m.role,
       content: m.content,
@@ -79,6 +79,14 @@ function loadWidgetState(): { convId: string | null; loading: boolean; messages:
   }
 }
 
+// Widget config defaults (overridable via ai_config table)
+const DEFAULT_WIDGET_CONFIG = {
+  maxStoredMessages: 20,
+  widthPx: 420,
+  heightPx: 550,
+  speechLanguage: 'en-AU',
+}
+
 export default function ChatAssistant() {
   const profile = useProfile()
   const pathname = usePathname()
@@ -92,6 +100,7 @@ export default function ChatAssistant() {
   const [isRecording, setIsRecording] = useState(false)
   const { streamingMessage, activeTools, error: streamError, sendMessage: sendStreamMessage, abort: abortStream } = useChatStream()
   const [speechSupported, setSpeechSupported] = useState(false)
+  const [widgetConfig, setWidgetConfig] = useState(DEFAULT_WIDGET_CONFIG)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -130,8 +139,8 @@ export default function ChatAssistant() {
   useEffect(() => {
     // Only persist after initial load
     if (!initRef.current) return
-    saveWidgetState(conversationId, loading, messages)
-  }, [conversationId, loading, messages])
+    saveWidgetState(conversationId, loading, messages, widgetConfig.maxStoredMessages)
+  }, [conversationId, loading, messages, widgetConfig.maxStoredMessages])
 
   // When streaming completes, add message
   useEffect(() => {
@@ -171,6 +180,34 @@ export default function ChatAssistant() {
       setLoading(false)
     }
   }, [streamError])
+
+  // Load widget config from ai_config table
+  useEffect(() => {
+    const loadWidgetConfig = async () => {
+      try {
+        const supabase = createClient()
+        const { data } = await supabase
+          .from('ai_config')
+          .select('config_key, config_value')
+          .in('config_key', [
+            'widget.max_stored_messages',
+            'widget.width_px',
+            'widget.height_px',
+            'widget.speech_language',
+          ])
+        if (data && data.length > 0) {
+          const map = new Map(data.map((r: { config_key: string; config_value: string }) => [r.config_key, r.config_value]))
+          setWidgetConfig(prev => ({
+            maxStoredMessages: parseInt(map.get('widget.max_stored_messages') || '', 10) || prev.maxStoredMessages,
+            widthPx: parseInt(map.get('widget.width_px') || '', 10) || prev.widthPx,
+            heightPx: parseInt(map.get('widget.height_px') || '', 10) || prev.heightPx,
+            speechLanguage: map.get('widget.speech_language') || prev.speechLanguage,
+          }))
+        }
+      } catch { /* fall back to defaults */ }
+    }
+    loadWidgetConfig()
+  }, [])
 
   // Check speech support on mount
   useEffect(() => {
@@ -306,7 +343,7 @@ export default function ChatAssistant() {
     const recognition = new SpeechRecognition()
     recognition.continuous = true
     recognition.interimResults = true
-    recognition.lang = 'en-AU'
+    recognition.lang = widgetConfig.speechLanguage
 
     recognition.onresult = (event: any) => {
       let transcript = ''
@@ -404,7 +441,7 @@ export default function ChatAssistant() {
 
       {/* Mini chat panel */}
       {isOpen && (
-        <div className="hidden md:flex fixed bottom-24 right-6 w-[420px] h-[550px] bg-card rounded-2xl shadow-2xl border border-border flex-col z-50 overflow-hidden">
+        <div className="hidden md:flex fixed bottom-24 right-6 bg-card rounded-2xl shadow-2xl border border-border flex-col z-50 overflow-hidden" style={{ width: `${widgetConfig.widthPx}px`, height: `${widgetConfig.heightPx}px` }}>
           {/* Header */}
           <div className="px-4 py-2.5 border-b border-border bg-primary text-primary-foreground flex items-center justify-between">
             <div className="flex items-center gap-2">

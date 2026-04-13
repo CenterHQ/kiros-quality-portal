@@ -2,6 +2,7 @@ import { createHash } from 'crypto'
 import { createServiceRoleClient } from '@/lib/supabase/server'
 import { getAppToken, getSiteId, getDriveId, downloadFile, getItemByPath } from '@/lib/microsoft-graph'
 import { storeAndUploadDocument } from '@/lib/document-storage'
+import { loadAIConfig } from '@/lib/ai-config'
 
 export interface SyncResult {
   checked: number
@@ -84,11 +85,12 @@ export async function syncAllDocuments(): Promise<SyncResult> {
 
   // Retry pending uploads that failed initial upload
   try {
+    const aiConfig = await loadAIConfig(supabase)
     const { data: pendingDocs } = await supabase
       .from('ai_generated_documents')
       .select('id, title, document_type, topic_folder, markdown_content, created_by')
       .eq('sync_status', 'pending_upload')
-      .limit(5)
+      .limit(aiConfig.cronDocumentRetryLimit)
 
     if (pendingDocs && pendingDocs.length > 0) {
       for (const doc of pendingDocs) {

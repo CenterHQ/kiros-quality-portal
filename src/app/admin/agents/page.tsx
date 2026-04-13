@@ -200,11 +200,13 @@ export default function AgentManagementPage() {
   const [testResult, setTestResult] = useState<TestResult | null>(null)
   const [testing, setTesting] = useState(false)
   const [perfMap, setPerfMap] = useState<Map<string, { total_interactions: number; acceptance_rate: number; avg_quality: number | null; corrected_count: number }>>(new Map())
+  const [agentDefaults, setAgentDefaults] = useState<{ tools: string[]; maxIterations: number; tokenBudget: number; model: string } | null>(null)
 
   useEffect(() => {
     loadAgents()
     loadPerformanceData()
     loadMasterConfig()
+    loadAgentDefaults()
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
@@ -253,6 +255,28 @@ export default function AgentManagementPage() {
       }
     }
     // If no DB rows, we keep the defaults (hardcoded fallback is used by the chat API)
+  }
+
+  async function loadAgentDefaults() {
+    const { data: configData } = await supabase
+      .from('ai_config')
+      .select('config_key, config_value, value_type')
+      .in('config_key', ['agent.default_tools', 'agent.default_max_iterations', 'agent.default_token_budget', 'agent.default_model'])
+
+    if (configData && configData.length > 0) {
+      const configMap = new Map(
+        configData.map((r: { config_key: string; config_value: string; value_type: string }) => [
+          r.config_key,
+          r.value_type === 'json' ? JSON.parse(r.config_value) : r.value_type === 'int' ? parseInt(r.config_value) : r.config_value,
+        ])
+      )
+      setAgentDefaults({
+        tools: (configMap.get('agent.default_tools') as string[]) || DEFAULT_AGENT_TOOLS,
+        maxIterations: (configMap.get('agent.default_max_iterations') as number) || 5,
+        tokenBudget: (configMap.get('agent.default_token_budget') as number) || 8192,
+        model: (configMap.get('agent.default_model') as string) || MODEL_SONNET,
+      })
+    }
   }
 
   async function saveMasterPrompt() {
@@ -720,7 +744,15 @@ export default function AgentManagementPage() {
           <p className="text-xs text-muted-foreground mt-0.5">Agents the master AI can delegate to for domain-specific analysis</p>
         </div>
         <button
-          onClick={() => setEditing({ ...EMPTY_AGENT })}
+          onClick={() => setEditing({
+            ...EMPTY_AGENT,
+            ...(agentDefaults ? {
+              available_tools: agentDefaults.tools,
+              max_iterations: agentDefaults.maxIterations,
+              token_budget: agentDefaults.tokenBudget,
+              model: agentDefaults.model,
+            } : {}),
+          })}
           className="px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:opacity-90 transition-opacity"
         >
           + Add Agent

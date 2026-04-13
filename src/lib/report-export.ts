@@ -21,6 +21,8 @@ import {
   BorderStyle,
 } from 'docx'
 import ExcelJS from 'exceljs'
+import type { BrandConfig } from '@/lib/ai-config'
+import { DEFAULT_BRAND } from '@/lib/document-templates'
 
 // ============================================
 // REPORT EXTRACT - EXPORT FORMATTERS
@@ -28,9 +30,9 @@ import ExcelJS from 'exceljs'
 // Converts tabular data (columns + rows) into various file formats.
 
 const BRAND = {
-  primary: '#470DA8',
-  primaryRgb: { r: 71, g: 13, b: 168 },
-  centreName: 'Kiros Early Education',
+  primary: DEFAULT_BRAND.primary,
+  primaryRgb: DEFAULT_BRAND.primaryRgb,
+  centreName: DEFAULT_BRAND.centreName,
   tagline: 'Data Extract Report',
 } as const
 
@@ -136,7 +138,8 @@ export function exportToMarkdown(data: TabularData): { buffer: Buffer; filename:
 
 // ─── HTML ────────────────────────────────────────────────────────────────────
 
-export function exportToHtml(data: TabularData): { buffer: Buffer; filename: string; contentType: string } {
+export function exportToHtml(data: TabularData, brand?: BrandConfig): { buffer: Buffer; filename: string; contentType: string } {
+  const b = brand || BRAND
   const rows = data.rows.map(row =>
     `<tr>${row.map(v => `<td>${escapeHtml(formatValue(v))}</td>`).join('')}</tr>`
   ).join('\n')
@@ -150,7 +153,7 @@ export function exportToHtml(data: TabularData): { buffer: Buffer; filename: str
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; padding: 2rem; background: #fafafa; color: #333; }
-    .header { background: ${BRAND.primary}; color: white; padding: 1.5rem 2rem; border-radius: 8px 8px 0 0; margin-bottom: 0; }
+    .header { background: ${b.primary}; color: white; padding: 1.5rem 2rem; border-radius: 8px 8px 0 0; margin-bottom: 0; }
     .header h1 { font-size: 1.5rem; font-weight: 600; }
     .header p { font-size: 0.875rem; opacity: 0.85; margin-top: 0.25rem; }
     .meta { padding: 0.75rem 2rem; background: #f3f4f6; border-bottom: 1px solid #e5e7eb; font-size: 0.813rem; color: #6b7280; }
@@ -164,7 +167,7 @@ export function exportToHtml(data: TabularData): { buffer: Buffer; filename: str
 <body>
   <div class="header">
     <h1>${escapeHtml(data.title)}</h1>
-    <p>${BRAND.centreName} - ${BRAND.tagline}</p>
+    <p>${b.centreName} - ${b.tagline || BRAND.tagline}</p>
   </div>
   <div class="meta">${data.rows.length} rows | Generated ${data.generatedAt ?? new Date().toISOString()}</div>
   <table>
@@ -191,9 +194,10 @@ function escapeHtml(str: string): string {
 
 // ─── XLSX (Excel) ────────────────────────────────────────────────────────────
 
-export async function exportToXlsx(data: TabularData): Promise<{ buffer: Buffer; filename: string; contentType: string }> {
+export async function exportToXlsx(data: TabularData, brand?: BrandConfig): Promise<{ buffer: Buffer; filename: string; contentType: string }> {
+  const b = brand || BRAND
   const workbook = new ExcelJS.Workbook()
-  workbook.creator = BRAND.centreName
+  workbook.creator = b.centreName
   workbook.created = new Date()
 
   const sheet = workbook.addWorksheet('Extract')
@@ -203,14 +207,14 @@ export async function exportToXlsx(data: TabularData): Promise<{ buffer: Buffer;
   const titleCell = sheet.getCell('A1')
   titleCell.value = data.title
   titleCell.font = { bold: true, size: 14, color: { argb: 'FFFFFFFF' } }
-  titleCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: `FF${BRAND.primary.slice(1)}` } }
+  titleCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: `FF${b.primary.slice(1)}` } }
   titleCell.alignment = { vertical: 'middle' }
   sheet.getRow(1).height = 30
 
   // Subtitle row
   sheet.mergeCells(2, 1, 2, data.labels.length || 1)
   const subCell = sheet.getCell('A2')
-  subCell.value = `${BRAND.centreName} | ${data.rows.length} rows | ${data.generatedAt ?? new Date().toISOString()}`
+  subCell.value = `${b.centreName} | ${data.rows.length} rows | ${data.generatedAt ?? new Date().toISOString()}`
   subCell.font = { size: 9, italic: true, color: { argb: 'FF6B7280' } }
 
   // Header row
@@ -266,10 +270,11 @@ export async function exportToXlsx(data: TabularData): Promise<{ buffer: Buffer;
 
 // ─── PDF ─────────────────────────────────────────────────────────────────────
 
-export async function exportToPdf(data: TabularData): Promise<{ buffer: Buffer; filename: string; contentType: string }> {
+export async function exportToPdf(data: TabularData, brand?: BrandConfig): Promise<{ buffer: Buffer; filename: string; contentType: string }> {
+  const b = brand || BRAND
   const styles = StyleSheet.create({
     page: { padding: 30, fontSize: 8, fontFamily: 'Helvetica' },
-    header: { backgroundColor: BRAND.primary, padding: 15, marginBottom: 10, borderRadius: 4 },
+    header: { backgroundColor: b.primary, padding: 15, marginBottom: 10, borderRadius: 4 },
     headerTitle: { color: 'white', fontSize: 14, fontWeight: 'bold', fontFamily: 'Helvetica-Bold' },
     headerSub: { color: '#e0d4f5', fontSize: 8, marginTop: 3 },
     meta: { fontSize: 7, color: '#6b7280', marginBottom: 10 },
@@ -291,7 +296,7 @@ export async function exportToPdf(data: TabularData): Promise<{ buffer: Buffer; 
       // Header
       React.createElement(View, { style: styles.header },
         React.createElement(Text, { style: styles.headerTitle }, data.title),
-        React.createElement(Text, { style: styles.headerSub }, `${BRAND.centreName} - ${BRAND.tagline}`),
+        React.createElement(Text, { style: styles.headerSub }, `${b.centreName} - ${b.tagline || BRAND.tagline}`),
       ),
       // Meta
       React.createElement(Text, { style: styles.meta },
@@ -341,7 +346,8 @@ export async function exportToPdf(data: TabularData): Promise<{ buffer: Buffer; 
 
 // ─── DOCX (Word) ─────────────────────────────────────────────────────────────
 
-export async function exportToDocx(data: TabularData): Promise<{ buffer: Buffer; filename: string; contentType: string }> {
+export async function exportToDocx(data: TabularData, brand?: BrandConfig): Promise<{ buffer: Buffer; filename: string; contentType: string }> {
+  const b = brand || BRAND
   // Limit columns for readability
   const maxCols = Math.min(data.labels.length, 12)
   const labels = data.labels.slice(0, maxCols)
@@ -383,7 +389,7 @@ export async function exportToDocx(data: TabularData): Promise<{ buffer: Buffer;
         children: [
           new Paragraph({
             children: [
-              new TextRun({ text: data.title, bold: true, size: 32, color: BRAND.primary.slice(1), font: 'Calibri' }),
+              new TextRun({ text: data.title, bold: true, size: 32, color: b.primary.slice(1), font: 'Calibri' }),
             ],
             heading: HeadingLevel.HEADING_1,
             spacing: { after: 100 },
@@ -391,7 +397,7 @@ export async function exportToDocx(data: TabularData): Promise<{ buffer: Buffer;
           new Paragraph({
             children: [
               new TextRun({
-                text: `${BRAND.centreName} | ${data.rows.length} rows | Generated ${data.generatedAt ?? new Date().toISOString()}`,
+                text: `${b.centreName} | ${data.rows.length} rows | Generated ${data.generatedAt ?? new Date().toISOString()}`,
                 size: 18,
                 italics: true,
                 color: '6B7280',

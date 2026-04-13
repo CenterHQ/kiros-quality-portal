@@ -2,6 +2,7 @@ import Anthropic from '@anthropic-ai/sdk'
 import { getAnthropicClient, executeTool } from '@/lib/chat/shared'
 import { MODEL_SONNET } from '@/lib/chat/model-router'
 import { createServiceRoleClient } from '@/lib/supabase/server'
+import type { AIConfig } from '@/lib/ai-config'
 
 // ---------------------------------------------------------------------------
 // Types

@@ -910,6 +910,7 @@ type SupabaseClient = ReturnType<typeof createServiceRoleClient>
 export interface ExecuteToolOptions {
   conversationId?: string
   onAgentProgress?: import('@/lib/chat/orchestrator').AgentProgressCallback
+  toolPermissions?: Map<string, string[]>
 }
 
 export async function executeTool(
@@ -921,8 +922,11 @@ export async function executeTool(
   options?: ExecuteToolOptions,
 ): Promise<string> {
   // Validate role-based access before executing any tool
+  // DB permissions (from ai_tool_permissions) take precedence over hardcoded allowedRoles
   const toolDef = ALL_TOOLS.find(t => t.name === toolName)
-  if (toolDef && !toolDef.allowedRoles.includes(userRole)) {
+  const dbRoles = options?.toolPermissions?.get(toolName)
+  const allowedRoles = dbRoles || toolDef?.allowedRoles || []
+  if (!allowedRoles.includes(userRole)) {
     return JSON.stringify({ error: `Tool "${toolName}" is not available for role "${userRole}"` })
   }
 

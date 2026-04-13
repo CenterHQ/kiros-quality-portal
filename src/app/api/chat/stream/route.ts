@@ -332,6 +332,7 @@ export async function POST(request: NextRequest) {
               try {
                 result = await executeTool(block.name, block.input as Record<string, unknown>, serviceSupabase, user.id, profile.role, {
                   conversationId: convId,
+                  toolPermissions: toolPerms,
                   onAgentProgress: (event) => {
                     try {
                       controller.enqueue(encodeSSE('agent', event as unknown as SSEEvent))

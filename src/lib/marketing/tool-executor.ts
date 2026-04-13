@@ -1,4 +1,5 @@
 import { createServiceRoleClient } from '@/lib/supabase/server'
+import { loadAIConfig } from '@/lib/ai-config'
 
 type SupabaseClient = ReturnType<typeof createServiceRoleClient>
 
@@ -10,6 +11,22 @@ export async function executeMarketingTool(
   conversationId: string,
   supabase: SupabaseClient,
 ): Promise<string> {
+  // Load AI config for dynamic defaults (marketing variations, tone, lookback days)
+  const aiConfig = await loadAIConfig(supabase)
+  const defaultVariations = aiConfig.marketingDefaultAdVariations
+  const defaultTone = aiConfig.marketingDefaultReviewTone
+  const defaultLookbackDays = aiConfig.marketingAnalyticsLookbackDays
+  // Apply AI config defaults to tool inputs where not explicitly provided
+  if (toolName === 'generate_ad_copy' && !input.variations) {
+    input.variations = defaultVariations
+  }
+  if (toolName === 'draft_review_response' && !input.tone) {
+    input.tone = defaultTone
+  }
+  if ((toolName === 'get_social_analytics' || toolName === 'get_reviews_summary') && !input.days) {
+    input.days = defaultLookbackDays
+  }
+
   switch (toolName) {
     case 'generate_social_post':
       return handleGenerateSocialPost(input)

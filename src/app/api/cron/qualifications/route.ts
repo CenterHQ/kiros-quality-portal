@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServiceRoleClient } from '@/lib/supabase/server'
+import { loadAIConfig } from '@/lib/ai-config'
 
 export async function GET(request: NextRequest) {
   const authHeader = request.headers.get('authorization')
@@ -8,8 +9,10 @@ export async function GET(request: NextRequest) {
   }
 
   const supabase = createServiceRoleClient()
+  const aiConfig = await loadAIConfig(supabase)
+  const warningDays = aiConfig.cronQualificationWarningDays
   const today = new Date().toISOString().split('T')[0]
-  const thirtyDaysFromNow = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+  const threshold = new Date(Date.now() + warningDays * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
 
   // Mark expired
   const { data: expiredData, error: expiredError } = await supabase
@@ -25,7 +28,7 @@ export async function GET(request: NextRequest) {
     .from('staff_qualifications')
     .update({ status: 'expiring_soon' })
     .gte('expiry_date', today)
-    .lte('expiry_date', thirtyDaysFromNow)
+    .lte('expiry_date', threshold)
     .eq('status', 'current')
     .select('id')
   if (expiringSoonError) console.error('[Kiros AI] Qualification expiring-soon update failed:', expiringSoonError.message)

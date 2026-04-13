@@ -32,13 +32,21 @@ export async function POST(request: NextRequest) {
 
   const serviceSupabase = createServiceRoleClient()
 
+  // Load centre context from service_details
+  const { data: serviceDetails } = await serviceSupabase
+    .from('service_details')
+    .select('key, value')
+    .in('key', ['service_name', 'service_address'])
+  const centreName = serviceDetails?.find((d: { key: string; value: string }) => d.key === 'service_name')?.value || 'Kiros Early Education'
+  const location = serviceDetails?.find((d: { key: string; value: string }) => d.key === 'service_address')?.value || 'Bidwill NSW'
+
   const result = await runAgent(
     {
       agentName: 'test-agent',
       description: testQuery,
       systemPrompt,
       tools: toolDefs,
-      context: `Centre: Kiros Early Education, Bidwill NSW. Today: ${new Date().toISOString().split('T')[0]}. This is a test run from the admin panel.`,
+      context: `Centre: ${centreName}, ${location}. Today: ${new Date().toISOString().split('T')[0]}. This is a test run from the admin panel.`,
       model: model || MODEL_SONNET,
       maxIterations: maxIterations || 3,
       tokenBudget: tokenBudget || 8192,
