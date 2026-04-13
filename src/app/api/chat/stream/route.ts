@@ -236,6 +236,7 @@ export async function POST(request: NextRequest) {
         fullText = '' // Reset for this stream
         let iterations = 0
         let continueLoop = true
+        let usage: { input_tokens: number; output_tokens: number } | undefined
 
         while (continueLoop && iterations < 5) {
           const apiStream = anthropic.messages.stream({
@@ -291,6 +292,7 @@ export async function POST(request: NextRequest) {
 
           // Get the final message to properly extract tool_use blocks with their inputs
           const finalMessage = await apiStream.finalMessage()
+          usage = finalMessage?.usage
 
           // Extract properly formed tool_use blocks from the final message
           currentToolUseBlocks = finalMessage.content.filter(
@@ -362,6 +364,9 @@ export async function POST(request: NextRequest) {
           metadata: {
             ...(generatedDocuments.length > 0 ? { documents: generatedDocuments } : {}),
             ...(pendingActions.length > 0 ? { pending_actions: pendingActions } : {}),
+            tokens_input: usage?.input_tokens || 0,
+            tokens_output: usage?.output_tokens || 0,
+            model,
           },
         }).select('id').single()
 
@@ -379,6 +384,9 @@ export async function POST(request: NextRequest) {
           messageId: savedMsg?.id || '',
           documents: generatedDocuments,
           pending_actions: pendingActions,
+          tokens_input: usage?.input_tokens || 0,
+          tokens_output: usage?.output_tokens || 0,
+          model,
         }))
 
         controller.close()

@@ -153,13 +153,29 @@ export default function ChatPage() {
     try {
       const res = await fetch(`/api/chat/conversations?id=${convId}`)
       const data = await res.json()
-      setMessages((data.messages || []).map((m: { id: string; role: string; content: string; documents?: GeneratedDocument[]; created_at: string }) => ({
+      const msgs = (data.messages || []).map((m: { id: string; role: string; content: string; documents?: GeneratedDocument[]; pending_actions?: Array<{ id: string; action_type: string; description: string; details: Record<string, unknown> }>; created_at: string }) => ({
         id: m.id,
         role: m.role as 'user' | 'assistant',
         content: m.content,
         documents: m.documents || [],
         timestamp: new Date(m.created_at),
-      })))
+      }))
+      setMessages(msgs)
+
+      // Restore pending actions from loaded messages
+      const loadedActions: Record<string, { action: any; status: 'pending' | 'confirmed' | 'cancelled'; result?: string }> = {}
+      for (const m of data.messages || []) {
+        if (m.pending_actions && Array.isArray(m.pending_actions)) {
+          for (const action of m.pending_actions) {
+            if (action.id) {
+              loadedActions[action.id] = { action, status: 'pending' }
+            }
+          }
+        }
+      }
+      if (Object.keys(loadedActions).length > 0) {
+        setPendingActions(loadedActions)
+      }
     } catch {
       setMessages([])
     }
@@ -763,6 +779,24 @@ export default function ChatPage() {
                         </div>
                       ))}
 
+                      {/* Retry button for error messages */}
+                      {msg.id.startsWith('error-') && (
+                        <button
+                          onClick={() => {
+                            // Find the last user message before this error
+                            const lastUserMsg = messages.filter(m => m.role === 'user').pop()
+                            if (lastUserMsg) {
+                              setInput(lastUserMsg.content)
+                              // Remove the error message
+                              setMessages(prev => prev.filter(m => m.id !== msg.id))
+                            }
+                          }}
+                          className="mt-2 text-xs text-blue-600 hover:text-blue-800 underline"
+                        >
+                          Retry this message
+                        </button>
+                      )}
+
                       {/* Action buttons */}
                       <div className="flex items-center gap-1 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
                         <button
@@ -828,6 +862,9 @@ export default function ChatPage() {
                           )}
                           <span className="font-medium">{agent.name}</span>
                           <span className="text-blue-500 truncate">{agent.description}</span>
+                          {agent.status === 'completed' && agent.summary && (
+                            <span className="text-blue-400 text-[11px] block mt-0.5 italic">{agent.summary}</span>
+                          )}
                         </div>
                       ))}
                     </div>
@@ -894,6 +931,9 @@ export default function ChatPage() {
                           )}
                           <span className="font-medium">{agent.name}</span>
                           <span className="text-blue-500 truncate">{agent.description}</span>
+                          {agent.status === 'completed' && agent.summary && (
+                            <span className="text-blue-400 text-[11px] block mt-0.5 italic">{agent.summary}</span>
+                          )}
                         </div>
                       ))}
                     </div>

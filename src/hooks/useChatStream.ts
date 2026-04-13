@@ -196,7 +196,7 @@ export function useChatStream(): UseChatStreamReturn {
       } else {
         const errMsg = err instanceof Error ? err.message : 'Connection error'
         setError(errMsg)
-        setStreamingMessage(null)
+        setStreamingMessage(prev => prev ? { ...prev, isStreaming: false } : null)
       }
     }
 

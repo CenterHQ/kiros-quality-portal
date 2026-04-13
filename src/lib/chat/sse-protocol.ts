@@ -5,7 +5,7 @@ export type SSEEvent =
   | { type: 'tool_start'; tool: string }
   | { type: 'tool_end'; tool: string }
   | { type: 'model'; model: string }
-  | { type: 'done'; messageId: string; documents: unknown[]; pending_actions: unknown[] }
+  | { type: 'done'; messageId: string; documents: unknown[]; pending_actions: unknown[]; tokens_input?: number; tokens_output?: number; model?: string }
   | { type: 'error'; message: string }
   // Agent orchestration events
   | { type: 'agent_start'; agentName: string; description: string }

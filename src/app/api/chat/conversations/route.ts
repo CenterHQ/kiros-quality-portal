@@ -27,6 +27,9 @@ export async function GET(request: NextRequest) {
       documents: m.metadata && typeof m.metadata === 'object' && 'documents' in (m.metadata as Record<string, unknown>)
         ? (m.metadata as Record<string, unknown>).documents
         : undefined,
+      pending_actions: m.metadata && typeof m.metadata === 'object' && 'pending_actions' in (m.metadata as Record<string, unknown>)
+        ? (m.metadata as Record<string, unknown>).pending_actions
+        : undefined,
     }))
 
     return NextResponse.json({ messages: enriched })
