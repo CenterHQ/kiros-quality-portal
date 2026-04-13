@@ -3,9 +3,7 @@
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useProfile } from '@/lib/ProfileContext'
-
-const MODEL_OPUS = 'claude-opus-4-20250514'
-const MODEL_SONNET = 'claude-sonnet-4-20250514'
+import { MODEL_OPUS, MODEL_SONNET } from '@/lib/chat/model-router'
 
 const MODEL_OPTIONS = [
   { value: MODEL_OPUS, label: 'Claude Opus 4 (Deep Analysis)' },

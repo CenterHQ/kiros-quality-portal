@@ -19,7 +19,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Admin access required' }, { status: 403 })
   }
 
-  const { systemPrompt, tools, model, temperature, maxIterations, tokenBudget, testQuery } = await request.json()
+  const { systemPrompt, tools, model, maxIterations, tokenBudget, testQuery } = await request.json()
 
   if (!systemPrompt || !testQuery) {
     return NextResponse.json({ error: 'systemPrompt and testQuery are required' }, { status: 400 })

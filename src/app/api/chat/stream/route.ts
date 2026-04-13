@@ -1,7 +1,7 @@
 import { NextRequest } from 'next/server'
 import { createServerSupabaseClient, createServiceRoleClient } from '@/lib/supabase/server'
 import Anthropic from '@anthropic-ai/sdk'
-import { selectModelConfig } from '@/lib/chat/model-router'
+import { selectModelConfig, MODEL_SONNET } from '@/lib/chat/model-router'
 import type { SSEEvent } from '@/lib/chat/sse-protocol'
 import { ALL_TOOLS, buildSystemPromptCachedFromDB, executeTool, ROLE_LABELS, getAnthropicClient } from '@/lib/chat/shared'
 
@@ -380,7 +380,7 @@ export async function POST(request: NextRequest) {
         if (isNew && fullText.trim()) {
           try {
             const titleResponse = await anthropic.messages.create({
-              model: 'claude-sonnet-4-20250514',
+              model: MODEL_SONNET,
               max_tokens: 30,
               messages: [{ role: 'user', content: `Generate a 4-7 word title for this conversation. User asked: "${message.substring(0, 200)}". Assistant replied about: "${fullText.substring(0, 200)}". Return ONLY the title, no quotes or punctuation.` }],
             })
