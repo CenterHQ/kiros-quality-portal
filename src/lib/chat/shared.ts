@@ -252,7 +252,7 @@ async function buildLearningsSection(
     // Load the most important learnings: corrections first, then high-confidence insights
     const { data: learnings } = await supabase
       .from('ai_learnings')
-      .select('learning_type, category, title, content, confidence, times_reinforced, qa_areas, tags, expires_at')
+      .select('id, learning_type, category, title, content, confidence, times_reinforced, qa_areas, tags, expires_at')
       .eq('is_active', true)
       .or(`applies_to_roles.eq.{},applies_to_roles.cs.{${role}}`)
       .order('learning_type', { ascending: true }) // corrections sort first alphabetically
@@ -267,6 +267,14 @@ async function buildLearningsSection(
     const active = (learnings || []).filter((l: { expires_at?: string | null }) =>
       !l.expires_at || new Date(l.expires_at) > now
     )
+
+    // Update last_used_at for loaded learnings (fire-and-forget)
+    if (active.length > 0) {
+      const ids = active.map((l: { id?: string }) => l.id).filter(Boolean) as string[]
+      if (ids.length > 0) {
+        supabase.from('ai_learnings').update({ last_used_at: new Date().toISOString() }).in('id', ids).then(() => {})
+      }
+    }
 
     // Group by type for readability
     const corrections = active.filter((l: { learning_type: string }) => l.learning_type === 'correction')

@@ -11,6 +11,76 @@ import { getAnthropicClient, ROLE_LABELS, ALL_TOOLS, buildSystemPrompt, executeT
 export const dynamic = 'force-dynamic'
 export const maxDuration = 60
 
+/**
+ * Reconstruct Anthropic-compatible messages from DB history,
+ * re-attaching tool_call/tool_result rows to proper assistant/user message shapes.
+ */
+function reconstructMessages(
+  history: Array<{ role: string; content: string; metadata?: Record<string, unknown> | null }>
+): Anthropic.MessageParam[] {
+  const messages: Anthropic.MessageParam[] = []
+  let i = 0
+
+  while (i < history.length) {
+    const msg = history[i]
+
+    if (msg.role === 'user') {
+      messages.push({ role: 'user', content: msg.content })
+      i++
+    } else if (msg.role === 'assistant') {
+      const toolCalls: Array<{ role: string; content: string; metadata?: Record<string, unknown> | null }> = []
+      let j = i + 1
+      while (j < history.length && history[j].role === 'tool_call') {
+        toolCalls.push(history[j])
+        j++
+      }
+
+      if (toolCalls.length > 0) {
+        const contentBlocks: Anthropic.ContentBlockParam[] = []
+        if (msg.content?.trim()) {
+          contentBlocks.push({ type: 'text', text: msg.content })
+        }
+        for (const tc of toolCalls) {
+          try {
+            const parsed = JSON.parse(tc.content)
+            contentBlocks.push({
+              type: 'tool_use',
+              id: (tc.metadata?.tool_use_id as string) || `tool_${Date.now()}`,
+              name: parsed.name,
+              input: parsed.input || {},
+            })
+          } catch { /* skip malformed */ }
+        }
+        if (contentBlocks.length > 0) {
+          messages.push({ role: 'assistant', content: contentBlocks })
+        }
+
+        const toolResults: Anthropic.ToolResultBlockParam[] = []
+        while (j < history.length && history[j].role === 'tool_result') {
+          const tr = history[j]
+          toolResults.push({
+            type: 'tool_result',
+            tool_use_id: (tr.metadata?.tool_use_id as string) || '',
+            content: tr.content,
+          })
+          j++
+        }
+        if (toolResults.length > 0) {
+          messages.push({ role: 'user', content: toolResults })
+        }
+        i = j
+      } else {
+        messages.push({ role: 'assistant', content: msg.content })
+        i++
+      }
+    } else {
+      i++
+    }
+  }
+
+  return messages
+}
+
 // Helper: call Claude with streaming and collect the full response
 async function callClaudeStreaming(
   anthropicClient: Anthropic,
@@ -38,16 +108,13 @@ async function processChat(
 
     // Load conversation history
     const { data: history } = await supabase.from('chat_messages')
-      .select('role, content')
+      .select('role, content, metadata')
       .eq('conversation_id', convId)
-      .in('role', ['user', 'assistant'])
+      .in('role', ['user', 'assistant', 'tool_call', 'tool_result'])
       .order('created_at', { ascending: true })
-      .limit(40)
+      .limit(60)
 
-    const messages: Anthropic.MessageParam[] = (history || []).map(m => ({
-      role: m.role as 'user' | 'assistant',
-      content: m.content,
-    }))
+    const messages: Anthropic.MessageParam[] = reconstructMessages(history || [])
 
     // If attachments were provided, enhance the last user message with file content
     if (attachments && attachments.length > 0) {
