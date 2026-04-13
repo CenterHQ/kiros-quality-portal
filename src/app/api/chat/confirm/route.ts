@@ -17,7 +17,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Log the action (confirmed or cancelled)
-    await supabase.from('activity_log').insert({
+    const { error: logError } = await supabase.from('activity_log').insert({
       user_id: user.id,
       action: confirmed
         ? `Confirmed AI action: ${pendingAction.description}`
@@ -26,6 +26,7 @@ export async function POST(request: NextRequest) {
       entity_id: actionId,
       details: JSON.stringify({ ...pendingAction, confirmed }),
     })
+    if (logError) console.error('[Kiros AI] Activity log failed:', logError.message)
 
     if (!confirmed) {
       return NextResponse.json({ success: true, status: 'cancelled', message: 'Action cancelled.' })
@@ -41,7 +42,7 @@ export async function POST(request: NextRequest) {
           const { data: profile, error: profileErr } = await supabase
             .from('profiles').select('id')
             .ilike('full_name', `%${details.assigned_to_name}%`)
-            .limit(1).single()
+            .order('full_name').limit(1).single()
           if (profileErr && profileErr.code !== 'PGRST116') return NextResponse.json({ error: `Staff lookup failed: ${profileErr.message}` }, { status: 500 })
           if (!profile) return NextResponse.json({ error: `Staff member "${details.assigned_to_name}" not found` }, { status: 404 })
           assignedTo = profile.id
@@ -64,12 +65,12 @@ export async function POST(request: NextRequest) {
         const { data: mod, error: modErr } = await supabase
           .from('lms_modules').select('id, title')
           .ilike('title', `%${details.module_title}%`)
-          .eq('status', 'published').limit(1).single()
+          .eq('status', 'published').order('title').limit(1).single()
         if (modErr && modErr.code !== 'PGRST116') return NextResponse.json({ error: `Module lookup failed: ${modErr.message}` }, { status: 500 })
         const { data: staff, error: staffErr } = await supabase
           .from('profiles').select('id, full_name')
           .ilike('full_name', `%${details.staff_name}%`)
-          .limit(1).single()
+          .order('full_name').limit(1).single()
         if (staffErr && staffErr.code !== 'PGRST116') return NextResponse.json({ error: `Staff lookup failed: ${staffErr.message}` }, { status: 500 })
         if (!mod || !staff) return NextResponse.json({ error: 'Module or staff not found' }, { status: 404 })
         const { error } = await supabase.from('lms_enrollments').upsert({
@@ -101,7 +102,7 @@ export async function POST(request: NextRequest) {
         const { data: template, error: tplErr } = await supabase
           .from('checklist_templates').select('id, name, items')
           .ilike('name', `%${details.template_name}%`)
-          .limit(1).single()
+          .order('name').limit(1).single()
         if (tplErr && tplErr.code !== 'PGRST116') return NextResponse.json({ error: `Template lookup failed: ${tplErr.message}` }, { status: 500 })
         if (!template) return NextResponse.json({ error: 'Template not found' }, { status: 404 })
         if (!template.items || !Array.isArray(template.items)) {
@@ -112,7 +113,7 @@ export async function POST(request: NextRequest) {
           const { data: profile, error: profileErr } = await supabase
             .from('profiles').select('id')
             .ilike('full_name', `%${details.assigned_to_name}%`)
-            .limit(1).single()
+            .order('full_name').limit(1).single()
           if (profileErr && profileErr.code !== 'PGRST116') return NextResponse.json({ error: `Staff lookup failed: ${profileErr.message}` }, { status: 500 })
           if (!profile) return NextResponse.json({ error: `Staff member "${details.assigned_to_name}" not found` }, { status: 404 })
           assignedTo = profile.id

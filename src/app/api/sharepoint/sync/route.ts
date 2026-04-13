@@ -45,7 +45,8 @@ async function extractText(buffer: Buffer, fileName: string): Promise<string> {
         })
       })
       return rows.join('\n').substring(0, 50000) || '[Spreadsheet content could not be extracted]'
-    } catch {
+    } catch (e) {
+      console.error('[Kiros AI] Excel extraction failed:', e instanceof Error ? e.message : e)
       return '[Spreadsheet extraction failed]'
     }
   }
@@ -56,7 +57,8 @@ async function extractText(buffer: Buffer, fileName: string): Promise<string> {
       const pdfParse = require('pdf-parse')
       const pdfData = await pdfParse(buffer)
       return (pdfData.text || '').substring(0, 50000) || '[PDF content could not be extracted]'
-    } catch {
+    } catch (e) {
+      console.error('[Kiros AI] PDF extraction failed:', e instanceof Error ? e.message : e)
       return '[PDF text extraction failed]'
     }
   }

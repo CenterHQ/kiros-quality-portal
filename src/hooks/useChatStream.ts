@@ -169,8 +169,8 @@ export function useChatStream(): UseChatStreamReturn {
                       ...prev,
                       isStreaming: false,
                       messageId: sseEvent.messageId,
-                      documents: sseEvent.documents,
-                      pendingActions: sseEvent.pending_actions,
+                      documents: sseEvent.documents || [],
+                      pendingActions: sseEvent.pending_actions || [],
                     } : null)
                     setActiveTools([])
                     setActiveAgents([])

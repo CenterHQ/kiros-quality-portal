@@ -272,7 +272,7 @@ async function buildLearningsSection(
     if (active.length > 0) {
       const ids = active.map((l: { id?: string }) => l.id).filter(Boolean) as string[]
       if (ids.length > 0) {
-        supabase.from('ai_learnings').update({ last_used_at: new Date().toISOString() }).in('id', ids).then(() => {})
+        Promise.resolve(supabase.from('ai_learnings').update({ last_used_at: new Date().toISOString() }).in('id', ids)).then(() => {}).catch(() => {})
       }
     }
 

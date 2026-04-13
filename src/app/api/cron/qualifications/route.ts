@@ -12,21 +12,23 @@ export async function GET(request: NextRequest) {
   const thirtyDaysFromNow = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
 
   // Mark expired
-  const { data: expiredData } = await supabase
+  const { data: expiredData, error: expiredError } = await supabase
     .from('staff_qualifications')
     .update({ status: 'expired' })
     .lt('expiry_date', today)
     .in('status', ['current', 'expiring_soon'])
     .select('id')
+  if (expiredError) console.error('[Kiros AI] Qualification expiry update failed:', expiredError.message)
 
   // Mark expiring soon (within 30 days)
-  const { data: expiringSoonData } = await supabase
+  const { data: expiringSoonData, error: expiringSoonError } = await supabase
     .from('staff_qualifications')
     .update({ status: 'expiring_soon' })
     .gte('expiry_date', today)
     .lte('expiry_date', thirtyDaysFromNow)
     .eq('status', 'current')
     .select('id')
+  if (expiringSoonError) console.error('[Kiros AI] Qualification expiring-soon update failed:', expiringSoonError.message)
 
   return NextResponse.json({
     updated: { expired: expiredData?.length || 0, expiring_soon: expiringSoonData?.length || 0 },
