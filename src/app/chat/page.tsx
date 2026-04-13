@@ -594,6 +594,15 @@ export default function ChatPage() {
                 <div className="text-xs text-muted-foreground hidden sm:block">ECEC Operations Expert &middot; {roleLabel}</div>
               </div>
             </div>
+            {conversationId && (
+              <button
+                onClick={() => window.open(`/api/chat/export?id=${conversationId}&format=md`, '_blank')}
+                className="text-xs text-muted-foreground hover:text-foreground transition-colors px-2 py-1 rounded hover:bg-accent"
+                title="Export conversation"
+              >
+                Export
+              </button>
+            )}
           </div>
         </div>
 

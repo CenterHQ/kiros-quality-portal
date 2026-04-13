@@ -198,7 +198,7 @@ export async function POST(request: NextRequest) {
 
         // Load centre context, staff list, service details
         const [contextResult, staffResult, serviceResult] = await Promise.all([
-          serviceSupabase.from('centre_context').select('context_type, title, content, source_quote').eq('is_active', true).limit(100),
+          serviceSupabase.from('centre_context').select('context_type, title, content, source_quote').eq('is_active', true).in('context_type', ['qip_goal', 'qip_strategy', 'philosophy_principle', 'service_value', 'leadership_goal']).limit(50),
           serviceSupabase.from('profiles').select('full_name, role').order('full_name'),
           serviceSupabase.from('service_details').select('key, value, label'),
         ])
@@ -376,13 +376,23 @@ export async function POST(request: NextRequest) {
           },
         }).select('id').single()
 
-        // Update conversation timestamp
-        await serviceSupabase.from('chat_conversations')
-          .update({
-            title: isNew ? message.substring(0, 80) : undefined,
-            updated_at: new Date().toISOString(),
-          })
-          .eq('id', convId)
+        // Update conversation title and timestamp
+        if (isNew && fullText.trim()) {
+          try {
+            const titleResponse = await anthropic.messages.create({
+              model: 'claude-sonnet-4-20250514',
+              max_tokens: 30,
+              messages: [{ role: 'user', content: `Generate a 4-7 word title for this conversation. User asked: "${message.substring(0, 200)}". Assistant replied about: "${fullText.substring(0, 200)}". Return ONLY the title, no quotes or punctuation.` }],
+            })
+            const generatedTitle = (titleResponse.content[0] as { type: string; text: string }).text?.trim().substring(0, 100) || message.substring(0, 80)
+            await serviceSupabase.from('chat_conversations').update({ title: generatedTitle, updated_at: new Date().toISOString() }).eq('id', convId)
+          } catch {
+            // Fallback to original method
+            await serviceSupabase.from('chat_conversations').update({ title: message.substring(0, 80), updated_at: new Date().toISOString() }).eq('id', convId)
+          }
+        } else {
+          await serviceSupabase.from('chat_conversations').update({ updated_at: new Date().toISOString() }).eq('id', convId)
+        }
 
         // Send done event
         controller.enqueue(encodeSSE('done', {
