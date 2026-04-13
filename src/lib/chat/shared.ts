@@ -1486,12 +1486,9 @@ export async function executeTool(
 
     case 'export_document': {
       return JSON.stringify({
-        export_ready: true,
-        title: toolInput.title,
-        format: toolInput.format,
-        content: toolInput.content,
-        recipient: toolInput.recipient || null,
-        download_url: '/api/documents/export',
+        message: 'Document export is available through the document card in the chat. Look for the export buttons (PDF, Word, Excel, HTML, Markdown) below any generated document. If you need to generate a document first, use the generate_document tool.',
+        available_formats: ['pdf', 'docx', 'xlsx', 'html', 'md'],
+        note: 'Export buttons appear automatically on generated documents in the chat interface.',
       })
     }
 
