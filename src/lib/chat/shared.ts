@@ -11,7 +11,7 @@ export function getAnthropicClient() {
   return new Anthropic({ apiKey })
 }
 
-export function buildSystemPrompt(role: string, centreContext: string, staffList: string, serviceDetails: string) {
+export function buildSystemPrompt(role: string, centreContext: string, staffList: string, serviceDetails: string, learningsSection?: string) {
   const roleLabel = ROLE_LABELS[role] || 'Staff Member'
 
   const roleInstructions: Record<string, string> = {
@@ -31,6 +31,7 @@ IDENTITY & EXPERTISE:
 - You understand NSW Education and Care Services National Law and National Regulations
 - You are trained on the Assessment and Rating (A&R) process under ACECQA
 - You provide practical guidance on early childhood centre operations, programming, compliance, and best practice
+- You are a LEARNING assistant — you continuously improve by remembering corrections, preferences, insights, and patterns across every conversation
 
 SERVICE DETAILS:
 ${serviceDetails}
@@ -45,6 +46,46 @@ ${centreContext}
 
 STAFF DIRECTORY:
 ${staffList}
+
+${learningsSection || ''}
+
+CONTINUOUS LEARNING PROTOCOL:
+You have a persistent memory that spans across all conversations. This is what makes you different from a generic AI — you get better every time someone talks to you.
+
+**At the START of every conversation:**
+1. Call get_learnings with the user's role to load relevant prior learnings
+2. Silently review these learnings and let them shape your responses — do NOT list them to the user unless asked
+3. Pay special attention to corrections (things you got wrong before) and preferences (how this user likes to receive information)
+
+**DURING conversations — save learnings when:**
+- The user corrects you → save as "correction" with what you said wrong and what's actually right
+- The user says "I prefer...", "don't do...", "always...", "we actually..." → save as "preference"
+- You discover a fact about the centre not in the knowledge base → save as "domain_insight"
+- You learn how a process actually works here (vs. generic ECEC knowledge) → save as "process_knowledge"
+- You learn about who does what, reports to whom, or covers which room → save as "relationship"
+- The user tells you something has changed (new staff, room change, policy update) → save as "context_update"
+
+**Save silently** — do not announce "I've saved this learning" every time. Just do it. Only mention it if the user explicitly asks what you've learned or if acknowledging it is natural (e.g., "Got it, I'll remember that for next time.").
+
+**When you're unsure:** If a past learning conflicts with what the user is saying now, trust the current conversation and update the learning. Things change — your job is to stay current.
+
+**Learning quality rules:**
+- Be specific: "Rony prefers tables for staff compliance data" not "user likes tables"
+- Include the why: "Don't suggest group time for under-2s — Kiros follows RIE-inspired practice in the nursery room"
+- Set lower confidence (0.5-0.6) for things you infer, higher (0.9-1.0) for explicit corrections
+- Set expiry dates for temporary facts (e.g., relief staff, short-term room changes)
+- Use tags so future searches find the right learnings
+
+AGENT DELEGATION & FEEDBACK:
+When you delegate to specialist agents, you are responsible for quality control.
+
+**After receiving agent results:**
+1. Critically evaluate the response — does it match what you know from your learnings and the centre context?
+2. If the response is good and the user accepts it, call record_agent_feedback with "accepted"
+3. If you need to significantly supplement or correct the agent's response, record "supplemented" or "corrected" with details
+4. If the user explicitly says an agent's response was wrong, record "rejected" with what was wrong
+
+**Before delegating:** Check get_learnings for any past corrections related to the agent or topic — pass these as context so the agent doesn't repeat past mistakes.
 
 RESPONSE RULES:
 1. ALWAYS cite your sources when referencing centre information:
@@ -116,7 +157,7 @@ RESPONSE RULES:
 9. Today's date is ${new Date().toISOString().split('T')[0]}`
 }
 
-// Build agent registry section for the master prompt — lists active specialist agents
+// Build agent registry section for the master prompt — lists active specialist agents with performance data
 async function buildAgentRegistrySection(
   supabase: ReturnType<typeof createServiceRoleClient>,
 ): Promise<string> {
@@ -129,12 +170,24 @@ async function buildAgentRegistrySection(
 
     if (!agents || agents.length === 0) return ''
 
+    // Load agent performance data
+    const { data: performance } = await supabase
+      .from('ai_agent_performance')
+      .select('*')
+
+    const perfMap = new Map((performance || []).map((p: { agent_name: string; acceptance_rate?: number; avg_quality?: number; total_interactions?: number; corrected_count?: number }) => [p.agent_name, p]))
+
     const agentLines = agents.map((a: { name: string; routing_description?: string; description?: string; domain_tags?: string[]; routing_keywords?: string[] }) => {
       const tags = (a.domain_tags || []).join(', ')
       const keywords = (a.routing_keywords || []).join(', ')
+      const perf = perfMap.get(a.name) as { acceptance_rate?: number; avg_quality?: number; total_interactions?: number; corrected_count?: number } | undefined
+      const perfLine = perf
+        ? `  Track record: ${perf.total_interactions} interactions, ${perf.acceptance_rate ?? 0}% accepted, avg quality ${perf.avg_quality ?? 'N/A'}/5${(perf.corrected_count ?? 0) > 0 ? ` (${perf.corrected_count} corrections — check learnings before delegating)` : ''}`
+        : '  Track record: New agent — no feedback yet'
       return `- **${a.name}**: ${a.routing_description || a.description || 'Specialist agent'}
   Domain: ${tags || 'General'}
-  Keywords: ${keywords || 'N/A'}`
+  Keywords: ${keywords || 'N/A'}
+${perfLine}`
     }).join('\n')
 
     return `SPECIALIST AGENTS:
@@ -153,9 +206,68 @@ ROUTING RULES:
 3. For general operations questions that don't need specialist depth, answer directly using your tools.
 4. Always pass relevant conversation context to delegated agents.
 5. When presenting agent results, cite which agent provided which insight.
-6. You may still use your own tools alongside delegation when needed.`
+6. You may still use your own tools alongside delegation when needed.
+7. For agents with corrections in their track record, call get_learnings with tags for that agent before delegating — include past corrections as context so the agent doesn't repeat mistakes.
+8. After every delegation, record feedback using record_agent_feedback — this is how agents improve.`
   } catch {
     return '' // Non-critical — master agent works fine without specialist routing
+  }
+}
+
+// Load high-priority learnings to inject into the system prompt
+async function buildLearningsSection(
+  supabase: ReturnType<typeof createServiceRoleClient>,
+  role: string,
+): Promise<string> {
+  try {
+    // Load the most important learnings: corrections first, then high-confidence insights
+    const { data: learnings } = await supabase
+      .from('ai_learnings')
+      .select('learning_type, category, title, content, confidence, times_reinforced, qa_areas, tags')
+      .eq('is_active', true)
+      .or(`applies_to_roles.eq.{},applies_to_roles.cs.{${role}}`)
+      .order('learning_type', { ascending: true }) // corrections sort first alphabetically
+      .order('confidence', { ascending: false })
+      .order('times_reinforced', { ascending: false })
+      .limit(30)
+
+    if (!learnings || learnings.length === 0) return ''
+
+    // Filter out expired
+    const now = new Date()
+    const active = learnings
+
+    // Group by type for readability
+    const corrections = active.filter((l: { learning_type: string }) => l.learning_type === 'correction')
+    const preferences = active.filter((l: { learning_type: string }) => l.learning_type === 'preference')
+    const insights = active.filter((l: { learning_type: string }) => ['domain_insight', 'process_knowledge', 'relationship', 'context_update'].includes(l.learning_type))
+
+    const sections: string[] = ['PRIOR LEARNINGS (from past conversations — apply these silently):']
+
+    if (corrections.length > 0) {
+      sections.push('**Corrections (things you got wrong before — do NOT repeat these mistakes):**')
+      corrections.forEach((l: { title: string; content: string; confidence: number }) => {
+        sections.push(`- ${l.title}: ${l.content} [confidence: ${l.confidence}]`)
+      })
+    }
+
+    if (preferences.length > 0) {
+      sections.push('**User preferences:**')
+      preferences.forEach((l: { title: string; content: string }) => {
+        sections.push(`- ${l.title}: ${l.content}`)
+      })
+    }
+
+    if (insights.length > 0) {
+      sections.push('**Centre insights & context:**')
+      insights.forEach((l: { title: string; content: string; learning_type: string }) => {
+        sections.push(`- [${l.learning_type}] ${l.title}: ${l.content}`)
+      })
+    }
+
+    return sections.join('\n')
+  } catch {
+    return '' // Non-critical
   }
 }
 
@@ -174,9 +286,12 @@ export async function buildSystemPromptFromDB(
       .eq('is_active', true)
       .order('sort_order', { ascending: true })
 
+    // Load learnings for injection
+    const learningsSection = await buildLearningsSection(supabase, role)
+
     if (error || !prompts || prompts.length === 0) {
-      // Fallback to hardcoded prompt
-      return buildSystemPrompt(role, centreContext, staffList, serviceDetails)
+      // Fallback to hardcoded prompt with learnings
+      return buildSystemPrompt(role, centreContext, staffList, serviceDetails, learningsSection)
     }
 
     const roleLabel = ROLE_LABELS[role] || 'Staff Member'
@@ -218,6 +333,11 @@ export async function buildSystemPromptFromDB(
     }
     for (const [key, val] of Object.entries(vars)) {
       assembled = assembled.replace(new RegExp(`\\{${key}\\}`, 'g'), val)
+    }
+
+    // Append learnings section
+    if (learningsSection) {
+      assembled += '\n\n' + learningsSection
     }
 
     // Append agent registry section
@@ -642,6 +762,60 @@ export const ALL_TOOLS: (Anthropic.Tool & { allowedRoles: string[] })[] = [
         },
       },
       required: ['delegations'],
+    },
+    allowedRoles: ['admin', 'manager', 'ns', 'el', 'educator'],
+  },
+  {
+    name: 'save_learning',
+    description: 'Save something you learned during this conversation that will help you in future conversations. Use this when: (1) the user corrects you, (2) you discover a user preference, (3) you learn a fact about the centre that isn\'t in the knowledge base, (4) you learn how a process actually works here, (5) the user tells you about a relationship or responsibility, (6) you learn context that has changed. Be specific and actionable — future-you will rely on this.',
+    input_schema: {
+      type: 'object' as const,
+      properties: {
+        learning_type: { type: 'string', enum: ['correction', 'preference', 'domain_insight', 'process_knowledge', 'relationship', 'context_update'], description: 'Type of learning' },
+        category: { type: 'string', description: 'Category: e.g., QA1-QA7, staffing, programming, compliance, operations, formatting, communication' },
+        title: { type: 'string', description: 'Short descriptive title' },
+        content: { type: 'string', description: 'What you learned — be specific and include why it matters' },
+        original_context: { type: 'string', description: 'For corrections: what you originally said or assumed that was wrong' },
+        applies_to_roles: { type: 'array', items: { type: 'string' }, description: 'Which roles this applies to. Empty = all roles.' },
+        qa_areas: { type: 'array', items: { type: 'integer' }, description: 'Related QA areas (1-7)' },
+        tags: { type: 'array', items: { type: 'string' }, description: 'Searchable tags' },
+        confidence: { type: 'number', description: 'How confident you are (0.0-1.0). Default 0.8. Use lower for inferences, higher for explicit corrections.' },
+        expires_at: { type: 'string', description: 'ISO date if this learning is time-sensitive (e.g., "relief staff member here until Friday")' },
+      },
+      required: ['learning_type', 'title', 'content'],
+    },
+    allowedRoles: ['admin', 'manager', 'ns', 'el', 'educator'],
+  },
+  {
+    name: 'get_learnings',
+    description: 'Retrieve past learnings relevant to the current conversation. Call this at the start of conversations and before answering questions in areas where you may have prior learnings. Filter by category, QA area, type, or search keywords.',
+    input_schema: {
+      type: 'object' as const,
+      properties: {
+        category: { type: 'string', description: 'Filter by category' },
+        learning_type: { type: 'string', enum: ['correction', 'preference', 'domain_insight', 'process_knowledge', 'relationship', 'context_update'], description: 'Filter by type' },
+        qa_areas: { type: 'array', items: { type: 'integer' }, description: 'Filter by QA areas (1-7)' },
+        search: { type: 'string', description: 'Keyword search across title, content, and tags' },
+        role: { type: 'string', description: 'Filter learnings applicable to this role' },
+        limit: { type: 'integer', description: 'Max results (default 20)' },
+      },
+    },
+    allowedRoles: ['admin', 'manager', 'ns', 'el', 'educator'],
+  },
+  {
+    name: 'record_agent_feedback',
+    description: 'Record feedback about a specialist agent\'s performance. Use this after presenting agent results to the user — infer feedback from the user\'s reaction. If they accept it, record "accepted". If they correct it, record "corrected" with details. This helps improve agent routing and quality over time.',
+    input_schema: {
+      type: 'object' as const,
+      properties: {
+        agent_name: { type: 'string', description: 'Name of the agent' },
+        query_summary: { type: 'string', description: 'Brief summary of what was asked' },
+        agent_response_summary: { type: 'string', description: 'Brief summary of what the agent answered' },
+        feedback_type: { type: 'string', enum: ['accepted', 'corrected', 'rejected', 'supplemented', 'escalated'], description: 'How the response was received' },
+        correction_detail: { type: 'string', description: 'For corrections/rejections: what was wrong and what was right' },
+        response_quality: { type: 'integer', description: 'Quality 1-5 (1=wrong, 3=adequate, 5=excellent)' },
+      },
+      required: ['agent_name', 'query_summary', 'feedback_type'],
     },
     allowedRoles: ['admin', 'manager', 'ns', 'el', 'educator'],
   },
@@ -1218,16 +1392,38 @@ export async function executeTool(
         return JSON.stringify({ error: 'No matching active agents found', requested: agentNames })
       }
 
+      // Load relevant learnings (corrections) for each agent to pass as context
+      const agentLearningsMap = new Map<string, string>()
+      for (const name of agentNames) {
+        const tagName = name.toLowerCase().replace(/\s+/g, '_')
+        const { data: agentLearnings } = await supabase
+          .from('ai_learnings')
+          .select('title, content')
+          .eq('is_active', true)
+          .eq('learning_type', 'correction')
+          .overlaps('tags', [tagName, 'agent_feedback'])
+          .order('confidence', { ascending: false })
+          .limit(5)
+
+        if (agentLearnings && agentLearnings.length > 0) {
+          const learningText = agentLearnings
+            .map((l: { title: string; content: string }) => `- ${l.title}: ${l.content}`)
+            .join('\n')
+          agentLearningsMap.set(name, `\n\nPAST CORRECTIONS (avoid repeating these mistakes):\n${learningText}`)
+        }
+      }
+
       // Build tasks from DB definitions
       const agentTasks = delegations
         .map(d => {
           const def = agentDefs.find((a: { name: string }) => a.name === d.agent_name)
           if (!def) return null
+          const pastCorrections = agentLearningsMap.get(def.name) || ''
           return {
             agentName: def.name,
             agentDefinitionId: def.id,
             description: d.task_description,
-            systemPrompt: def.system_prompt,
+            systemPrompt: def.system_prompt + pastCorrections,
             tools: ALL_TOOLS
               .filter(t => (def.available_tools || []).includes(t.name))
               .map(({ allowedRoles: _r, ...rest }) => rest) as Anthropic.Tool[],
@@ -1262,6 +1458,182 @@ export async function executeTool(
           tokens: r.tokensUsed,
           duration_ms: r.durationMs,
         })),
+      })
+    }
+
+    case 'save_learning': {
+      const {
+        learning_type, category, title, content, original_context,
+        applies_to_roles, qa_areas, tags, confidence, expires_at,
+      } = toolInput as {
+        learning_type: string; category?: string; title: string; content: string;
+        original_context?: string; applies_to_roles?: string[]; qa_areas?: number[];
+        tags?: string[]; confidence?: number; expires_at?: string;
+      }
+
+      // Check for duplicate/similar learnings to update instead of insert
+      const { data: existing } = await supabase
+        .from('ai_learnings')
+        .select('id, title, content, times_reinforced, confidence')
+        .eq('is_active', true)
+        .eq('learning_type', learning_type)
+        .ilike('title', `%${title.substring(0, 30)}%`)
+        .limit(3)
+
+      if (existing && existing.length > 0) {
+        // Reinforce existing learning instead of duplicating
+        const match = existing[0]
+        const { error } = await supabase
+          .from('ai_learnings')
+          .update({
+            content: content,
+            original_context: original_context || undefined,
+            times_reinforced: (match.times_reinforced || 0) + 1,
+            confidence: Math.min(1.0, (match.confidence || 0.8) + 0.05),
+            updated_at: new Date().toISOString(),
+            ...(category && { category }),
+            ...(qa_areas && qa_areas.length > 0 && { qa_areas }),
+            ...(tags && tags.length > 0 && { tags }),
+          })
+          .eq('id', match.id)
+
+        if (error) return JSON.stringify({ error: error.message })
+        return JSON.stringify({
+          status: 'reinforced',
+          learning_id: match.id,
+          message: `Reinforced existing learning: "${match.title}" (reinforced ${(match.times_reinforced || 0) + 1} times, confidence now ${Math.min(1.0, (match.confidence || 0.8) + 0.05).toFixed(2)})`,
+        })
+      }
+
+      const { data, error } = await supabase
+        .from('ai_learnings')
+        .insert({
+          learning_type,
+          category: category || null,
+          title,
+          content,
+          original_context: original_context || null,
+          source_conversation_id: options?.conversationId || null,
+          learned_from_user_id: userId,
+          learned_from_role: userRole,
+          applies_to_roles: applies_to_roles || [],
+          confidence: confidence ?? 0.8,
+          qa_areas: qa_areas || [],
+          tags: tags || [],
+          expires_at: expires_at || null,
+        })
+        .select('id')
+        .single()
+
+      if (error) return JSON.stringify({ error: error.message })
+      return JSON.stringify({
+        status: 'saved',
+        learning_id: data.id,
+        message: `Saved new ${learning_type} learning: "${title}"`,
+      })
+    }
+
+    case 'get_learnings': {
+      const { category, learning_type, qa_areas, search, role, limit: maxResults } = toolInput as {
+        category?: string; learning_type?: string; qa_areas?: number[];
+        search?: string; role?: string; limit?: number;
+      }
+
+      let query = supabase
+        .from('ai_learnings')
+        .select('id, learning_type, category, title, content, original_context, applies_to_roles, confidence, times_reinforced, times_contradicted, qa_areas, tags, created_at, updated_at, expires_at')
+        .eq('is_active', true)
+        .order('confidence', { ascending: false })
+        .order('updated_at', { ascending: false })
+        .limit(maxResults || 20)
+
+      if (category) query = query.eq('category', category)
+      if (learning_type) query = query.eq('learning_type', learning_type)
+      if (qa_areas && qa_areas.length > 0) query = query.overlaps('qa_areas', qa_areas)
+      if (search) query = query.or(`title.ilike.%${search}%,content.ilike.%${search}%`)
+      if (role) query = query.or(`applies_to_roles.eq.{},applies_to_roles.cs.{${role}}`)
+
+      const { data, error } = await query
+
+      if (error) return JSON.stringify({ error: error.message })
+
+      // Filter out expired learnings
+      const now = new Date()
+      const active = (data || []).filter(l => !l.expires_at || new Date(l.expires_at) > now)
+
+      return JSON.stringify({
+        total: active.length,
+        learnings: active.map(l => ({
+          id: l.id,
+          type: l.learning_type,
+          category: l.category,
+          title: l.title,
+          content: l.content,
+          original_context: l.original_context,
+          confidence: l.confidence,
+          reinforced: l.times_reinforced,
+          contradicted: l.times_contradicted,
+          qa_areas: l.qa_areas,
+          tags: l.tags,
+          last_updated: l.updated_at,
+        })),
+      })
+    }
+
+    case 'record_agent_feedback': {
+      const {
+        agent_name, query_summary, agent_response_summary,
+        feedback_type, correction_detail, response_quality,
+      } = toolInput as {
+        agent_name: string; query_summary: string; agent_response_summary?: string;
+        feedback_type: string; correction_detail?: string; response_quality?: number;
+      }
+
+      // Look up agent definition ID
+      const { data: agentDef } = await supabase
+        .from('ai_agent_definitions')
+        .select('id')
+        .eq('name', agent_name)
+        .single()
+
+      const { data, error } = await supabase
+        .from('ai_agent_feedback')
+        .insert({
+          agent_definition_id: agentDef?.id || null,
+          agent_name,
+          conversation_id: options?.conversationId || null,
+          query_summary,
+          agent_response_summary: agent_response_summary || null,
+          feedback_type,
+          correction_detail: correction_detail || null,
+          response_quality: response_quality || null,
+          user_id: userId,
+        })
+        .select('id')
+        .single()
+
+      if (error) return JSON.stringify({ error: error.message })
+
+      // If corrected/rejected, also save as a learning for future reference
+      if (feedback_type === 'corrected' || feedback_type === 'rejected') {
+        await supabase.from('ai_learnings').insert({
+          learning_type: 'correction',
+          category: 'agent_feedback',
+          title: `${agent_name}: ${feedback_type} on "${query_summary.substring(0, 60)}"`,
+          content: correction_detail || `Agent response was ${feedback_type}. Original response: ${agent_response_summary || 'N/A'}`,
+          original_context: agent_response_summary || null,
+          source_conversation_id: options?.conversationId || null,
+          learned_from_user_id: userId,
+          learned_from_role: userRole,
+          tags: ['agent_feedback', agent_name.toLowerCase().replace(/\s+/g, '_')],
+          confidence: 0.9,
+        })
+      }
+
+      return JSON.stringify({
+        status: 'recorded',
+        feedback_id: data.id,
+        message: `Recorded ${feedback_type} feedback for ${agent_name}`,
       })
     }
 
