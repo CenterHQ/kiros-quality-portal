@@ -85,14 +85,21 @@ interface EditingAgent {
   is_active: boolean
 }
 
+// Default tools for new agents — comprehensive read access + detail tools
+const DEFAULT_AGENT_TOOLS = [
+  'search_centre_context', 'get_qa_progress', 'get_overdue_items',
+  'get_policies', 'get_policy_detail', 'get_checklists', 'get_checklist_detail',
+  'get_documents', 'read_document_content', 'get_room_data',
+]
+
 const EMPTY_AGENT: EditingAgent = {
   name: '',
   description: '',
   routing_description: '',
   system_prompt: '',
-  available_tools: ['search_centre_context', 'get_qa_progress'],
+  available_tools: DEFAULT_AGENT_TOOLS,
   model: MODEL_SONNET,
-  max_iterations: 3,
+  max_iterations: 5,
   temperature: null,
   token_budget: 8192,
   priority: 50,
