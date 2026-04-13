@@ -1,6 +1,7 @@
 import { createHash } from 'crypto'
 import { createServiceRoleClient } from '@/lib/supabase/server'
 import { getAppToken, getSiteId, getDriveId, ensureFolderPath, uploadFile } from '@/lib/microsoft-graph'
+import { loadAIConfig, buildBrandConfig } from '@/lib/ai-config'
 
 // IMPORTANT: Do NOT import document-templates at the top level.
 // @react-pdf/renderer (~20MB), docx, and exceljs are heavy and will crash
@@ -95,6 +96,8 @@ export async function storeAndUploadDocument(
   input: StoreDocumentInput,
 ): Promise<StoreDocumentResult> {
   const supabase = createServiceRoleClient()
+  const aiConfig = await loadAIConfig(supabase)
+  const brand = buildBrandConfig(aiConfig)
   const baseFilename = sanitiseFilename(input.title)
   const folderPath = buildSafeFolderPath(input.topicFolder)
   const contentHash = computeHash(input.markdownContent)
@@ -147,7 +150,7 @@ export async function storeAndUploadDocument(
     try {
       const { generateWordDocument } = await import('@/lib/document-templates')
       const docOptions = { title: input.title, content: input.markdownContent, recipient: input.recipient, author: 'Kiros AI Assistant', format: 'docx' as const }
-      const docxBuffer = await generateWordDocument(input.title, input.markdownContent, docOptions)
+      const docxBuffer = await generateWordDocument(input.title, input.markdownContent, docOptions, brand)
       const docxResult = await uploadFile(token, driveId, folderPath, `${baseFilename}.docx`, docxBuffer, 'application/vnd.openxmlformats-officedocument.wordprocessingml.document')
       sharepointUrls.docx = docxResult.webUrl
       sharepointItemIds.docx = docxResult.id
@@ -160,7 +163,7 @@ export async function storeAndUploadDocument(
     try {
       const { generatePdfDocument } = await import('@/lib/document-templates')
       const docOptions = { title: input.title, content: input.markdownContent, recipient: input.recipient, author: 'Kiros AI Assistant', format: 'pdf' as const }
-      const pdfBuffer = await generatePdfDocument(input.title, input.markdownContent, docOptions)
+      const pdfBuffer = await generatePdfDocument(input.title, input.markdownContent, docOptions, brand)
       const pdfResult = await uploadFile(token, driveId, folderPath, `${baseFilename}.pdf`, pdfBuffer, 'application/pdf')
       sharepointUrls.pdf = pdfResult.webUrl
       sharepointItemIds.pdf = pdfResult.id

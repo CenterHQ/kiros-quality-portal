@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createServerSupabaseClient } from '@/lib/supabase/server'
+import { createServerSupabaseClient, createServiceRoleClient } from '@/lib/supabase/server'
+import { loadAIConfig, buildBrandConfig } from '@/lib/ai-config'
 import {
   generatePdfDocument,
   generateWordDocument,
@@ -72,6 +73,12 @@ export async function POST(request: NextRequest) {
     }
 
     const exportFormat = format as ExportFormat
+
+    // Load brand config from DB
+    const serviceSupabase = createServiceRoleClient()
+    const aiConfig = await loadAIConfig(serviceSupabase)
+    const brand = buildBrandConfig(aiConfig)
+
     const date = new Date().toLocaleDateString('en-AU', {
       day: 'numeric',
       month: 'long',
@@ -120,7 +127,7 @@ export async function POST(request: NextRequest) {
 
     // Handle HTML
     if (exportFormat === 'html') {
-      const html = generateHtmlDocument(title, content, options)
+      const html = generateHtmlDocument(title, content, options, brand)
       return new NextResponse(html, {
         status: 200,
         headers: {
@@ -135,13 +142,13 @@ export async function POST(request: NextRequest) {
 
     switch (exportFormat) {
       case 'pdf':
-        buffer = await generatePdfDocument(title, content, options)
+        buffer = await generatePdfDocument(title, content, options, brand)
         break
       case 'docx':
-        buffer = await generateWordDocument(title, content, options)
+        buffer = await generateWordDocument(title, content, options, brand)
         break
       case 'xlsx':
-        buffer = await generateExcelDocument(title, content, options)
+        buffer = await generateExcelDocument(title, content, options, brand)
         break
       default:
         return NextResponse.json({ error: 'Unsupported format' }, { status: 400 })
