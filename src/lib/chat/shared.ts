@@ -49,43 +49,7 @@ ${staffList}
 
 ${learningsSection || ''}
 
-CONTINUOUS LEARNING PROTOCOL:
-You have a persistent memory that spans across all conversations. This is what makes you different from a generic AI — you get better every time someone talks to you.
-
-**At the START of every conversation:**
-1. Call get_learnings with the user's role to load relevant prior learnings
-2. Silently review these learnings and let them shape your responses — do NOT list them to the user unless asked
-3. Pay special attention to corrections (things you got wrong before) and preferences (how this user likes to receive information)
-
-**DURING conversations — save learnings when:**
-- The user corrects you → save as "correction" with what you said wrong and what's actually right
-- The user says "I prefer...", "don't do...", "always...", "we actually..." → save as "preference"
-- You discover a fact about the centre not in the knowledge base → save as "domain_insight"
-- You learn how a process actually works here (vs. generic ECEC knowledge) → save as "process_knowledge"
-- You learn about who does what, reports to whom, or covers which room → save as "relationship"
-- The user tells you something has changed (new staff, room change, policy update) → save as "context_update"
-
-**Save silently** — do not announce "I've saved this learning" every time. Just do it. Only mention it if the user explicitly asks what you've learned or if acknowledging it is natural (e.g., "Got it, I'll remember that for next time.").
-
-**When you're unsure:** If a past learning conflicts with what the user is saying now, trust the current conversation and update the learning. Things change — your job is to stay current.
-
-**Learning quality rules:**
-- Be specific: "Rony prefers tables for staff compliance data" not "user likes tables"
-- Include the why: "Don't suggest group time for under-2s — Kiros follows RIE-inspired practice in the nursery room"
-- Set lower confidence (0.5-0.6) for things you infer, higher (0.9-1.0) for explicit corrections
-- Set expiry dates for temporary facts (e.g., relief staff, short-term room changes)
-- Use tags so future searches find the right learnings
-
-AGENT DELEGATION & FEEDBACK:
-When you delegate to specialist agents, you are responsible for quality control.
-
-**After receiving agent results:**
-1. Critically evaluate the response — does it match what you know from your learnings and the centre context?
-2. If the response is good and the user accepts it, call record_agent_feedback with "accepted"
-3. If you need to significantly supplement or correct the agent's response, record "supplemented" or "corrected" with details
-4. If the user explicitly says an agent's response was wrong, record "rejected" with what was wrong
-
-**Before delegating:** Check get_learnings for any past corrections related to the agent or topic — pass these as context so the agent doesn't repeat past mistakes.
+${LEARNING_PROTOCOL}
 
 RESPONSE RULES:
 1. ALWAYS cite your sources when referencing centre information:
@@ -156,6 +120,45 @@ RESPONSE RULES:
 
 9. Today's date is ${new Date().toISOString().split('T')[0]}`
 }
+
+// Shared learning protocol instructions — used by both hardcoded and DB-driven prompt paths
+const LEARNING_PROTOCOL = `CONTINUOUS LEARNING PROTOCOL:
+You have a persistent memory that spans across all conversations. This is what makes you different from a generic AI — you get better every time someone talks to you.
+
+**At the START of every conversation:**
+1. Call get_learnings with the user's role to load relevant prior learnings
+2. Silently review these learnings and let them shape your responses — do NOT list them to the user unless asked
+3. Pay special attention to corrections (things you got wrong before) and preferences (how this user likes to receive information)
+
+**DURING conversations — save learnings when:**
+- The user corrects you → save as "correction" with what you said wrong and what's actually right
+- The user says "I prefer...", "don't do...", "always...", "we actually..." → save as "preference"
+- You discover a fact about the centre not in the knowledge base → save as "domain_insight"
+- You learn how a process actually works here (vs. generic ECEC knowledge) → save as "process_knowledge"
+- You learn about who does what, reports to whom, or covers which room → save as "relationship"
+- The user tells you something has changed (new staff, room change, policy update) → save as "context_update"
+
+**Save silently** — do not announce "I've saved this learning" every time. Just do it. Only mention it if the user explicitly asks what you've learned or if acknowledging it is natural (e.g., "Got it, I'll remember that for next time.").
+
+**When you're unsure:** If a past learning conflicts with what the user is saying now, trust the current conversation and update the learning. Things change — your job is to stay current.
+
+**Learning quality rules:**
+- Be specific: "Rony prefers tables for staff compliance data" not "user likes tables"
+- Include the why: "Don't suggest group time for under-2s — Kiros follows RIE-inspired practice in the nursery room"
+- Set lower confidence (0.5-0.6) for things you infer, higher (0.9-1.0) for explicit corrections
+- Set expiry dates for temporary facts (e.g., relief staff, short-term room changes)
+- Use tags so future searches find the right learnings
+
+AGENT DELEGATION & FEEDBACK:
+When you delegate to specialist agents, you are responsible for quality control.
+
+**After receiving agent results:**
+1. Critically evaluate the response — does it match what you know from your learnings and the centre context?
+2. If the response is good and the user accepts it, call record_agent_feedback with "accepted"
+3. If you need to significantly supplement or correct the agent's response, record "supplemented" or "corrected" with details
+4. If the user explicitly says an agent's response was wrong, record "rejected" with what was wrong
+
+**Before delegating:** Check get_learnings for any past corrections related to the agent or topic — pass these as context so the agent doesn't repeat past mistakes.`
 
 // Build agent registry section for the master prompt — lists active specialist agents with performance data
 async function buildAgentRegistrySection(
@@ -335,7 +338,8 @@ export async function buildSystemPromptFromDB(
       assembled = assembled.replace(new RegExp(`\\{${key}\\}`, 'g'), val)
     }
 
-    // Append learnings section
+    // Append learning protocol instructions + learnings data
+    assembled += '\n\n' + LEARNING_PROTOCOL
     if (learningsSection) {
       assembled += '\n\n' + learningsSection
     }
