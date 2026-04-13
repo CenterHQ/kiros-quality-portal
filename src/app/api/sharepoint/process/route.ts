@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
 import { getAnthropicClient } from '@/lib/chat/shared'
+import { MODEL_SONNET } from '@/lib/chat/model-router'
 
 export const dynamic = 'force-dynamic'
 
@@ -84,7 +85,7 @@ export async function POST(request: NextRequest) {
         .replace('{CONTENT}', doc.extracted_text.substring(0, 80000))
 
       const message = await getAnthropic().messages.create({
-        model: 'claude-sonnet-4-20250514',
+        model: MODEL_SONNET,
         max_tokens: 4096,
         messages: [{ role: 'user', content: prompt }],
       })
@@ -163,7 +164,7 @@ export async function POST(request: NextRequest) {
         .replace('{CONTEXT_ITEMS}', contextStr)
 
       const message = await getAnthropic().messages.create({
-        model: 'claude-sonnet-4-20250514',
+        model: MODEL_SONNET,
         max_tokens: 2048,
         messages: [{ role: 'user', content: prompt }],
       })
@@ -233,7 +234,7 @@ export async function POST(request: NextRequest) {
 
         try {
           const message = await getAnthropic().messages.create({
-            model: 'claude-sonnet-4-20250514',
+            model: MODEL_SONNET,
             max_tokens: 2048,
             messages: [{ role: 'user', content: prompt }],
           })

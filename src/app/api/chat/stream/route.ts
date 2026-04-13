@@ -64,8 +64,8 @@ export async function POST(request: NextRequest) {
     content: message,
   })
 
-  // Select model based on message complexity (thinking is disabled — incompatible with tool use)
-  const { model } = selectModelConfig(message)
+  // Select model based on message complexity
+  const { model, thinking } = selectModelConfig(message)
 
   // Use service role client for the streaming work (more reliable for long operations)
   const serviceSupabase = createServiceRoleClient()
@@ -167,6 +167,7 @@ export async function POST(request: NextRequest) {
           const apiStream = anthropic.messages.stream({
             model,
             max_tokens: 16384,
+            ...(thinking && { thinking }),
             system: systemPromptBlocks,
             tools: toolsWithCache as Anthropic.Tool[],
             messages,
@@ -181,11 +182,17 @@ export async function POST(request: NextRequest) {
           for await (const event of apiStream) {
             if (event.type === 'content_block_delta') {
               const delta = event.delta
+              if ('type' in delta && (delta.type === 'thinking_delta' || delta.type === 'signature_delta')) {
+                continue
+              }
               if ('text' in delta && delta.text) {
                 fullText += delta.text
                 controller.enqueue(encodeSSE('delta', { type: 'text_delta', text: delta.text }))
               }
             } else if (event.type === 'content_block_start') {
+              if (event.content_block.type === 'thinking') {
+                continue
+              }
               if (event.content_block.type === 'tool_use') {
                 controller.enqueue(encodeSSE('status', { type: 'tool_start', tool: event.content_block.name }))
               }

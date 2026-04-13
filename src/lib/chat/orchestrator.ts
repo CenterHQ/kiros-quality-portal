@@ -1,5 +1,6 @@
 import Anthropic from '@anthropic-ai/sdk'
 import { getAnthropicClient, executeTool } from '@/lib/chat/shared'
+import { MODEL_SONNET } from '@/lib/chat/model-router'
 import { createServiceRoleClient } from '@/lib/supabase/server'
 
 // ---------------------------------------------------------------------------
@@ -47,7 +48,7 @@ export async function runAgent(
 ): Promise<AgentResult> {
   const start = Date.now()
   const anthropic = getAnthropicClient()
-  const model = task.model || 'claude-sonnet-4-20250514'
+  const model = task.model || MODEL_SONNET
   const maxIter = task.maxIterations || 3
   const maxTokens = task.tokenBudget || 8192
   let totalTokens = 0

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabaseClient, createServiceRoleClient } from '@/lib/supabase/server'
 import { runAgent } from '@/lib/chat/orchestrator'
 import { ALL_TOOLS } from '@/lib/chat/shared'
+import { MODEL_SONNET } from '@/lib/chat/model-router'
 import type Anthropic from '@anthropic-ai/sdk'
 
 export const maxDuration = 120
@@ -38,9 +39,8 @@ export async function POST(request: NextRequest) {
       systemPrompt,
       tools: toolDefs,
       context: `Centre: Kiros Early Education, Bidwill NSW. Today: ${new Date().toISOString().split('T')[0]}. This is a test run from the admin panel.`,
-      model: model || 'claude-sonnet-4-20250514',
+      model: model || MODEL_SONNET,
       maxIterations: maxIterations || 3,
-      temperature: temperature ?? 0.7,
       tokenBudget: tokenBudget || 8192,
     },
     serviceSupabase,

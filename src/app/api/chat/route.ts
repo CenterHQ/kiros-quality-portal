@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { waitUntil } from '@vercel/functions'
 import { createServerSupabaseClient, createServiceRoleClient } from '@/lib/supabase/server'
 import Anthropic from '@anthropic-ai/sdk'
-import { selectModel } from '@/lib/chat/model-router'
+import { selectModelConfig } from '@/lib/chat/model-router'
 import { getAnthropicClient, ROLE_LABELS, ALL_TOOLS, buildSystemPrompt, executeTool } from '@/lib/chat/shared'
 
 // Fallback route using waitUntil() for backward compatibility.
@@ -102,7 +102,7 @@ async function processChat(
     const pendingActions: Array<{ id: string; action_type: string; description: string; details: Record<string, unknown>; status: string }> = []
 
     const anthropic = getAnthropicClient()
-    const model = selectModel(originalMessage)
+    const { model, thinking } = selectModelConfig(originalMessage)
 
     // Build cached system prompt blocks
     const systemBlocks: Anthropic.TextBlockParam[] = [
@@ -118,7 +118,7 @@ async function processChat(
       } as Anthropic.Tool & { cache_control: { type: 'ephemeral' } }
     }
 
-    const apiParams = { model, max_tokens: 16384, system: systemBlocks, tools: toolsWithCache, messages }
+    const apiParams = { model, max_tokens: 16384, ...(thinking && { thinking }), system: systemBlocks, tools: toolsWithCache, messages }
 
     // Call Claude with streaming
     let response = await callClaudeStreaming(anthropic, apiParams)

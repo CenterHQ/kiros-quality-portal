@@ -4,10 +4,12 @@ import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useProfile } from '@/lib/ProfileContext'
 
+const MODEL_OPUS = 'claude-opus-4-20250514'
+const MODEL_SONNET = 'claude-sonnet-4-20250514'
+
 const MODEL_OPTIONS = [
-  { value: 'claude-opus-4-20250514', label: 'Claude Opus 4 (Deep Analysis)' },
-  { value: 'claude-sonnet-4-20250514', label: 'Claude Sonnet 4 (Balanced)' },
-  { value: 'claude-haiku-3-5-20241022', label: 'Claude Haiku 3.5 (Fast)' },
+  { value: MODEL_OPUS, label: 'Claude Opus 4 (Deep Analysis)' },
+  { value: MODEL_SONNET, label: 'Claude Sonnet 4 (Balanced)' },
 ]
 
 const AVAILABLE_TOOLS = [
@@ -55,7 +57,7 @@ interface AgentDefinition {
   available_tools: string[]
   model: string
   max_iterations: number
-  temperature: number | null
+  temperature?: number | null
   token_budget: number | null
   priority: number | null
   domain_tags: string[] | null
@@ -75,7 +77,7 @@ interface EditingAgent {
   available_tools: string[]
   model: string
   max_iterations: number
-  temperature: number
+  temperature: number | null
   token_budget: number
   priority: number
   domain_tags: string
@@ -89,9 +91,9 @@ const EMPTY_AGENT: EditingAgent = {
   routing_description: '',
   system_prompt: '',
   available_tools: ['search_centre_context', 'get_qa_progress'],
-  model: 'claude-sonnet-4-20250514',
+  model: MODEL_SONNET,
   max_iterations: 3,
-  temperature: 0.7,
+  temperature: null,
   token_budget: 8192,
   priority: 50,
   domain_tags: '',
@@ -419,7 +421,7 @@ export default function AgentManagementPage() {
           systemPrompt: editing.system_prompt,
           tools: editing.available_tools,
           model: editing.model,
-          temperature: editing.temperature,
+          ...(editing.temperature != null ? { temperature: editing.temperature } : {}),
           maxIterations: editing.max_iterations,
           tokenBudget: editing.token_budget,
           testQuery: testQuery.trim(),
@@ -447,9 +449,9 @@ export default function AgentManagementPage() {
       routing_description: agent.routing_description || '',
       system_prompt: agent.system_prompt,
       available_tools: agent.available_tools || [],
-      model: agent.model || 'claude-sonnet-4-20250514',
+      model: agent.model || MODEL_SONNET,
       max_iterations: agent.max_iterations || 3,
-      temperature: agent.temperature ?? 0.7,
+      temperature: agent.temperature ?? null,
       token_budget: agent.token_budget || 8192,
       priority: agent.priority ?? 50,
       domain_tags: (agent.domain_tags || []).join(', '),
@@ -856,12 +858,13 @@ export default function AgentManagementPage() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-xs font-medium mb-1">Temperature (0.0-1.0)</label>
+                  <label className="block text-xs font-medium mb-1">Temperature (deprecated — leave empty)</label>
                   <input
                     type="number" min={0} max={1} step={0.1}
-                    value={editing.temperature}
-                    onChange={e => setEditing({ ...editing, temperature: parseFloat(e.target.value) || 0.7 })}
+                    value={editing.temperature ?? ''}
+                    onChange={e => setEditing({ ...editing, temperature: e.target.value === '' ? null : parseFloat(e.target.value) })}
                     className="w-full px-3 py-2 rounded-lg border text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                    placeholder="Not set"
                   />
                 </div>
                 <div>

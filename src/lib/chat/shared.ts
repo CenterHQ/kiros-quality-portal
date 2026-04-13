@@ -1,5 +1,6 @@
 import Anthropic from '@anthropic-ai/sdk'
 import { createServiceRoleClient } from '@/lib/supabase/server'
+import { MODEL_SONNET } from '@/lib/chat/model-router'
 import { ROLE_LABELS } from '@/lib/types'
 
 // Re-export for consumers that import from shared
@@ -1355,7 +1356,7 @@ export async function executeTool(
           .filter(t => area.data_tools.includes(t.name))
           .map(({ allowedRoles: _r, ...rest }) => rest) as Anthropic.Tool[],
         context: `Centre: Kiros Early Education, Bidwill NSW. Today: ${new Date().toISOString().split('T')[0]}`,
-        model: 'claude-sonnet-4-20250514',
+        model: MODEL_SONNET,
         maxIterations: 3,
       }))
 
@@ -1432,7 +1433,7 @@ export async function executeTool(
               .filter(t => (def.available_tools || []).includes(t.name))
               .map(({ allowedRoles: _r, ...rest }) => rest) as Anthropic.Tool[],
             context: d.context || `Centre: Kiros Early Education, Bidwill NSW. Today: ${new Date().toISOString().split('T')[0]}`,
-            model: def.model || 'claude-sonnet-4-20250514',
+            model: def.model || MODEL_SONNET,
             maxIterations: def.max_iterations || 3,
             temperature: def.temperature ?? undefined,
             tokenBudget: def.token_budget || 8192,
