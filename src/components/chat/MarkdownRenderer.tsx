@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback, type ComponentPropsWithoutRef } from 'react'
+import React, { useState, useCallback, type ComponentPropsWithoutRef } from 'react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import rehypeHighlight from 'rehype-highlight'
@@ -197,7 +197,7 @@ const markdownComponents = {
   hr: HorizontalRule,
 }
 
-export default function MarkdownRenderer({ content, compact = false }: MarkdownRendererProps) {
+function MarkdownRendererInner({ content, compact = false }: MarkdownRendererProps) {
   return (
     <div className={compact ? PROSE_COMPACT : PROSE_FULL}>
       <ReactMarkdown
@@ -210,3 +210,6 @@ export default function MarkdownRenderer({ content, compact = false }: MarkdownR
     </div>
   )
 }
+
+const MarkdownRenderer = React.memo(MarkdownRendererInner)
+export default MarkdownRenderer

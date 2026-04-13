@@ -1,6 +1,7 @@
 import { createHash } from 'crypto'
 import { createServiceRoleClient } from '@/lib/supabase/server'
 import { getAppToken, getSiteId, getDriveId, downloadFile, getItemByPath } from '@/lib/microsoft-graph'
+import { storeAndUploadDocument } from '@/lib/document-storage'
 
 export interface SyncResult {
   checked: number
@@ -79,6 +80,40 @@ export async function syncAllDocuments(): Promise<SyncResult> {
       result.errors++
       result.details.push(`Error syncing "${doc.title}": ${err instanceof Error ? err.message : 'Unknown'}`)
     }
+  }
+
+  // Retry pending uploads that failed initial upload
+  try {
+    const { data: pendingDocs } = await supabase
+      .from('ai_generated_documents')
+      .select('id, title, document_type, topic_folder, markdown_content, created_by')
+      .eq('sync_status', 'pending_upload')
+      .limit(5)
+
+    if (pendingDocs && pendingDocs.length > 0) {
+      for (const doc of pendingDocs) {
+        try {
+          const uploadResult = await storeAndUploadDocument({
+            title: doc.title,
+            documentType: doc.document_type,
+            markdownContent: doc.markdown_content,
+            topicFolder: doc.topic_folder || 'General',
+            userId: doc.created_by,
+          })
+          if (uploadResult?.documentId) {
+            // Mark original as superseded (new doc was created by storeAndUploadDocument)
+            await supabase
+              .from('ai_generated_documents')
+              .update({ sync_status: 'synced', last_synced_at: new Date().toISOString() })
+              .eq('id', doc.id)
+          }
+        } catch {
+          // Individual retry failed — will try again next cron cycle
+        }
+      }
+    }
+  } catch {
+    // Non-critical — pending retry failed
   }
 
   return result

@@ -124,6 +124,7 @@ const navGroups: NavGroup[] = [
       { href: '/admin/sharepoint', label: 'SharePoint', icon: Cloud },
       { href: '/admin/context', label: 'AI Context', icon: Brain },
       { href: '/admin/agents', label: 'AI Agents', icon: Bot },
+      { href: '/admin/ai-prompts', label: 'AI Prompts', icon: MessageSquare },
     ],
   },
 ]

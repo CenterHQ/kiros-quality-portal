@@ -31,13 +31,34 @@ async function extractText(buffer: Buffer, fileName: string): Promise<string> {
   }
 
   if (ext === 'xlsx' || ext === 'xls') {
-    return '[Spreadsheet content - manual review recommended]'
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      const ExcelJS = require('exceljs')
+      const workbook = new ExcelJS.Workbook()
+      await workbook.xlsx.load(buffer)
+      const rows: string[] = []
+      workbook.eachSheet((sheet: { name: string; eachRow: (cb: (row: { values: unknown[] }) => void) => void }) => {
+        rows.push(`## ${sheet.name}`)
+        sheet.eachRow((row: { values: unknown[] }) => {
+          const vals = (row.values || []).slice(1).map((v: unknown) => v != null ? String(v) : '').join(' | ')
+          if (vals.trim()) rows.push(vals)
+        })
+      })
+      return rows.join('\n').substring(0, 50000) || '[Spreadsheet content could not be extracted]'
+    } catch {
+      return '[Spreadsheet extraction failed]'
+    }
   }
 
   if (ext === 'pdf') {
-    const text = buffer.toString('utf-8')
-    const readable = text.replace(/[^\x20-\x7E\n\r\t]/g, ' ').replace(/\s+/g, ' ').trim()
-    return readable.substring(0, 50000) || '[PDF content - manual review recommended]'
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      const pdfParse = require('pdf-parse')
+      const pdfData = await pdfParse(buffer)
+      return (pdfData.text || '').substring(0, 50000) || '[PDF content could not be extracted]'
+    } catch {
+      return '[PDF text extraction failed]'
+    }
   }
 
   return `[Unsupported file type: ${ext}]`
