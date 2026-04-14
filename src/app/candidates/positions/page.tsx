@@ -111,6 +111,7 @@ export default function PositionsPage() {
           room: editForm.room.trim() || null,
           description: editForm.description.trim() || null,
           requirements: editForm.requirements.trim() || null,
+          status: 'open',
         }),
       })
       const data = await res.json()
