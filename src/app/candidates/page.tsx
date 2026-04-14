@@ -474,6 +474,7 @@ export default function CandidatesPage() {
               <div>
                 <label className="block text-sm font-medium text-foreground mb-1">Position</label>
                 <select
+                  name="position_id"
                   value={invite.position_id}
                   onChange={e => setInvite({ ...invite, position_id: e.target.value })}
                   className="w-full px-3 py-2 text-sm border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-200"
