@@ -179,6 +179,9 @@ export async function POST(request: NextRequest) {
 
         const messages: Anthropic.MessageParam[] = reconstructMessages(history || [])
 
+        // Add the current user message to the array
+        messages.push({ role: 'user', content: message })
+
         // Enhance last user message with attachments
         if (attachments && attachments.length > 0) {
           const lastUserMsg = messages[messages.length - 1]

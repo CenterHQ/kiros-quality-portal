@@ -167,6 +167,9 @@ export async function POST(request: NextRequest) {
 
         const messages: Anthropic.MessageParam[] = reconstructMessages(history || [])
 
+        // Add the current user message to the array
+        messages.push({ role: 'user', content: message })
+
         // Load centre context and service details (marketing lens)
         const [contextResult, serviceResult] = await Promise.all([
           serviceSupabase.from('centre_context').select('context_type, title, content').eq('is_active', true).in('context_type', aiConfig.chatContextTypes).limit(100),

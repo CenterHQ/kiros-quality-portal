@@ -123,6 +123,9 @@ async function processChat(
 
     const messages: Anthropic.MessageParam[] = reconstructMessages(history || [])
 
+    // Add the current user message to the array
+    messages.push({ role: 'user', content: originalMessage })
+
     // If attachments were provided, enhance the last user message with file content
     if (attachments && attachments.length > 0) {
       const lastUserMsg = messages[messages.length - 1]
