@@ -56,6 +56,7 @@ export default function PositionsPage() {
   const [editing, setEditing] = useState<Position | null>(null)
   const [editForm, setEditForm] = useState({ title: '', role: '', room: '', description: '', requirements: '' })
   const [saving, setSaving] = useState(false)
+  const [creating, setCreating] = useState(false)
 
   // Expanded position (to show question bank)
   const [expandedId, setExpandedId] = useState<string | null>(null)
@@ -87,6 +88,40 @@ export default function PositionsPage() {
     return new Date(dateStr).toLocaleDateString('en-AU', {
       day: 'numeric', month: 'short', year: 'numeric',
     })
+  }
+
+  const startCreating = () => {
+    setCreating(true)
+    setEditForm({ title: '', role: 'educator', room: '', description: '', requirements: '' })
+  }
+
+  const handleCreate = async () => {
+    if (!editForm.title.trim()) {
+      showFlash('error', 'Title is required')
+      return
+    }
+    setSaving(true)
+    try {
+      const res = await fetch('/api/recruitment/positions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: editForm.title.trim(),
+          role: editForm.role,
+          room: editForm.room.trim() || null,
+          description: editForm.description.trim() || null,
+          requirements: editForm.requirements.trim() || null,
+        }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Failed to create')
+      showFlash('success', 'Position created')
+      setCreating(false)
+      loadPositions()
+    } catch (err) {
+      showFlash('error', err instanceof Error ? err.message : 'Failed to create')
+    }
+    setSaving(false)
   }
 
   const startEditing = (pos: Position) => {
@@ -179,14 +214,22 @@ export default function PositionsPage() {
 
   return (
     <div className="max-w-6xl mx-auto space-y-6">
-      <PageHeader
-        title="Positions"
-        description="Manage recruitment positions and question banks"
-        breadcrumbs={[
-          { label: 'Recruitment', href: '/candidates' },
-          { label: 'Positions' },
-        ]}
-      />
+      <div className="flex items-start justify-between gap-4">
+        <PageHeader
+          title="Positions"
+          description="Manage recruitment positions and question banks"
+          breadcrumbs={[
+            { label: 'Recruitment', href: '/candidates' },
+            { label: 'Positions' },
+          ]}
+        />
+        <button
+          onClick={startCreating}
+          className="px-4 py-2 text-sm font-medium text-white rounded-lg bg-primary hover:bg-primary/90 transition-colors whitespace-nowrap"
+        >
+          Create Position
+        </button>
+      </div>
 
       {/* Flash */}
       {flash && (
@@ -382,6 +425,102 @@ export default function PositionsPage() {
                   className="px-4 py-2 text-sm font-medium text-white rounded-lg bg-primary hover:bg-primary/90 transition-colors disabled:opacity-50"
                 >
                   {saving ? 'Saving...' : 'Update'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Create modal */}
+      {creating && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="bg-card rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
+            <div className="p-6 space-y-4">
+              <div className="flex items-center justify-between">
+                <h2 className="text-lg font-semibold text-foreground">Create Position</h2>
+                <button onClick={() => setCreating(false)} className="p-1 rounded-lg hover:bg-accent">
+                  <svg className="w-5 h-5 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-foreground mb-1">Title</label>
+                <input
+                  type="text"
+                  name="title"
+                  value={editForm.title}
+                  onChange={e => setEditForm({ ...editForm, title: e.target.value })}
+                  placeholder="e.g. Room Leader — Toddlers"
+                  className="w-full px-3 py-2 text-sm border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-200"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-foreground mb-1">Role</label>
+                <select
+                  name="role"
+                  value={editForm.role}
+                  onChange={e => setEditForm({ ...editForm, role: e.target.value })}
+                  className="w-full px-3 py-2 text-sm border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-200"
+                >
+                  {ROLE_OPTIONS.map(r => (
+                    <option key={r.value} value={r.value}>{r.label}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-foreground mb-1">Room</label>
+                <input
+                  type="text"
+                  name="room"
+                  value={editForm.room}
+                  onChange={e => setEditForm({ ...editForm, room: e.target.value })}
+                  placeholder="Optional"
+                  className="w-full px-3 py-2 text-sm border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-200"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-foreground mb-1">Description</label>
+                <textarea
+                  name="description"
+                  value={editForm.description}
+                  onChange={e => setEditForm({ ...editForm, description: e.target.value })}
+                  rows={3}
+                  placeholder="What does this role involve?"
+                  className="w-full px-3 py-2 text-sm border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-200 resize-y"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-foreground mb-1">Requirements</label>
+                <textarea
+                  name="requirements"
+                  value={editForm.requirements}
+                  onChange={e => setEditForm({ ...editForm, requirements: e.target.value })}
+                  rows={3}
+                  placeholder="Qualifications, experience, clearances..."
+                  className="w-full px-3 py-2 text-sm border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-200 resize-y"
+                />
+              </div>
+
+              <div className="flex items-center justify-end gap-3 pt-2 border-t border-border">
+                <button
+                  onClick={() => setCreating(false)}
+                  className="px-4 py-2 text-sm text-foreground hover:bg-accent rounded-lg transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleCreate}
+                  disabled={saving || !editForm.title.trim()}
+                  className="px-4 py-2 text-sm font-medium text-white rounded-lg bg-primary hover:bg-primary/90 transition-colors disabled:opacity-50"
+                >
+                  {saving ? 'Creating...' : 'Create'}
                 </button>
               </div>
             </div>
