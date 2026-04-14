@@ -15,7 +15,7 @@ import {
   Baby, Clock, Users, Wallet, FileInput, HeartPulse,
   Plug, UserCog, Bell, Tag, Cloud, Brain,
   PanelLeftClose, PanelLeftOpen, LogOut, ChevronDown,
-  Megaphone, PenSquare, Star, BadgeDollarSign, TrendingUp, Bot, Settings,
+  Megaphone, PenSquare, Star, BadgeDollarSign, TrendingUp, Bot, Settings, Briefcase,
   type LucideIcon,
 } from 'lucide-react'
 import { useState } from 'react'
@@ -93,6 +93,14 @@ const navGroups: NavGroup[] = [
       { href: '/owna/families', label: 'Families & Billing', icon: Wallet },
       { href: '/owna/enrolments', label: 'Enrolment Pipeline', icon: FileInput },
       { href: '/owna/health', label: 'Health & Safety', icon: HeartPulse },
+    ],
+  },
+  {
+    label: 'Recruitment',
+    showIf: (p) => ['admin', 'manager', 'ns'].includes(p.role),
+    items: [
+      { href: '/candidates', label: 'Candidates', icon: Briefcase },
+      { href: '/candidates/positions', label: 'Positions', icon: FileText },
     ],
   },
   {
