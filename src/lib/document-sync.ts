@@ -103,10 +103,10 @@ export async function syncAllDocuments(): Promise<SyncResult> {
             userId: doc.created_by,
           })
           if (uploadResult?.documentId) {
-            // Mark original as superseded (new doc was created by storeAndUploadDocument)
+            // Delete original pending record (new one was created by storeAndUploadDocument)
             await supabase
               .from('ai_generated_documents')
-              .update({ sync_status: 'synced', last_synced_at: new Date().toISOString() })
+              .delete()
               .eq('id', doc.id)
           }
         } catch {

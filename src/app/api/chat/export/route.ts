@@ -40,7 +40,7 @@ export async function GET(request: NextRequest) {
     return new NextResponse(lines.join('\n'), {
       headers: {
         'Content-Type': 'text/markdown; charset=utf-8',
-        'Content-Disposition': `attachment; filename="${(conv.title || 'conversation').replace(/[^a-zA-Z0-9 ]/g, '')}.md"`,
+        'Content-Disposition': `attachment; filename="${(conv.title || 'conversation').replace(/[^\w\s-]/g, '').trim().substring(0, 100) || 'conversation'}.md"`,
       },
     })
   }

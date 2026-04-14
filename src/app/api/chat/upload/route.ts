@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) {
       }
       const buffer = Buffer.from(await file.arrayBuffer())
       const ext = file.name.split('.').pop()?.toLowerCase() || ''
-      const safeName = `${user.id}/${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`
+      const safeName = `${user.id}/${crypto.randomUUID()}-${file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`
 
       // Upload to Supabase Storage
       const { data: uploadData, error: uploadError } = await supabase.storage
@@ -75,6 +75,7 @@ export async function POST(request: NextRequest) {
           }
           result.pageCount = pdfData.numpages
         } catch (e) {
+          console.error(`[Kiros AI] PDF extraction failed for ${file.name}:`, e instanceof Error ? e.message : e)
           result.text = '[PDF text extraction failed]'
         }
       } else if (isDocx) {
@@ -87,6 +88,7 @@ export async function POST(request: NextRequest) {
             result.truncated = true
           }
         } catch (e) {
+          console.error(`[Kiros AI] DOCX extraction failed for ${file.name}:`, e instanceof Error ? e.message : e)
           result.text = '[DOCX text extraction failed]'
         }
       } else if (isText) {

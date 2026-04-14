@@ -125,6 +125,7 @@ export function useChatStream(): UseChatStreamReturn {
                   setActiveAgents(prev => [...prev, {
                     name: agentEvent.agentName,
                     description: agentEvent.description,
+                    // Initial status 'starting' is set client-side before orchestrator sends 'running'
                     status: 'starting',
                   }])
                 } else if (agentEvent.type === 'agent_progress') {

@@ -99,7 +99,8 @@ export async function POST(request: NextRequest) {
     )
   }
 
-  const { data: profile } = await supabase.from('profiles').select('id, full_name, role').eq('id', user.id).single()
+  const { data: profile, error: profileError } = await supabase.from('profiles').select('id, full_name, role').eq('id', user.id).single()
+  if (profileError) console.error('[Kiros AI] Profile load error:', profileError.message)
   if (!profile) {
     return new Response(
       new TextEncoder().encode(`event: error\ndata: ${JSON.stringify({ type: 'error', message: 'Profile not found' })}\n\n`),

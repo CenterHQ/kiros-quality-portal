@@ -198,6 +198,8 @@ const markdownComponents = {
 }
 
 function MarkdownRendererInner({ content, compact = false }: MarkdownRendererProps) {
+  if (!content) return null
+
   return (
     <div className={compact ? PROSE_COMPACT : PROSE_FULL}>
       <ReactMarkdown

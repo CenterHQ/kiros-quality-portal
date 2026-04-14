@@ -183,8 +183,9 @@ export async function orchestrateAgents(params: {
         .single()
 
       sessionIds.push(data?.id || '')
-    } catch {
-      sessionIds.push('') // Session tracking is non-critical
+    } catch (e) {
+      console.error('[Kiros AI] Agent session tracking failed:', e instanceof Error ? e.message : e)
+      sessionIds.push('')
     }
   }
 
