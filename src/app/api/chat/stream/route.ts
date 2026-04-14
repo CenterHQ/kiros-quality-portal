@@ -134,16 +134,6 @@ export async function POST(request: NextRequest) {
     )
   }
 
-  // Save user message immediately
-  const { error: userMsgError } = await supabase.from('chat_messages').insert({
-    conversation_id: convId,
-    role: 'user',
-    content: message,
-  })
-  if (userMsgError) {
-    console.error('[Kiros AI] Failed to save user message:', userMsgError.message)
-  }
-
   // Use service role client for the streaming work (more reliable for long operations)
   const serviceSupabase = createServiceRoleClient()
 
@@ -178,6 +168,16 @@ export async function POST(request: NextRequest) {
           .limit(aiConfig.chatHistoryLimit)
 
         const messages: Anthropic.MessageParam[] = reconstructMessages(history || [])
+
+        // Save user message to DB (after history load to avoid duplication in messages array)
+        const { error: userMsgError } = await serviceSupabase.from('chat_messages').insert({
+          conversation_id: convId,
+          role: 'user',
+          content: message,
+        })
+        if (userMsgError) {
+          console.error('[Kiros AI] Failed to save user message:', userMsgError.message)
+        }
 
         // Add the current user message to the array
         messages.push({ role: 'user', content: message })

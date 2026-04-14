@@ -129,13 +129,6 @@ export async function POST(request: NextRequest) {
     )
   }
 
-  // Save user message
-  await supabase.from('marketing_messages').insert({
-    conversation_id: convId,
-    role: 'user',
-    content: message,
-  })
-
   const serviceSupabase = createServiceRoleClient()
 
   let fullText = ''
@@ -166,6 +159,13 @@ export async function POST(request: NextRequest) {
           .limit(aiConfig.chatHistoryLimit)
 
         const messages: Anthropic.MessageParam[] = reconstructMessages(history || [])
+
+        // Save user message to DB (after history load to avoid duplication in messages array)
+        await serviceSupabase.from('marketing_messages').insert({
+          conversation_id: convId,
+          role: 'user',
+          content: message,
+        })
 
         // Add the current user message to the array
         messages.push({ role: 'user', content: message })

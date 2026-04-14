@@ -123,6 +123,13 @@ async function processChat(
 
     const messages: Anthropic.MessageParam[] = reconstructMessages(history || [])
 
+    // Save user message to DB (after history load to avoid duplication in messages array)
+    await supabase.from('chat_messages').insert({
+      conversation_id: convId,
+      role: 'user',
+      content: originalMessage,
+    })
+
     // Add the current user message to the array
     messages.push({ role: 'user', content: originalMessage })
 
@@ -312,15 +319,7 @@ export async function POST(request: NextRequest) {
 
     if (!convId) return NextResponse.json({ error: 'Failed to create conversation' }, { status: 500 })
 
-    // Save user message immediately
-    const { error: userMsgError } = await supabase.from('chat_messages').insert({
-      conversation_id: convId,
-      role: 'user',
-      content: message,
-    })
-    if (userMsgError) {
-      console.error('[Kiros AI] Failed to save user message:', userMsgError.message)
-    }
+    // User message is saved inside processChat (after history load to avoid duplication)
 
     // Schedule heavy processing to run in the background via waitUntil
     waitUntil(processChat(convId, user.id, profile.role, isNew, message, attachments))
