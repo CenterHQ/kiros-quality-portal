@@ -245,7 +245,7 @@ export default function CandidatesPage() {
               onClick={() => setShowCreatePosition(true)}
               className="px-4 py-2 text-sm font-medium rounded-lg border border-border text-foreground hover:bg-accent transition-colors"
             >
-              Create Position
+              New Position
             </button>
             <button
               onClick={() => { setShowInvite(true); setInviteLink(null); setInvite({ position_id: positions.find(p => p.status === 'open')?.id || '', full_name: '', email: '', phone: '', referred_by_name: '' }) }}
