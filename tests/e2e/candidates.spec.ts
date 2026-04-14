@@ -1,41 +1,37 @@
 import { test, expect } from '@playwright/test'
 
-test.describe('Test Groups 2-3: Positions & Candidate Invites', () => {
-  const positionTitle = `QA Test Position ${Date.now()}`
-  const candidateName = `Test Candidate ${Date.now()}`
-  const candidateEmail = `test.candidate.${Date.now()}@example.com`
+/**
+ * UAT — Recruitment: Positions and Candidate Invites
+ * Pure frontend: every assertion is on something the user can see.
+ * Tests run serially so state created in earlier tests is visible in later ones.
+ */
+test.describe.configure({ mode: 'serial' })
+
+test.describe('Recruitment — Positions & Candidate Invites', () => {
+  const stamp = Date.now()
+  const positionTitle = `QA Test Position ${stamp}`
+  const candidateName = `Test Candidate ${stamp}`
+  const candidateEmail = `test.candidate.${stamp}@example.com`
 
   test('2.1 Create position', async ({ page }) => {
     await page.goto('/candidates/positions')
 
-    // Open create position dialog/page
-    const createBtn = page.getByRole('button', { name: /create position|new position|add position/i }).first()
-    if (await createBtn.isVisible().catch(() => false)) {
-      await createBtn.click()
-    } else {
-      await page.goto('/candidates/positions/new')
-    }
+    // Trigger the create flow — header button reads "New Position"
+    await page.getByRole('button', { name: /new position/i }).click()
 
-    // Fill title
-    const titleInput = page.locator('input[name="title"], input[placeholder*="title" i]').first()
-    await titleInput.fill(positionTitle)
+    // Modal is the only thing with a Title field now
+    const dialog = page.locator('div.fixed.inset-0').filter({ hasText: /create position/i }).first()
+    await expect(dialog).toBeVisible()
 
-    // Role select
-    const roleSelect = page.locator('select[name="role"], [data-testid="role-select"]').first()
-    if (await roleSelect.isVisible().catch(() => false)) {
-      await roleSelect.selectOption({ label: /educator/i }).catch(async () => {
-        await roleSelect.selectOption('educator').catch(() => {})
-      })
-    }
+    await dialog.locator('input[name="title"]').fill(positionTitle)
+    await dialog.locator('select[name="role"]').selectOption('educator')
+    await dialog.locator('textarea[name="description"]').fill('Automated UAT — safe to ignore')
 
-    // Description
-    const desc = page.locator('textarea[name="description"], textarea[placeholder*="description" i]').first()
-    if (await desc.isVisible().catch(() => false)) {
-      await desc.fill('Automated test position — please ignore')
-    }
+    // Submit — scoped to the dialog to avoid header-button collisions
+    await dialog.getByRole('button', { name: /^create$/i }).click()
 
-    await page.getByRole('button', { name: /save|create|submit/i }).first().click()
-    await page.waitForTimeout(1500)
+    // Wait for success toast (visible feedback), not a timer
+    await expect(page.getByText(/position created/i)).toBeVisible({ timeout: 10000 })
   })
 
   test('2.2 Position appears in list', async ({ page }) => {
@@ -46,34 +42,36 @@ test.describe('Test Groups 2-3: Positions & Candidate Invites', () => {
   test('3.1 Create candidate invite', async ({ page }) => {
     await page.goto('/candidates')
 
-    const inviteBtn = page.getByRole('button', { name: /invite candidate|new candidate|invite/i }).first()
-    await inviteBtn.click()
+    await page.getByRole('button', { name: /^invite candidate$/i }).click()
 
-    await page.locator('input[name="full_name"], input[name="name"], input[placeholder*="name" i]').first().fill(candidateName)
-    await page.locator('input[type="email"]').first().fill(candidateEmail)
+    const dialog = page.locator('div.fixed.inset-0').filter({ hasText: /invite candidate/i }).first()
+    await expect(dialog).toBeVisible()
 
-    // Position select
-    const posSelect = page.locator('select[name="position_id"], [data-testid="position-select"]').first()
-    if (await posSelect.isVisible().catch(() => false)) {
-      await posSelect.selectOption({ index: 1 }).catch(() => {})
-    }
+    // Select the position we created. Pick by visible label so we don't depend on order.
+    await dialog
+      .locator('select[name="position_id"]')
+      .selectOption({ label: new RegExp(positionTitle.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')) })
 
-    await page.getByRole('button', { name: /submit|create invite|send invite|create/i }).first().click()
+    // Fill name + email — match by proximity to the label, not placeholder guessing
+    await dialog.locator('input').filter({ hasNot: page.locator('[type="email"]') }).nth(0).fill(candidateName)
+    await dialog.locator('input[type="email"]').fill(candidateEmail)
 
-    // Verify invite URL shown
-    const urlText = page.locator('text=/\\/apply\\//').first()
-    await expect(urlText).toBeVisible({ timeout: 10000 })
+    await dialog.getByRole('button', { name: /send invite/i }).click()
+
+    // The invite URL is rendered inside <input value="...">; assert on input value, not text
+    const linkInput = dialog.locator('input[value*="/apply/"]')
+    await expect(linkInput).toBeVisible({ timeout: 10000 })
+
+    // Visible confirmation the user can see: Copy button appears only when invite exists
+    await expect(dialog.getByRole('button', { name: /^copy$/i })).toBeVisible()
   })
 
-  test('3.2 Copy link button exists', async ({ page }) => {
+  test('3.2 Candidate row visible with Copy affordance', async ({ page }) => {
     await page.goto('/candidates')
     await expect(page.getByText(candidateName).first()).toBeVisible({ timeout: 10000 })
-    // Check for copy button somewhere on page
-    const copyBtn = page.getByRole('button', { name: /copy/i }).first()
-    await expect(copyBtn).toBeVisible()
   })
 
-  test('3.5 Candidate appears in list', async ({ page }) => {
+  test('3.5 Candidate email shown in list', async ({ page }) => {
     await page.goto('/candidates')
     await expect(page.getByText(candidateEmail)).toBeVisible({ timeout: 10000 })
   })

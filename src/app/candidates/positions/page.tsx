@@ -364,6 +364,7 @@ export default function PositionsPage() {
                 <label className="block text-sm font-medium text-foreground mb-1">Title</label>
                 <input
                   type="text"
+                  name="title"
                   value={editForm.title}
                   onChange={e => setEditForm({ ...editForm, title: e.target.value })}
                   className="w-full px-3 py-2 text-sm border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-200"
@@ -373,6 +374,7 @@ export default function PositionsPage() {
               <div>
                 <label className="block text-sm font-medium text-foreground mb-1">Role</label>
                 <select
+                  name="role"
                   value={editForm.role}
                   onChange={e => setEditForm({ ...editForm, role: e.target.value })}
                   className="w-full px-3 py-2 text-sm border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-200"
@@ -387,6 +389,7 @@ export default function PositionsPage() {
                 <label className="block text-sm font-medium text-foreground mb-1">Room</label>
                 <input
                   type="text"
+                  name="room"
                   value={editForm.room}
                   onChange={e => setEditForm({ ...editForm, room: e.target.value })}
                   className="w-full px-3 py-2 text-sm border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-200"
@@ -396,6 +399,7 @@ export default function PositionsPage() {
               <div>
                 <label className="block text-sm font-medium text-foreground mb-1">Description</label>
                 <textarea
+                  name="description"
                   value={editForm.description}
                   onChange={e => setEditForm({ ...editForm, description: e.target.value })}
                   rows={3}
@@ -406,6 +410,7 @@ export default function PositionsPage() {
               <div>
                 <label className="block text-sm font-medium text-foreground mb-1">Requirements</label>
                 <textarea
+                  name="requirements"
                   value={editForm.requirements}
                   onChange={e => setEditForm({ ...editForm, requirements: e.target.value })}
                   rows={3}

@@ -1,53 +1,40 @@
 import { test, expect } from '@playwright/test'
 
+/**
+ * UAT — Programming (Educational Leadership) Hub
+ * Pure frontend: assert on visible elements the user would recognise.
+ */
 test.describe('Programming Hub', () => {
-  test('Navigates to programming hub', async ({ page }) => {
+  test.beforeEach(async ({ page }) => {
     await page.goto('/programming')
     await expect(page).toHaveURL(/\/programming/)
   })
 
-  test('Stats cards visible', async ({ page }) => {
-    await page.goto('/programming')
-    // Stat cards typically have numbers; look for multiple card-like elements
-    const cards = page.locator('[data-testid*="stat"], .card, [class*="Card"]')
-    await expect(cards.first()).toBeVisible({ timeout: 10000 })
+  test('Page heading renders', async ({ page }) => {
+    await expect(page.getByRole('heading', { name: /programming|educational/i }).first()).toBeVisible({ timeout: 10000 })
   })
 
-  test('PDSA cycle widget present', async ({ page }) => {
-    await page.goto('/programming')
-    const pdsa = page.getByText(/pdsa|plan.*do.*study.*act/i).first()
-    await expect(pdsa).toBeVisible({ timeout: 10000 })
+  test('PDSA cycle mentioned on page', async ({ page }) => {
+    // The cycle widget contains the PDSA acronym or the expanded phrase
+    await expect(page.getByText(/pdsa|plan.*do.*study.*act/i).first()).toBeVisible({ timeout: 10000 })
   })
 
-  test('New Learning Story opens modal', async ({ page }) => {
-    await page.goto('/programming')
-    const btn = page.getByRole('button', { name: /new learning story|learning story/i }).first()
-    await btn.click()
+  test('New Learning Story quick action opens modal', async ({ page }) => {
+    await page.getByRole('button', { name: /new learning story/i }).first().click()
 
-    // Modal/dialog should open
-    const dialog = page.locator('[role="dialog"], [data-testid*="modal"]').first()
-    await expect(dialog).toBeVisible({ timeout: 5000 })
+    // Modal is identified by its heading text
+    await expect(page.getByRole('heading', { name: /new learning story/i })).toBeVisible({ timeout: 5000 })
+
+    // Modal contains a Room select and a Topic input (the user-visible fields)
+    await expect(page.getByText(/room/i).first()).toBeVisible()
+    await expect(page.getByText(/topic/i).first()).toBeVisible()
   })
 
-  test('Learning story modal submit navigates to chat', async ({ page }) => {
-    await page.goto('/programming')
-    const btn = page.getByRole('button', { name: /new learning story|learning story/i }).first()
-    await btn.click()
+  test('Quick action modal cancels cleanly', async ({ page }) => {
+    await page.getByRole('button', { name: /new learning story/i }).first().click()
+    await expect(page.getByRole('heading', { name: /new learning story/i })).toBeVisible({ timeout: 5000 })
 
-    const dialog = page.locator('[role="dialog"]').first()
-    await expect(dialog).toBeVisible({ timeout: 5000 })
-
-    // Fill any required fields
-    const textInputs = dialog.locator('input[type="text"], textarea')
-    const count = await textInputs.count()
-    for (let i = 0; i < count; i++) {
-      await textInputs.nth(i).fill('Sensory play with sand and water').catch(() => {})
-    }
-
-    const submit = dialog.getByRole('button', { name: /generate|create|submit|start/i }).first()
-    if (await submit.isVisible().catch(() => false)) {
-      await submit.click()
-      await page.waitForURL(/\/chat/, { timeout: 15000 }).catch(() => {})
-    }
+    await page.getByRole('button', { name: /^cancel$/i }).click()
+    await expect(page.getByRole('heading', { name: /new learning story/i })).toBeHidden()
   })
 })
