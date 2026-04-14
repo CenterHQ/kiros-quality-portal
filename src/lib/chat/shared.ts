@@ -1632,11 +1632,11 @@ export async function executeTool(
         return {
         agentName: area.focus.toLowerCase().replace(/\s+/g, '_').substring(0, 30),
         description: area.focus,
-        systemPrompt: `You are a focused research agent for Kiros Early Education Centre (Bidwill, NSW). Your task is to analyse: ${area.focus}. Use the available tools to gather real data, then provide a concise analysis with key findings, issues identified, and specific recommendations. Be specific — cite data points, staff names, dates, NQS element codes. Use Australian English. Format your response with ## headings and bullet points.`,
+        systemPrompt: `You are a focused research agent for Kiros Early Education Centre (Blackett, NSW). Your task is to analyse: ${area.focus}. Use the available tools to gather real data, then provide a concise analysis with key findings, issues identified, and specific recommendations. Be specific — cite data points, staff names, dates, NQS element codes. Use Australian English. Format your response with ## headings and bullet points.`,
         tools: ALL_TOOLS
           .filter(t => safeDataTools.includes(t.name))
           .map(({ allowedRoles: _r, ...rest }) => rest) as Anthropic.Tool[],
-        context: `Centre: Kiros Early Education, Bidwill NSW. Today: ${new Date().toISOString().split('T')[0]}`,
+        context: `Centre: Kiros Early Education, Blackett NSW. Today: ${new Date().toISOString().split('T')[0]}`,
         model: MODEL_SONNET,
         maxIterations: 3,
       }
@@ -1714,7 +1714,7 @@ export async function executeTool(
             tools: ALL_TOOLS
               .filter(t => (def.available_tools || []).includes(t.name))
               .map(({ allowedRoles: _r, ...rest }) => rest) as Anthropic.Tool[],
-            context: d.context || `Centre: Kiros Early Education, Bidwill NSW. Today: ${new Date().toISOString().split('T')[0]}`,
+            context: d.context || `Centre: Kiros Early Education, Blackett NSW. Today: ${new Date().toISOString().split('T')[0]}`,
             model: def.model || MODEL_SONNET,
             maxIterations: def.max_iterations || 3,
             temperature: def.temperature ?? undefined,

@@ -38,7 +38,7 @@ export async function POST(request: NextRequest) {
     .select('key, value')
     .in('key', ['service_name', 'service_address'])
   const centreName = serviceDetails?.find((d: { key: string; value: string }) => d.key === 'service_name')?.value || 'Kiros Early Education'
-  const location = serviceDetails?.find((d: { key: string; value: string }) => d.key === 'service_address')?.value || 'Bidwill NSW'
+  const location = serviceDetails?.find((d: { key: string; value: string }) => d.key === 'service_address')?.value || 'Blackett NSW'
 
   const result = await runAgent(
     {

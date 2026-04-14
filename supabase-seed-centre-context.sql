@@ -513,7 +513,7 @@ INSERT INTO centre_context (document_id, context_type, title, content, related_q
 
 ('d0000001-0000-0000-0000-000000000005', 'inclusion_practice',
  'Multicultural celebrations and diverse programming',
- 'The service hosts multicultural dress-up days and celebrations engaging families from diverse cultural backgrounds. Natural materials from the outdoor environment are incorporated. The service reflects and celebrates the diversity of its Bidwill community.',
+ 'The service hosts multicultural dress-up days and celebrations engaging families from diverse cultural backgrounds. Natural materials from the outdoor environment are incorporated. The service reflects and celebrates the diversity of its Blackett community.',
  '{3,6}', '{3.2.1,6.2.3}',
  'Multicultural day celebrations were hosted, engaging families from diverse cultural backgrounds and building connections.',
  false);
