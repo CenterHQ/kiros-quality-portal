@@ -17,8 +17,6 @@ export default defineConfig({
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',
-    // Reuse authenticated state
-    storageState: 'playwright/.auth/user.json',
   },
   projects: [
     {
@@ -27,7 +25,11 @@ export default defineConfig({
     },
     {
       name: 'chromium',
-      use: { ...devices['Desktop Chrome'] },
+      use: {
+        ...devices['Desktop Chrome'],
+        // Reuse authenticated state created by setup project
+        storageState: 'playwright/.auth/user.json',
+      },
       dependencies: ['setup'],
     },
   ],
