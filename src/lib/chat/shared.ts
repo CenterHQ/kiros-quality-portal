@@ -2184,7 +2184,7 @@ export async function executeTool(
     case 'get_team_profiles': {
       const includeLeadership = toolInput.include_leadership !== false
 
-      let query = supabase
+      const query = supabase
         .from('staff_disc_profiles')
         .select('id, user_id, d_score, i_score, s_score, c_score, primary_type, secondary_type, profiles(full_name, role)')
 
