@@ -104,6 +104,13 @@ const navGroups: NavGroup[] = [
     ],
   },
   {
+    label: 'Programming',
+    showIf: (p) => ['admin', 'manager', 'ns', 'el', 'educator'].includes(p.role),
+    items: [
+      { href: '/programming', label: 'Programming Hub', icon: BookOpen },
+    ],
+  },
+  {
     label: 'Marketing',
     showIf: (p) => ['admin', 'manager', 'ns'].includes(p.role),
     items: [
