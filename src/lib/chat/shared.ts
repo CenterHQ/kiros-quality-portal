@@ -901,6 +901,124 @@ export const ALL_TOOLS: (Anthropic.Tool & { allowedRoles: string[] })[] = [
     },
     allowedRoles: ['admin', 'manager', 'ns', 'el', 'educator'],
   },
+  {
+    name: 'create_candidate_invite',
+    description: 'Create a recruitment invite link for a candidate to complete the assessment questionnaire. Returns a unique URL that the candidate can use to access the questionnaire without logging in.',
+    input_schema: {
+      type: 'object' as const,
+      properties: {
+        position_id: { type: 'string', description: 'UUID of the recruitment position' },
+        full_name: { type: 'string', description: 'Candidate full name' },
+        email: { type: 'string', description: 'Candidate email address' },
+        phone: { type: 'string', description: 'Candidate phone number (optional)' },
+        referred_by_name: { type: 'string', description: 'Name of referring staff member (optional)' },
+      },
+      required: ['position_id', 'full_name', 'email'],
+    },
+    allowedRoles: ['admin', 'manager', 'ns'],
+  },
+  {
+    name: 'get_candidates',
+    description: 'List recruitment candidates with their status, scores, and position details. Filter by position or status.',
+    input_schema: {
+      type: 'object' as const,
+      properties: {
+        position_id: { type: 'string', description: 'Filter by position UUID' },
+        status: { type: 'string', description: 'Filter by status (invited/in_progress/completed/reviewed/approved/rejected/onboarding)' },
+      },
+    },
+    allowedRoles: ['admin', 'manager', 'ns'],
+  },
+  {
+    name: 'score_candidate',
+    description: 'Trigger AI scoring for a completed candidate assessment. Evaluates knowledge answers, generates DISC profile, analyses personality, calculates team fit, and produces an overall recommendation.',
+    input_schema: {
+      type: 'object' as const,
+      properties: {
+        candidate_id: { type: 'string', description: 'UUID of the candidate to score' },
+      },
+      required: ['candidate_id'],
+    },
+    allowedRoles: ['admin', 'manager', 'ns'],
+  },
+  {
+    name: 'create_onboarding_plan',
+    description: 'Create a full onboarding plan for an approved candidate. Creates portal account, assigns mandatory training, creates induction checklist, and generates orientation tasks.',
+    input_schema: {
+      type: 'object' as const,
+      properties: {
+        candidate_id: { type: 'string', description: 'UUID of the approved candidate' },
+      },
+      required: ['candidate_id'],
+    },
+    allowedRoles: ['admin', 'manager', 'ns'],
+  },
+  {
+    name: 'generate_interview_questions',
+    description: 'Generate role-specific interview questions based on the centre context, NQS requirements, and the position role. Returns questions that can be added to a position question bank.',
+    input_schema: {
+      type: 'object' as const,
+      properties: {
+        role: { type: 'string', description: 'Role type (educator, room_leader, ect, cook, admin)' },
+        count: { type: 'integer', description: 'Number of questions to generate (default 10)' },
+        focus_areas: { type: 'array', items: { type: 'string' }, description: 'Specific areas to focus on (e.g., NQS, EYLF, child development, compliance)' },
+      },
+      required: ['role'],
+    },
+    allowedRoles: ['admin', 'manager', 'ns'],
+  },
+  {
+    name: 'create_lms_module',
+    description: 'Create a new LMS training module with sections and quiz questions. The module will appear in the Learning page for staff to complete.',
+    input_schema: {
+      type: 'object' as const,
+      properties: {
+        title: { type: 'string', description: 'Module title' },
+        description: { type: 'string', description: 'Module description' },
+        tier: { type: 'string', enum: ['mandatory', 'core', 'advanced'], description: 'Module tier' },
+        related_qa: { type: 'array', items: { type: 'integer' }, description: 'Related QA areas (1-7)' },
+        category: { type: 'string', description: 'Module category (e.g., health_safety, programming, leadership)' },
+        sections: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              title: { type: 'string' },
+              section_type: { type: 'string', enum: ['content', 'quiz', 'reflection', 'action_step'] },
+              content: { type: 'string', description: 'Markdown content for the section' },
+              questions: {
+                type: 'array',
+                items: {
+                  type: 'object',
+                  properties: {
+                    question: { type: 'string' },
+                    question_type: { type: 'string', enum: ['multiple_choice', 'true_false', 'scenario'] },
+                    options: { type: 'array', items: { type: 'object', properties: { text: { type: 'string' }, is_correct: { type: 'boolean' }, explanation: { type: 'string' } } } },
+                  },
+                },
+                description: 'Quiz questions (for quiz sections only)',
+              },
+            },
+          },
+          description: 'Module sections in order',
+        },
+      },
+      required: ['title', 'tier', 'sections'],
+    },
+    allowedRoles: ['admin', 'manager', 'ns', 'el'],
+  },
+  {
+    name: 'get_team_profiles',
+    description: 'Get DISC personality profiles for existing staff members. Used for team composition analysis when evaluating candidates.',
+    input_schema: {
+      type: 'object' as const,
+      properties: {
+        room: { type: 'string', description: 'Filter by room name (optional)' },
+        include_leadership: { type: 'boolean', description: 'Include NS, EL, Manager profiles (default true)' },
+      },
+    },
+    allowedRoles: ['admin', 'manager', 'ns'],
+  },
 ]
 
 // Supabase client type that works for both cookie-based and service-role clients
@@ -1806,6 +1924,318 @@ export async function executeTool(
         status: 'recorded',
         feedback_id: data.id,
         message: `Recorded ${feedback_type} feedback for ${agent_name}`,
+      })
+    }
+
+    case 'create_candidate_invite': {
+      const accessToken = crypto.randomUUID()
+      const { data: candidate, error } = await supabase
+        .from('recruitment_candidates')
+        .insert({
+          position_id: toolInput.position_id as string,
+          full_name: toolInput.full_name as string,
+          email: toolInput.email as string,
+          phone: (toolInput.phone as string) || null,
+          referred_by_name: (toolInput.referred_by_name as string) || null,
+          access_token: accessToken,
+          status: 'invited',
+          invited_by: userId,
+        })
+        .select('id, full_name, email, status')
+        .single()
+
+      if (error) return JSON.stringify({ error: error.message })
+
+      const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://portal.kiroseec.com.au'
+      const inviteUrl = `${baseUrl}/apply/${accessToken}`
+
+      return JSON.stringify({
+        success: true,
+        candidate_id: candidate.id,
+        candidate_name: candidate.full_name,
+        invite_url: inviteUrl,
+        message: `Invite created for ${candidate.full_name} (${candidate.email}). Share this link: ${inviteUrl}`,
+      })
+    }
+
+    case 'get_candidates': {
+      let query = supabase
+        .from('recruitment_candidates')
+        .select('id, full_name, email, phone, status, overall_score, disc_primary_type, disc_secondary_type, recommendation, created_at, position_id, recruitment_positions(title)')
+        .order('created_at', { ascending: false })
+
+      if (toolInput.position_id) query = query.eq('position_id', toolInput.position_id as string)
+      if (toolInput.status) query = query.eq('status', toolInput.status as string)
+
+      const { data, error } = await query.limit(50)
+      if (error) return JSON.stringify({ error: error.message })
+
+      const candidates = (data || []).map((c: Record<string, unknown>) => ({
+        id: c.id,
+        name: c.full_name,
+        email: c.email,
+        phone: c.phone,
+        status: c.status,
+        score: c.overall_score,
+        disc_type: c.disc_primary_type ? `${c.disc_primary_type}${c.disc_secondary_type ? '/' + c.disc_secondary_type : ''}` : null,
+        recommendation: c.recommendation,
+        position: (c.recruitment_positions as { title: string } | null)?.title || 'Unknown',
+        applied_at: c.created_at,
+      }))
+
+      return JSON.stringify({ total: candidates.length, candidates })
+    }
+
+    case 'score_candidate': {
+      const candidateId = toolInput.candidate_id as string
+      const { data: candidate, error } = await supabase
+        .from('recruitment_candidates')
+        .select('id, full_name, status')
+        .eq('id', candidateId)
+        .single()
+
+      if (error || !candidate) return JSON.stringify({ error: error?.message || 'Candidate not found' })
+      if (candidate.status !== 'completed') {
+        return JSON.stringify({ error: `Candidate "${candidate.full_name}" has status "${candidate.status}" — scoring requires status "completed"` })
+      }
+
+      // Check that the candidate has responses
+      const { count } = await supabase
+        .from('recruitment_responses')
+        .select('id', { count: 'exact', head: true })
+        .eq('candidate_id', candidateId)
+
+      if (!count || count === 0) {
+        return JSON.stringify({ error: `No assessment responses found for candidate "${candidate.full_name}"` })
+      }
+
+      // Update status to indicate scoring is in progress
+      await supabase
+        .from('recruitment_candidates')
+        .update({ status: 'reviewed' })
+        .eq('id', candidateId)
+
+      return JSON.stringify({
+        success: true,
+        candidate_id: candidateId,
+        candidate_name: candidate.full_name,
+        responses_count: count,
+        message: `Scoring initiated for ${candidate.full_name} — ${count} responses will be evaluated. Results will be available shortly. Use the /api/recruitment/score endpoint to trigger full AI scoring.`,
+      })
+    }
+
+    case 'create_onboarding_plan': {
+      const candidateId = toolInput.candidate_id as string
+      const { data: candidate, error } = await supabase
+        .from('recruitment_candidates')
+        .select('id, full_name, email, status, position_id, recruitment_positions(title, role_type)')
+        .eq('id', candidateId)
+        .single()
+
+      if (error || !candidate) return JSON.stringify({ error: error?.message || 'Candidate not found' })
+      if (candidate.status !== 'approved') {
+        return JSON.stringify({ error: `Candidate "${candidate.full_name}" has status "${candidate.status}" — onboarding requires status "approved"` })
+      }
+
+      const position = candidate.recruitment_positions as unknown as { title: string; role_type: string } | null
+
+      return JSON.stringify({
+        pending_action: {
+          id: crypto.randomUUID(),
+          action_type: 'create_onboarding_plan',
+          description: `Create onboarding plan for ${candidate.full_name} (${position?.title || 'Unknown Position'})`,
+          details: {
+            candidate_id: candidateId,
+            candidate_name: candidate.full_name,
+            candidate_email: candidate.email,
+            position_title: position?.title || null,
+            role_type: position?.role_type || null,
+            steps: [
+              'Create portal account with educator role',
+              'Assign mandatory training modules (WHS, Child Protection, First Aid)',
+              'Create induction checklist from onboarding template',
+              'Generate orientation tasks (meet team, room tour, policy review)',
+              'Update candidate status to onboarding',
+            ],
+          },
+        },
+      })
+    }
+
+    case 'generate_interview_questions': {
+      const role = toolInput.role as string
+      const focusAreas = (toolInput.focus_areas as string[]) || []
+
+      // Load existing question templates for this role
+      let query = supabase
+        .from('recruitment_question_templates')
+        .select('id, question_text, category, role_type, question_type, scoring_criteria')
+        .eq('is_active', true)
+
+      if (role) query = query.eq('role_type', role)
+      const { data: templates, error } = await query.order('sort_order').limit(50)
+
+      if (error) return JSON.stringify({ error: error.message })
+
+      return JSON.stringify({
+        role,
+        focus_areas: focusAreas,
+        existing_templates: (templates || []).map(t => ({
+          id: t.id,
+          question: t.question_text,
+          category: t.category,
+          type: t.question_type,
+          scoring_criteria: t.scoring_criteria,
+        })),
+        total_existing: (templates || []).length,
+        message: `Found ${(templates || []).length} existing question templates for role "${role}". You can use these as a base, suggest modifications, or generate new questions in your response.`,
+      })
+    }
+
+    case 'create_lms_module': {
+      const sections = toolInput.sections as Array<{
+        title: string
+        section_type: string
+        content?: string
+        questions?: Array<{
+          question: string
+          question_type: string
+          options?: Array<{ text: string; is_correct: boolean; explanation?: string }>
+        }>
+      }>
+
+      // Insert the module
+      const { data: mod, error: modError } = await supabase
+        .from('lms_modules')
+        .insert({
+          title: toolInput.title as string,
+          description: (toolInput.description as string) || null,
+          tier: toolInput.tier as string,
+          related_qa: (toolInput.related_qa as number[]) || [],
+          category: (toolInput.category as string) || null,
+          status: 'draft',
+          created_by: userId,
+        })
+        .select('id')
+        .single()
+
+      if (modError) return JSON.stringify({ error: modError.message })
+
+      const moduleId = mod.id
+      let sectionsCreated = 0
+      let questionsCreated = 0
+
+      try {
+        for (let i = 0; i < sections.length; i++) {
+          const section = sections[i]
+          const { data: sec, error: secError } = await supabase
+            .from('lms_module_sections')
+            .insert({
+              module_id: moduleId,
+              title: section.title,
+              section_type: section.section_type,
+              content: section.content || null,
+              sort_order: i + 1,
+            })
+            .select('id')
+            .single()
+
+          if (secError) throw new Error(`Failed to create section "${section.title}": ${secError.message}`)
+          sectionsCreated++
+
+          // Insert quiz questions if this is a quiz section
+          if (section.section_type === 'quiz' && section.questions && section.questions.length > 0) {
+            for (let q = 0; q < section.questions.length; q++) {
+              const question = section.questions[q]
+              const { error: qError } = await supabase
+                .from('lms_quiz_questions')
+                .insert({
+                  section_id: sec.id,
+                  question: question.question,
+                  question_type: question.question_type,
+                  options: question.options || [],
+                  sort_order: q + 1,
+                })
+
+              if (qError) throw new Error(`Failed to create question "${question.question}": ${qError.message}`)
+              questionsCreated++
+            }
+          }
+        }
+      } catch (err) {
+        // Cleanup on failure — delete module (CASCADE should handle sections and questions)
+        await supabase.from('lms_modules').delete().eq('id', moduleId)
+        const errMsg = err instanceof Error ? err.message : 'Unknown error'
+        return JSON.stringify({ error: `Module creation failed and was rolled back: ${errMsg}` })
+      }
+
+      return JSON.stringify({
+        success: true,
+        module_id: moduleId,
+        title: toolInput.title,
+        tier: toolInput.tier,
+        sections_created: sectionsCreated,
+        questions_created: questionsCreated,
+        status: 'draft',
+        message: `LMS module "${toolInput.title}" created with ${sectionsCreated} sections and ${questionsCreated} quiz questions. Status: draft — publish when ready.`,
+      })
+    }
+
+    case 'get_team_profiles': {
+      const includeLeadership = toolInput.include_leadership !== false
+
+      let query = supabase
+        .from('staff_disc_profiles')
+        .select('id, user_id, d_score, i_score, s_score, c_score, primary_type, secondary_type, profiles(full_name, role)')
+
+      const { data: profiles, error } = await query.limit(50)
+      if (error) return JSON.stringify({ error: error.message })
+
+      let results = (profiles || []).map((p: Record<string, unknown>) => {
+        const profile = p.profiles as { full_name: string; role: string } | null
+        return {
+          user_id: p.user_id,
+          name: profile?.full_name || 'Unknown',
+          role: profile?.role || 'unknown',
+          disc: {
+            d: p.d_score,
+            i: p.i_score,
+            s: p.s_score,
+            c: p.c_score,
+          },
+          primary_type: p.primary_type,
+          secondary_type: p.secondary_type,
+        }
+      })
+
+      // Filter by leadership if needed
+      if (!includeLeadership) {
+        results = results.filter(r => !['ns', 'el', 'manager', 'admin'].includes(r.role))
+      }
+
+      // Filter by room if specified
+      if (toolInput.room) {
+        const roomName = toolInput.room as string
+        const { data: roomData } = await supabase
+          .from('rooms')
+          .select('id')
+          .ilike('name', `%${roomName}%`)
+          .limit(1)
+          .maybeSingle()
+
+        if (roomData) {
+          const { data: shifts } = await supabase
+            .from('roster_shifts')
+            .select('user_id')
+            .eq('room_id', roomData.id)
+          const roomUserIds = new Set((shifts || []).map((s: { user_id: string }) => s.user_id))
+          results = results.filter(r => roomUserIds.has(r.user_id as string))
+        }
+      }
+
+      return JSON.stringify({
+        total: results.length,
+        profiles: results,
       })
     }
 
