@@ -15,10 +15,12 @@ test.describe('Tasks', () => {
   })
 
   test('D1.2 Three status columns visible in Board view', async ({ page }) => {
-    // Column labels are plain text inside the column containers
-    await expect(page.getByText('To Do', { exact: true }).first()).toBeVisible({ timeout: 10000 })
-    await expect(page.getByText('In Progress', { exact: true }).first()).toBeVisible()
-    await expect(page.getByText('Done', { exact: true }).first()).toBeVisible()
+    // Columns render as <h3> headings. Using role=heading avoids picking up
+    // hidden mobile-tab <button>s and hidden <option>s inside status dropdowns
+    // that also contain the exact same label text.
+    await expect(page.getByRole('heading', { name: 'To Do', exact: true })).toBeVisible({ timeout: 10000 })
+    await expect(page.getByRole('heading', { name: 'In Progress', exact: true })).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Done', exact: true })).toBeVisible()
   })
 
   test('D1.5 Add Task control present', async ({ page }) => {
