@@ -5,20 +5,30 @@ test.describe('Checklists', () => {
     await page.goto('/checklists')
   })
 
+  test('E1.1 Page heading visible', async ({ page }) => {
+    await expect(page.getByRole('heading', { name: /operational checklists|checklists/i }).first()).toBeVisible({ timeout: 10000 })
+  })
+
   test('E1.1 Four status tabs visible', async ({ page }) => {
-    const tabs = [/today/i, /upcoming/i, /history/i, /tickets/i]
-    for (const t of tabs) {
-      await expect(page.getByText(t).first()).toBeVisible({ timeout: 10000 })
-    }
+    // Tabs with counts: "Today (N)", "Upcoming (N)", "History", "Tickets (N)"
+    await expect(page.getByText(/today\s*\(/i).first()).toBeVisible({ timeout: 10000 })
+    await expect(page.getByText(/upcoming\s*\(/i).first()).toBeVisible()
+    await expect(page.getByText(/^history$/i).first()).toBeVisible()
+    await expect(page.getByText(/tickets\s*\(/i).first()).toBeVisible()
   })
 
-  test('E1.3 New checklist trigger present', async ({ page }) => {
-    const btn = page.getByRole('button', { name: /new checklist|create checklist|add checklist/i }).first()
-    await expect(btn).toBeVisible({ timeout: 10000 })
+  test('E1.3 Create flow trigger present', async ({ page }) => {
+    // Real label is "+ Assign Checklist"
+    await expect(page.getByRole('button', { name: /assign checklist/i })).toBeVisible({ timeout: 10000 })
   })
 
-  test('E1.5 Category filter available', async ({ page }) => {
-    const filter = page.locator('select').first()
-    await expect(filter).toBeVisible({ timeout: 10000 })
+  test('E1.3 Manage Templates button present', async ({ page }) => {
+    await expect(page.getByRole('button', { name: /manage templates/i })).toBeVisible({ timeout: 10000 })
+  })
+
+  test('E1.5 Category filter chips visible', async ({ page }) => {
+    // Filters are button chips, not a <select>
+    await expect(page.getByRole('button', { name: /^all$/i })).toBeVisible({ timeout: 10000 })
+    await expect(page.getByText(/safety|hygiene|compliance|health/i).first()).toBeVisible()
   })
 })
