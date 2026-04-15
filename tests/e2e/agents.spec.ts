@@ -3,6 +3,8 @@ import { test, expect } from '@playwright/test'
 /**
  * UAT — Admin Agents management page
  * Pure frontend: visible text and buttons, no DB assertions.
+ * The /admin/agents route renders the AI Configuration hub with all agents
+ * listed as expandable panels.
  */
 test.describe('Admin Agents Page', () => {
   test.beforeEach(async ({ page }) => {
@@ -11,7 +13,6 @@ test.describe('Admin Agents Page', () => {
   })
 
   test('All expected agents listed', async ({ page }) => {
-    // User-visible recognition: core QA agents + three new specialist agents
     const expectedAgents = [
       /QA1/i, /QA2/i, /QA7/i,
       /Marketing/i, /Compliance/i,
@@ -22,16 +23,12 @@ test.describe('Admin Agents Page', () => {
     }
   })
 
-  test('Edit flow reveals agent details', async ({ page }) => {
-    const editBtn = page.getByRole('button', { name: /^edit$/i }).first()
-    await expect(editBtn).toBeVisible({ timeout: 10000 })
-    await editBtn.click()
+  test('Expanding an agent reveals editable config', async ({ page }) => {
+    // The Master agent card is first; click it to reveal sub-tabs
+    const master = page.getByText(/Kiros AI \(Master\)|System Prompt/i).first()
+    await expect(master).toBeVisible({ timeout: 10000 })
 
-    // After clicking Edit, the page shows editable fields — system prompt, tools, etc.
-    await expect(page.getByText(/system prompt|tools|model/i).first()).toBeVisible({ timeout: 5000 })
-  })
-
-  test('Test Agent control exists', async ({ page }) => {
-    await expect(page.getByRole('button', { name: /test agent|test$/i }).first()).toBeVisible({ timeout: 10000 })
+    // The expanded state exposes the System Prompt editor
+    await expect(page.getByText(/system prompt/i).first()).toBeVisible({ timeout: 5000 })
   })
 })

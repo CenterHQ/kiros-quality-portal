@@ -47,10 +47,11 @@ test.describe('Recruitment — Positions & Candidate Invites', () => {
     const dialog = page.locator('div.fixed.inset-0').filter({ hasText: /invite candidate/i }).first()
     await expect(dialog).toBeVisible()
 
-    // Select the position we created. Pick by visible label so we don't depend on order.
-    await dialog
-      .locator('select[name="position_id"]')
-      .selectOption({ label: new RegExp(positionTitle.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')) })
+    // Select the position we created. Match option by its value (positions.id)
+    // via visible label — locator() finds the <option> then we read its value.
+    const posOption = dialog.locator('select[name="position_id"] option', { hasText: positionTitle }).first()
+    const posValue = await posOption.getAttribute('value')
+    await dialog.locator('select[name="position_id"]').selectOption(posValue || '')
 
     // Fill name + email — match by proximity to the label, not placeholder guessing
     await dialog.locator('input').filter({ hasNot: page.locator('[type="email"]') }).nth(0).fill(candidateName)
