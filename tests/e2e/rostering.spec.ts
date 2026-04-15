@@ -10,22 +10,22 @@ test.describe('Rostering', () => {
   })
 
   test('O1.1 Tab navigation visible', async ({ page }) => {
-    // Real tabs: Weekly Roster, Compliance, Leave, Programming Time, Staff & Qualifications
     await expect(page.getByText(/weekly roster/i).first()).toBeVisible({ timeout: 10000 })
     await expect(page.getByText(/^compliance$/i).first()).toBeVisible()
   })
 
-  test('O1.2 Week navigation present', async ({ page }) => {
-    await expect(page.getByRole('button', { name: /previous/i })).toBeVisible({ timeout: 10000 })
-    await expect(page.getByRole('button', { name: /next/i })).toBeVisible()
+  test('O1.2 Previous/Next week navigation present', async ({ page }) => {
+    // Exact match to disambiguate "Previous" from "Copy Previous Week"
+    await expect(page.getByRole('button', { name: /^← previous$/i })).toBeVisible({ timeout: 10000 })
+    await expect(page.getByRole('button', { name: /^next →$/i })).toBeVisible()
   })
 
-  test('O1.5 Add Shift buttons available', async ({ page }) => {
-    await expect(page.getByRole('button', { name: /add shift/i }).first()).toBeVisible({ timeout: 10000 })
+  test('O1.5 Room management button present', async ({ page }) => {
+    // "+ Room" button to add rooms for rostering
+    await expect(page.getByRole('button', { name: /\+ room/i })).toBeVisible({ timeout: 10000 })
   })
 
-  test('O1.1 Room labels visible', async ({ page }) => {
-    // Room names appear as row headers in the weekly grid
-    await expect(page.getByText(/joeys|possums|koalas|nursery|toddlers|preschool/i).first()).toBeVisible({ timeout: 10000 })
+  test('O1.5 Publish Week button present', async ({ page }) => {
+    await expect(page.getByRole('button', { name: /publish week/i })).toBeVisible({ timeout: 10000 })
   })
 })
