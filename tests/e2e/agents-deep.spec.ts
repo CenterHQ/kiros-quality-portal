@@ -21,17 +21,13 @@ test.describe('AI Agents — deep interactions', () => {
     await expect(page.getByText(/system prompt|tools|agent|prompt/i).first()).toBeVisible({ timeout: 10000 })
   })
 
-  test('S2-Deep.3 Clicking agent reveals editable fields', async ({ page }) => {
-    // The Kiros AI (Master) card is expanded by default on admin/agents.
-    // It has a "System Prompt" sub-tab which contains a textarea for the prompt.
-    // Click the System Prompt tab first to ensure the editor is visible.
-    const sysPromptTab = page.getByRole('button', { name: /^system prompt$/i })
-      .or(page.getByRole('tab', { name: /system prompt/i }))
-      .first()
-    if (await sysPromptTab.isVisible().catch(() => false)) {
-      await sysPromptTab.click()
-    }
-    // Now a textarea (the system prompt editor) should be present
+  test('S2-Deep.3 Clicking agent Edit reveals editable fields', async ({ page }) => {
+    // The Kiros AI (Master) card is collapsed by default. Click an agent's
+    // "Edit" button to open its edit modal which contains the textarea.
+    const editBtn = page.getByRole('button', { name: /^edit$/i }).first()
+    await expect(editBtn).toBeVisible({ timeout: 10000 })
+    await editBtn.click()
+    // A textarea (system prompt, description, etc.) should appear
     await expect(page.locator('textarea').first()).toBeVisible({ timeout: 10000 })
   })
 })

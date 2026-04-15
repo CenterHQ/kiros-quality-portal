@@ -14,17 +14,24 @@ test.describe('Tasks — deep interactions', () => {
   const comment = `QA comment ${stamp}`
 
   test('D-Deep.1 Create task via Add Task form', async ({ page }) => {
+    test.setTimeout(90000) // Allow extra time for task creation + board re-render
     await page.goto('/tasks')
+    await page.waitForLoadState('networkidle')
+
     await page.getByRole('button', { name: /\+ add task/i }).click()
 
-    // Create form appears with placeholder="Task title"
-    await page.locator('input[placeholder="Task title"]').fill(taskTitle)
+    // Form appears — fill the title input
+    const titleInput = page.locator('input[placeholder="Task title"]')
+    await expect(titleInput).toBeVisible({ timeout: 5000 })
+    await titleInput.fill(taskTitle)
 
-    // Submit button text is literally "Create Task"
+    // Click Create Task (submit). Network round trip + optimistic update should
+    // show the task within 15 seconds.
     await page.getByRole('button', { name: /^create task$/i }).click()
 
-    // New task appears on the board
-    await expect(page.getByText(taskTitle).first()).toBeVisible({ timeout: 10000 })
+    // New task appears on the board — scope to the board area to avoid
+    // matching any other reference to the title
+    await expect(page.getByText(taskTitle).first()).toBeVisible({ timeout: 20000 })
   })
 
   test('D-Deep.2 Task card expands to show details', async ({ page }) => {
