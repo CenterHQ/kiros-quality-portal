@@ -48,7 +48,9 @@ test.describe('Tasks — deep interactions', () => {
     const commentBox = page.getByPlaceholder(/comment|add a comment/i).first()
     if (await commentBox.isVisible().catch(() => false)) {
       await commentBox.fill(comment)
-      await page.getByRole('button', { name: /post|submit|add/i }).first().click()
+      // Use exact match for "Post" — /add/ would otherwise match "+ Add Task"
+      // in the header and reopen the create form instead of submitting.
+      await page.getByRole('button', { name: /^post$/i }).click()
       await expect(page.getByText(comment).first()).toBeVisible({ timeout: 5000 })
     }
   })

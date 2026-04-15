@@ -4,8 +4,8 @@ test.describe('Marketing — deep interactions', () => {
   test('Q-Deep.1 Hub quick actions visible', async ({ page }) => {
     await page.goto('/marketing')
     await page.waitForLoadState('networkidle')
-    // Real buttons: "+ New Content" and "Marketing AI" — match by exact label
-    await expect(page.getByRole('button', { name: /\+ new content/i })).toBeVisible({ timeout: 10000 })
+    // The visible "+" icon is an SVG; accessible name is just "New Content"
+    await expect(page.getByRole('button', { name: /^new content$/i })).toBeVisible({ timeout: 10000 })
     await expect(page.getByRole('button', { name: /^marketing ai$/i })).toBeVisible()
   })
 
