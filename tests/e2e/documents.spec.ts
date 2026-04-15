@@ -13,13 +13,13 @@ test.describe('Documents', () => {
 
   test('N1.1 QA filter chips visible', async ({ page }) => {
     await page.goto('/documents')
-    // Real page shows QA1-QA7 filter chips as buttons
     await expect(page.getByRole('button', { name: /^QA1$/i })).toBeVisible({ timeout: 10000 })
     await expect(page.getByRole('button', { name: /^all$/i })).toBeVisible()
   })
 
-  test('N3.1 AI Documents library loads', async ({ page }) => {
+  test('N3.1 AI Documents library loads with heading', async ({ page }) => {
     await page.goto('/documents/library')
-    await expect(page.locator('body')).toContainText(/document|library|generated/i, { timeout: 10000 })
+    // Must have a heading — body text would match "Documents" / "Module Library" in sidebar
+    await expect(page.getByRole('heading').first()).toBeVisible({ timeout: 10000 })
   })
 })

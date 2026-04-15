@@ -26,6 +26,11 @@ test.describe('Public Apply Page', () => {
     test.skip(!token, 'Set TEST_CANDIDATE_TOKEN env var to run this test')
 
     await page.goto(`/apply/${token}`)
-    await expect(page.locator('body')).toContainText(/question|welcome|assessment/i, { timeout: 10000 })
+    // Scope to a heading (not body text which would trivially match anywhere)
+    await expect(page.getByRole('heading').first()).toBeVisible({ timeout: 10000 })
+    // Progress indicator confirms the questionnaire engine mounted
+    await expect(
+      page.locator('[role="progressbar"]').first().or(page.locator('[class*="progress"]').first()),
+    ).toBeVisible({ timeout: 10000 })
   })
 })

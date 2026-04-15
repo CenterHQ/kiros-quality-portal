@@ -38,11 +38,13 @@ test.describe('Mobile viewport — no horizontal scroll', () => {
       expect(hasHScroll, `${path} should not have horizontal scroll`).toBeFalsy()
     })
 
-    test(`${path}: renders meaningful content`, async ({ page }) => {
+    test(`${path}: renders a heading (page actually mounted)`, async ({ page }) => {
       await page.goto(path)
       await page.waitForLoadState('networkidle')
-      const bodyText = await page.locator('body').textContent()
-      expect(bodyText?.length ?? 0).toBeGreaterThan(100)
+      // Body length is a meaningless signal — sidebar alone exceeds any threshold.
+      // Check that the page's main content area mounted a heading.
+      const headingCount = await page.locator('h1, h2, h3').count()
+      expect(headingCount, `${path} heading count`).toBeGreaterThan(0)
     })
   }
 

@@ -653,7 +653,11 @@ export default function ChatPage() {
 
             {/* Messages */}
             {messages.map(msg => (
-              <div key={msg.id} className={`flex gap-3 animate-fade-in ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+              <div
+                key={msg.id}
+                data-testid={msg.role === 'user' ? 'chat-message-user' : 'chat-message-assistant'}
+                className={`flex gap-3 animate-fade-in ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
+              >
                 {msg.role === 'assistant' && (
                   <div className="w-8 h-8 rounded-full flex items-center justify-center bg-primary text-primary-foreground text-xs font-bold flex-shrink-0 mt-1">K</div>
                 )}
