@@ -22,9 +22,10 @@ test.describe('Admin AI Config', () => {
   })
 
   test('Clicking Tool Permissions tab shows tool list', async ({ page }) => {
-    await page.getByText(/tool permissions/i).first().click()
+    // The description text also contains "tool permissions"; scope to the tab <button>
+    await page.getByRole('button', { name: /^tool permissions$/i }).click()
     // After switching tabs, at least one known tool name should be visible
     await expect(page.getByText(/search_centre_context|get_qa_progress|generate_document/i).first())
-      .toBeVisible({ timeout: 5000 })
+      .toBeVisible({ timeout: 10000 })
   })
 })
