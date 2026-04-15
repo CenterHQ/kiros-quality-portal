@@ -15,13 +15,13 @@ test.describe('Tasks — deep interactions', () => {
 
   test('D-Deep.1 Create task via Add Task form', async ({ page }) => {
     await page.goto('/tasks')
-    await page.getByRole('button', { name: /add task/i }).click()
+    await page.getByRole('button', { name: /\+ add task/i }).click()
 
-    // Create form appears — find title input by label proximity
-    const titleInput = page.locator('input[placeholder*="title" i], input[name="title"]').first()
-    await titleInput.fill(taskTitle)
+    // Create form appears with placeholder="Task title"
+    await page.locator('input[placeholder="Task title"]').fill(taskTitle)
 
-    await page.getByRole('button', { name: /^create$|^add$|^save$/i }).first().click()
+    // Submit button text is literally "Create Task"
+    await page.getByRole('button', { name: /^create task$/i }).click()
 
     // New task appears on the board
     await expect(page.getByText(taskTitle).first()).toBeVisible({ timeout: 10000 })
