@@ -85,17 +85,7 @@ curl -s "$URL/rest/v1/<table>?limit=1" \
   -H "Authorization: Bearer $SERVICE_KEY"
 ```
 
-### Task 3 — Remove the ProtectedLayout.tsx temporary patch
-
-`src/components/ProtectedLayout.tsx` line 14 has a guard that was added when `SUPABASE_SERVICE_ROLE_KEY` was missing:
-
-```ts
-if (!process.env.SUPABASE_SERVICE_ROLE_KEY) return { '/tasks': 0, '/checklists': 0 }
-```
-
-The key IS now set in `.env.local`. Remove this line. CLAUDE.md explicitly says "Revert before committing." This must not be committed to the repo.
-
-### Task 4 — Flag any other spec inaccuracies found
+### Task 3 — Flag any other spec inaccuracies found
 
 If spot-checking reveals other column name mismatches or table structure differences, update Section 22 of `docs/REQUIREMENTS-SPECIFICATION.md` and add a summary of what was corrected to a Phase 6 Findings section (Section 28).
 
@@ -127,8 +117,8 @@ The `kiros` skill is project-local at `.claude/skills/kiros/`. Use it:
 - Does not redesign the skill or add new tools
 - Does not start the UX spec review
 - Does not interview users
-- Does not touch application code beyond removing the ProtectedLayout.tsx patch
+- Does not touch application code
 
 ---
 
-The one-line brief: we thought we knew the schema from migrations and code — we were wrong about `qa_elements` and we'll likely be wrong about others. Query every table in Section 22 against the live DB, treat every surprise as expected, fix the spec as you go, remove the temporary code patch, then return to the Baku handoff track.
+The one-line brief: we thought we knew the schema from migrations and code — we were wrong about `qa_elements` and we'll likely be wrong about others. Query every table in Section 22 against the live DB, treat every surprise as expected, fix the spec as you go, then return to the Baku handoff track.
