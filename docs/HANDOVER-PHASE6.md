@@ -24,7 +24,9 @@ Before they go to Baku, one problem was found that must be resolved first.
 
 ## The Rabbit Hole — Schema Accuracy Pass
 
-When we built the `nqs` tool for the kiros skill, we queried the live `qa_elements` table and discovered the column names in REQUIREMENTS-SPECIFICATION.md Section 22 are wrong:
+### How we got here — and why the posture matters
+
+When we built the `nqs` tool for the kiros skill, we queried the live `qa_elements` table expecting to confirm the schema we had documented. Instead we found the spec was wrong in three places:
 
 | Spec said | Live DB actually has |
 |---|---|
@@ -32,7 +34,13 @@ When we built the `nqs` tool for the kiros skill, we queried the live `qa_elemen
 | `rating` | `current_rating` (values: `not_met`, `met`) |
 | `work_status` | `status` (values: `not_started`, `in_progress`) |
 
-We fixed the kiros script but did NOT update the spec. There are likely other tables in Section 22 with similar mismatches — we only verified `qa_elements` and `centre_context` against the live DB. The other ~45 tables in Section 22 are still spec-derived, not live-verified.
+We also found columns the spec never mentioned at all — `qa_name`, `standard_name`, `concept`, `meeting_criteria`, `exceeding_criteria`, `training_points`, `target_rating`. The table is substantially richer than documented.
+
+None of this was caught by reading migrations or TypeScript types. It was only caught by querying the live DB directly.
+
+**This is the lesson that shapes Phase 6:** the spec was written by reading code and migrations, not by reading the live database. The live database is the authority. Assume any table could have drifted, be richer than documented, or use different naming conventions than the spec implies. Go looking for what you don't know you don't know — not just verifying a checklist.
+
+We fixed the kiros script but did NOT update the spec. The other ~45 tables in Section 22 are still spec-derived, not live-verified.
 
 This matters because Baku will build a database from this spec. Wrong column names = broken migrations from day one.
 
@@ -52,19 +60,21 @@ assigned_to, officer_finding, our_response, actions_taken,
 meeting_criteria, exceeding_criteria, training_points, due_date, notes
 ```
 
-### Task 2 — Spot-check the other high-stakes tables against the live DB
+### Task 2 — Full schema scan of every table in Section 22
 
-Use the kiros skill and direct Supabase REST API calls (credentials in `.env.local`) to verify the actual column names for these tables, which are most likely to have drifted or been misremembered:
+Do not limit this to a pre-identified list. Query every table named in Section 22 of the spec with `?limit=1` and compare the actual keys against what the spec documents. The NQS discovery proved that pre-identified priorities miss the real surprises.
 
-Priority order:
-1. `tasks` — spec says `status (todo|in_progress|review|done)` — verify the enum values match live DB
-2. `checklist_templates` — spec says `items (JSONB)` and `frequency` — verify column names
-3. `checklist_instances` — spec says `items_snapshot (JSONB)` — verify
-4. `lms_modules` — spec says `status` — verify
-5. `chat_conversations` and `chat_messages` — spec says specific role enums — verify
-6. `profiles` — spec says `allowed_pages (text[])` — verify column name and type
+For each table: print all actual column names, note anything the spec got wrong (wrong name, wrong type, missing column, undocumented column), and record your findings. Update Section 22 immediately for each table as you go — don't batch the fixes.
 
-For each: query `?limit=1` via curl with the service role key and print the actual keys. Fix any mismatches in Section 22 of the spec.
+Start with these because they are core to the rebuild and most likely to have drifted:
+1. `tasks` — spec says `status (todo|in_progress|review|done)` — are those the actual enum values?
+2. `checklist_templates` and `checklist_instances` — spec says `items (JSONB)` and `items_snapshot (JSONB)` — verify names and structure
+3. `profiles` — spec says `allowed_pages (text[])` — verify column name and type
+4. `chat_conversations` and `chat_messages` — spec says specific role enums (`user|assistant|tool_call|tool_result`) — verify
+5. `lms_modules`, `lms_enrollments`, `lms_section_progress` — LMS has the most complex schema in the spec
+6. `element_actions` — used in the kiros nqs tool but its actual columns were never verified
+
+Then work through every remaining table in Section 22 in order. Expect to find surprises. Document them in a Phase 6 Findings section (Section 28) as you go.
 
 To query live DB:
 ```bash
@@ -121,4 +131,4 @@ The `kiros` skill is project-local at `.claude/skills/kiros/`. Use it:
 
 ---
 
-The one-line brief: the specs are nearly Baku-ready, but we found one confirmed schema error and likely more — do a targeted live-DB verification pass on the highest-stakes tables in Section 22, fix the spec, remove the temporary code patch, then return to the Baku handoff track.
+The one-line brief: we thought we knew the schema from migrations and code — we were wrong about `qa_elements` and we'll likely be wrong about others. Query every table in Section 22 against the live DB, treat every surprise as expected, fix the spec as you go, remove the temporary code patch, then return to the Baku handoff track.
