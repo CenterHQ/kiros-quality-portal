@@ -441,3 +441,116 @@ The following are explicitly excluded from this build:
 - Email sending (reserved for future enhancement, e.g. policy review reminders)
 - Writing data back to SharePoint or OWNA
 - Integration with any external ATS or payroll system
+
+---
+
+## 26. Phase 5 Findings — Database Reality Check
+
+*Added 2026-04-19. Source: live Supabase DB audit (76 tables, row counts, RLS policies) against this specification.*
+
+### 26.1 Schema Corrections
+
+The following tables exist in the live DB but were missing from Section 22 of this spec. The rebuild MUST include them:
+
+| Table | Live Rows | Why It Matters |
+|---|---|---|
+| `element_actions` | 68 | Core to QA improvement cycle — tracks improvement plans per NQS element |
+| `lms_module_centre_content` | 186 | Centre adds their own content to each LMS module — critical for content ownership |
+| `lms_pathway_modules` | 29 | Junction table linking pathways to modules — required for pathway functionality |
+| `checklist_categories` | 8 | Checklists are organised by category |
+| `policy_categories` | 12 | Policies are organised by category |
+| `smart_tickets` | 0 | Auto-generated remediation tickets from checklist failures — key design feature |
+| `resources` | 35 | Resources library visible to staff |
+| `ai_tool_permissions` | 49 | Role-based AI tool access control — actively configured |
+| `ai_document_styles` | 4 | Required for AI document generation |
+| `lms_pdp_reviews` | 0 | Pairs with `lms_pdp_goals` for the PDP cycle |
+| `lms_reflections` | 1 | Part of LMS learner journey |
+| `marketing_messages_inbox` | 92 | Read-only inbox from Meta integration (separate from `marketing_messages`) |
+
+### 26.2 Naming Corrections
+
+| This Spec Said | Live DB Actual Name | Use in Rebuild |
+|---|---|---|
+| `shifts` | `roster_shifts` | Use `roster_shifts` |
+| `sharepoint_credentials` | `sharepoint_connection` | Use `sharepoint_connection` |
+
+### 26.3 Tables Confirmed as Not Carry Forward
+
+| Table | Live Rows | Reason |
+|---|---|---|
+| `ai_suggestions` | 0 | Confirmed abandoned — never populated |
+| `training_modules` | 8 | Legacy system — consolidate into single LMS |
+| `training_assignments` | 0 | Legacy system — never used |
+
+### 26.4 Critical RLS Finding
+
+17 LMS and SharePoint tables have `FOR ALL USING(true) WITH CHECK(true)` policies. Any authenticated user can create, modify, or delete any row — including deleting LMS modules or issuing certificates for other users.
+
+**Rebuild requirement (amplified from Section 23):** LMS tables MUST have role-differentiated RLS. `educator` role can only write their own progress and quiz responses. `admin`/`manager` can manage modules, sections, quiz questions, and pathways. `lms_module_centre_content` should be writable only by `admin` and `manager`.
+
+---
+
+## 27. Phase 5 Findings — Feature Classification
+
+*User-needs-first assessment based on live DB row counts, 2026-04-19. The classification answers: what does an NQS compliance portal for ~20 staff actually need?*
+
+### 27.1 Classification Table
+
+| Feature Module | Classification | Evidence / Rationale |
+|---|---|---|
+| **NQS / QA Elements** | Core | 40 elements seeded, 68 element actions — fundamental to the centre's compliance purpose |
+| **Tasks** | Core | 22 rows active, referenced throughout the system |
+| **AI Chat** | Core | 539 messages, 78 conversations — the most-used feature. This is the competitive differentiator |
+| **LMS (Learning)** | Core | 41 modules, 186 centre content entries — real investment. Must launch with adoption mechanism |
+| **Checklists** | Core | 19 templates exist; 0 instances ever run — **the biggest gap at launch**. Build this first |
+| **Policies + Acknowledgements** | Core | 0 policies created despite 12 categories — urgently needed for compliance |
+| **Recruitment** | High Value | 14 candidates, 19 positions, 60 templates — actively used |
+| **Activity Log** | High Value | 79 rows — monitoring and audit trail used |
+| **Registers** | High Value | 7 registers defined, 0 entries — framework exists; entry workflow needed |
+| **Compliance Items** | High Value | 9 items — in use |
+| **Documents (AI-generated)** | High Value | 15 generated documents — used with AI chat |
+| **centre_context** | Core (internal) | 127 entries — essential for grounding AI chat |
+| **Rostering** | Uncertain | 0 shifts, 0 roster templates — built, not used. Deprioritise in v1 rebuild |
+| **Programming Hub** | Uncertain | 0 rows in `programming_time` — never activated |
+| **Resources Library** | Uncertain | 35 rows exist — data is there, unknown if staff access it |
+| **Forms** | Uncertain | 0 submissions — module built, not used |
+| **Reports Extractor** | Uncertain | Likely blocked by missing credentials; usage unknown |
+| **AP Dashboard** | Uncertain | Only 1 centre in DB; multi-centre logic untested |
+| **Staff DISC Profiles** | Uncertain | 0 rows — never used |
+| **PDP System** | Uncertain | 0 goals, 0 reviews — built, never activated |
+| **Marketing** | Out of Scope (v1) | All content tables empty. Inbox has 92 read-only rows from Meta. Full social publishing is a product in its own right |
+| **OWNA Integration** | Out of Scope (v1) | Read-only. Add as a second-pass feature once core is stable |
+| **SharePoint Sync** | Out of Scope (v1) | 91 documents synced — it works, but the sync mechanism is complex. Add after core rebuild |
+| **Legacy Training System** | Drop | `training_modules`/`training_assignments` — 0 assignments, consolidate into LMS |
+
+### 27.2 Adjusted v1 Scope for Baku
+
+**Build first (Core — centre cannot operate without these):**
+1. Auth + Roles + Profile management
+2. NQS Elements + QA improvement cycle (element_actions)
+3. Tasks (assignment, status, due dates)
+4. Checklists — template → schedule → instance → completion → smart ticket
+5. Policies — create, version, publish, staff acknowledgement
+6. AI Chat (37 tools, centre_context grounding)
+7. LMS — modules, sections, quiz, enrolment, progress, pathways, certificates
+
+**Build second (High Value — regular benefit for small centre):**
+8. Recruitment — positions, candidates, question templates
+9. Registers — definitions + entry workflow
+10. Activity Log (real-time audit feed)
+11. Admin panel — user management, AI agent configuration, centre settings
+12. AI-generated documents (styles + generation)
+
+**Defer or scope down (Uncertain — build only if time permits):**
+- Rostering: ratio rules and room management only; skip shift scheduling for v1
+- Resources library: read-only list view only
+- AP Dashboard: single-centre mode only; drop multi-centre assumptions
+
+**Explicitly exclude from v1:**
+- Marketing module (full product requiring OAuth, social APIs, publishing)
+- OWNA integration (read-only; add in v2)
+- SharePoint sync (complex OAuth; add in v2)
+- PDP system (never used; validate need before building)
+- Programming time tracking (0 usage)
+- Legacy training system (drop; consolidate into LMS)
+- Forms module (0 submissions; validate need before building)

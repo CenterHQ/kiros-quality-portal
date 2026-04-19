@@ -14,22 +14,23 @@ Set these in `.env.local` at the project root. Dev server runs on port 3333 (`np
 |---|---|---|
 | `SUPABASE_URL` | Set | — |
 | `SUPABASE_ANON_KEY` | Set | — |
-| `SUPABASE_SERVICE_ROLE_KEY` | **MISSING** | Badge counts return 0; staff onboarding fails; certificate PDF generation fails; AI system writes fail |
-| `ANTHROPIC_API_KEY` | **MISSING** | All AI chat fails; no AI features work at all; admin agent testing fails |
-| `OWNA_API_KEY` | **MISSING** | All `/owna/*` pages return 500 |
-| SharePoint OAuth credentials | **NOT CONFIGURED** | SharePoint sync non-functional |
-| `META_*` / `GOOGLE_ADS_*` keys | **NOT CONFIGURED** | Marketing ad campaigns and OAuth non-functional |
+| `SUPABASE_SERVICE_ROLE_KEY` | **Now set** *(was missing)* | Badge counts, onboarding, cron jobs all functional |
+| `ANTHROPIC_API_KEY` | **Now set** *(was missing)* | AI chat should be functional |
+| `OWNA_API_KEY` | **Now set** *(was missing)* | OWNA integration should be functional |
+| SharePoint OAuth | **Partially configured** | `TENANT_ID`, `CLIENT_ID`, `CLIENT_SECRET` set; `MICROSOFT_SHAREPOINT_SITE_URL` is empty — sync will fail |
+| `META_*` keys | **Partially configured** | `META_APP_ID` and `META_APP_SECRET` set; `META_WEBHOOK_VERIFY_TOKEN` missing |
+| `GOOGLE_ADS_*` keys | **Partially configured** | `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` set; `GOOGLE_ADS_DEVELOPER_TOKEN` and `GOOGLE_ADS_LOGIN_CUSTOMER_ID` missing |
 
-**Highest priority:** Set `SUPABASE_SERVICE_ROLE_KEY` and `ANTHROPIC_API_KEY`. Everything else is secondary.
+**Remaining blockers:** Set `MICROSOFT_SHAREPOINT_SITE_URL` for SharePoint sync. Complete Google Ads developer token for marketing campaigns. Set `META_WEBHOOK_VERIFY_TOKEN` for Meta webhooks.
 
 ---
 
 ## 2. What's Broken Right Now
 
-- **AI chat** — all AI features dead without `ANTHROPIC_API_KEY`
-- **OWNA pages** — all `/owna/*` routes return 500 without `OWNA_API_KEY`
-- **Staff onboarding** — creates auth users via service role client; fails without `SUPABASE_SERVICE_ROLE_KEY`
-- **Sidebar badge counts** — currently patched to return 0 (see Section 7)
+- **AI chat** — `ANTHROPIC_API_KEY` now set; should be functional; not smoke-tested in Phase 5
+- **OWNA pages** — `OWNA_API_KEY` now set; should be functional; not smoke-tested in Phase 5
+- **Staff onboarding** — `SUPABASE_SERVICE_ROLE_KEY` now set; should be functional
+- **Sidebar badge counts** — `SUPABASE_SERVICE_ROLE_KEY` now set; temporary patch in ProtectedLayout.tsx can now be removed (see Section 7)
 - **SharePoint sync** — no OAuth credentials configured
 - **Marketing social publishing** — no Meta/Google OAuth configured
 - **`export_document` AI tool** — stub only; returns UI guidance text, never exports anything
@@ -124,7 +125,7 @@ The entire AI tool catalogue, `executeTool` switch, and system prompt builders a
 if (!process.env.SUPABASE_SERVICE_ROLE_KEY) return { '/tasks': 0, '/checklists': 0 }
 ```
 
-**Remove this line once `SUPABASE_SERVICE_ROLE_KEY` is set in `.env.local`.** It silently suppresses badge count errors rather than surfacing them.
+**`SUPABASE_SERVICE_ROLE_KEY` is now set in `.env.local`.** This line should be removed. Verified still present as of Phase 5 audit (2026-04-19, line 14 of `ProtectedLayout.tsx`). Remove it to restore actual badge counts.
 
 ---
 
@@ -137,7 +138,41 @@ if (!process.env.SUPABASE_SERVICE_ROLE_KEY) return { '/tasks': 0, '/checklists':
 
 ---
 
-## 9. Key File Locations
+## 9. Phase 5 Audit Findings (2026-04-19)
+
+### 9.1 Live DB Reveals Unfinished Operational Features
+
+Three features that appear complete in the UI have ZERO production usage — not because of bugs, but because the operational workflow was never started:
+
+| Feature | Evidence | Risk |
+|---|---|---|
+| **Checklists** | 19 templates, 0 instances ever run | The core compliance mechanism has never been used. smart_tickets is at 0 as a direct consequence. |
+| **Policies** | 12 categories, 0 policies created | Staff have never acknowledged any policy. Compliance and regulatory exposure. |
+| **Registers** | 7 register definitions, 0 entries | Registers are a mandatory ACECQA record-keeping requirement. Zero entries is a gap. |
+
+These are not code bugs — they are operational gaps. The system is ready; the centre hasn't started using these features.
+
+### 9.2 Playwright Tests Cannot Run
+
+All E2E tests require `TEST_EMAIL` and `TEST_PASSWORD` environment variables set before the auth setup step runs. These are not in `.env.local`. Until they're set, all 43 tests in the suite will fail at the auth step. To run:
+
+```bash
+TEST_EMAIL=your@email.com TEST_PASSWORD=yourpassword npx playwright test
+```
+
+No test credentials were found in the repository. This is a gap — if test users don't exist in the Supabase project, tests can't run even with credentials.
+
+### 9.3 RLS Security Gap Confirmed
+
+17 LMS and SharePoint tables have `FOR ALL USING(true) WITH CHECK(true)` policies. Any logged-in staff member can delete all LMS modules or issue certificates for other users. Full table list and detail in `docs/DB-REALITY-CHECK.md`, Section 4.
+
+### 9.4 Environment Variable Status Corrected
+
+Section 1 of this document has been updated. All primary keys (`SUPABASE_SERVICE_ROLE_KEY`, `ANTHROPIC_API_KEY`, `OWNA_API_KEY`) are now present in `.env.local`. Three keys remain partially or fully unconfigured: SharePoint site URL, Google Ads developer token, Meta webhook verify token.
+
+---
+
+## 10. Key File Locations
 
 | What | Where |
 |---|---|
